@@ -15,6 +15,9 @@ import VehicleUse from "./pages/employee/VehicleUse";
 import Fueling from "./pages/employee/Fueling";
 import History from "./pages/employee/History";
 import AdminDashboard from "./pages/admin/AdminDashboard";
+import Employees from "./pages/admin/Employees";
+import Vehicles from "./pages/admin/Vehicles";
+import Projects from "./pages/admin/Projects";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -61,7 +64,9 @@ const App = () => (
               }
             >
               <Route index element={<AdminDashboard />} />
-              {/* Additional admin routes will be added in Phase 5 */}
+              <Route path="employees" element={<Employees />} />
+              <Route path="vehicles" element={<Vehicles />} />
+              <Route path="projects" element={<Projects />} />
             </Route>
 
             {/* Catch-all route */}
