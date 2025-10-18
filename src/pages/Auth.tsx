@@ -14,28 +14,15 @@ const Auth = () => {
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
-  const { signIn, signUp, user, role } = useAuth();
-  const navigate = useNavigate();
-
-  // Redirect if already logged in
-  if (user && role) {
-    if (role === 'admin') {
-      navigate('/admin');
-    } else {
-      navigate('/dashboard');
-    }
-    return null;
-  }
+  const { signIn, signUp } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     if (isLogin) {
-      const { error } = await signIn(email, password);
-      if (!error) {
-        // Navigation will be handled by AuthContext after role is fetched
-      }
+      await signIn(email, password);
+      // Navigation will be handled by AuthContext
     } else {
       if (!fullName.trim()) {
         setLoading(false);

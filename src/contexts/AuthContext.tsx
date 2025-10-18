@@ -58,6 +58,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setTimeout(async () => {
             const userRole = await fetchUserRole(currentSession.user.id);
             setRole(userRole);
+            
+            // Redirect after login based on role
+            if (event === 'SIGNED_IN' && userRole) {
+              if (userRole === 'admin') {
+                navigate('/admin');
+              } else {
+                navigate('/dashboard');
+              }
+            }
           }, 0);
         } else {
           setRole(null);
@@ -83,7 +92,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [navigate]);
 
   const signUp = async (email: string, password: string, fullName: string) => {
     try {
