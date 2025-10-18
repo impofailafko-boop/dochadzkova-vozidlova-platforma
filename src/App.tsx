@@ -10,6 +10,10 @@ import EmployeeLayout from "@/components/layouts/EmployeeLayout";
 import AdminLayout from "@/components/layouts/AdminLayout";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/employee/Dashboard";
+import Attendance from "./pages/employee/Attendance";
+import VehicleUse from "./pages/employee/VehicleUse";
+import Fueling from "./pages/employee/Fueling";
+import History from "./pages/employee/History";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import NotFound from "./pages/NotFound";
 
@@ -39,7 +43,10 @@ const App = () => (
               }
             >
               <Route path="dashboard" element={<Dashboard />} />
-              {/* Additional employee routes will be added in Phase 4 */}
+              <Route path="attendance" element={<Attendance />} />
+              <Route path="vehicle-use" element={<VehicleUse />} />
+              <Route path="fueling" element={<Fueling />} />
+              <Route path="history" element={<History />} />
             </Route>
 
             {/* Protected Admin routes */}
