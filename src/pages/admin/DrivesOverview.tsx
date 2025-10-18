@@ -1,0 +1,239 @@
+import { useState } from 'react';
+import { useAdminDrives } from '@/hooks/useAdminDrives';
+import { useEmployees } from '@/hooks/useEmployees';
+import { useAdminVehicles } from '@/hooks/useAdminVehicles';
+import { useAdminProjects } from '@/hooks/useAdminProjects';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
+import { Download } from 'lucide-react';
+
+const DrivesOverview = () => {
+  const [filters, setFilters] = useState({
+    startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    endDate: new Date().toISOString().split('T')[0],
+    userId: '',
+    vehicleId: '',
+    projectId: '',
+  });
+
+  const { data: drives, isLoading } = useAdminDrives(filters);
+  const { employees } = useEmployees();
+  const { vehicles } = useAdminVehicles();
+  const { projects } = useAdminProjects();
+
+  const totalKm = drives?.reduce((sum: number, drive: any) => sum + (drive.km_driven || 0), 0) || 0;
+
+  const handleExport = () => {
+    if (!drives || drives.length === 0) return;
+
+    const csv = [
+      ['Dátum', 'Zamestnanec', 'Vozidlo', 'Projekt', 'Km začiatku', 'Km konca', 'Km celkom'].join(','),
+      ...drives.map((record: any) => [
+        record.date,
+        record.profiles?.full_name || '-',
+        record.vehicles?.spz || '-',
+        record.projects?.name || '-',
+        record.km_start,
+        record.km_end,
+        record.km_driven,
+      ].join(',')),
+    ].join('\n');
+
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `jazdy_${filters.startDate}_${filters.endDate}.csv`;
+    a.click();
+  };
+
+  return (
+    <div className="p-6 space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold mb-2">Prehľad jázd</h1>
+          <p className="text-muted-foreground">Všetky jazdy služobnými vozidlami</p>
+        </div>
+        <Button onClick={handleExport} disabled={!drives || drives.length === 0}>
+          <Download className="mr-2 h-4 w-4" />
+          Export CSV
+        </Button>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Štatistiky</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <p className="text-sm text-muted-foreground">Celkový počet jázd</p>
+              <p className="text-2xl font-bold">{drives?.length || 0}</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Celkové kilometre</p>
+              <p className="text-2xl font-bold">{totalKm.toLocaleString()} km</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Filtre</CardTitle>
+          <CardDescription>Filtrovanie záznamov jázd</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+            <div className="space-y-2">
+              <Label htmlFor="startDate">Od dátumu</Label>
+              <Input
+                id="startDate"
+                type="date"
+                value={filters.startDate}
+                onChange={(e) => setFilters({ ...filters, startDate: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="endDate">Do dátumu</Label>
+              <Input
+                id="endDate"
+                type="date"
+                value={filters.endDate}
+                onChange={(e) => setFilters({ ...filters, endDate: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="employee">Zamestnanec</Label>
+              <Select
+                value={filters.userId}
+                onValueChange={(value) => setFilters({ ...filters, userId: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Všetci" />
+                </SelectTrigger>
+                <SelectContent className="bg-popover z-50">
+                  <SelectItem value="">Všetci</SelectItem>
+                  {employees?.map((emp: any) => (
+                    <SelectItem key={emp.user_id} value={emp.user_id}>
+                      {emp.full_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="vehicle">Vozidlo</Label>
+              <Select
+                value={filters.vehicleId}
+                onValueChange={(value) => setFilters({ ...filters, vehicleId: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Všetky" />
+                </SelectTrigger>
+                <SelectContent className="bg-popover z-50">
+                  <SelectItem value="">Všetky</SelectItem>
+                  {vehicles?.map((vehicle: any) => (
+                    <SelectItem key={vehicle.id} value={vehicle.id}>
+                      {vehicle.spz}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="project">Projekt</Label>
+              <Select
+                value={filters.projectId}
+                onValueChange={(value) => setFilters({ ...filters, projectId: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Všetky" />
+                </SelectTrigger>
+                <SelectContent className="bg-popover z-50">
+                  <SelectItem value="">Všetky</SelectItem>
+                  {projects?.map((project: any) => (
+                    <SelectItem key={project.id} value={project.id}>
+                      {project.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Záznamy jázd</CardTitle>
+          <CardDescription>
+            {drives?.length || 0} záznamov
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="space-y-2">
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Dátum</TableHead>
+                  <TableHead>Zamestnanec</TableHead>
+                  <TableHead>Vozidlo</TableHead>
+                  <TableHead>Projekt</TableHead>
+                  <TableHead className="text-right">Km</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {drives && drives.length > 0 ? (
+                  drives.map((record: any) => (
+                    <TableRow key={record.id}>
+                      <TableCell className="font-medium">
+                        {new Date(record.date).toLocaleDateString('sk-SK')}
+                      </TableCell>
+                      <TableCell>{record.profiles?.full_name || '-'}</TableCell>
+                      <TableCell>{record.vehicles?.spz || '-'}</TableCell>
+                      <TableCell>{record.projects?.name || '-'}</TableCell>
+                      <TableCell className="text-right">{record.km_driven} km</TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center text-muted-foreground">
+                      Žiadne záznamy
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+export default DrivesOverview;

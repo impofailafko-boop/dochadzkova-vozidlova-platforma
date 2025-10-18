@@ -18,6 +18,10 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import Employees from "./pages/admin/Employees";
 import Vehicles from "./pages/admin/Vehicles";
 import Projects from "./pages/admin/Projects";
+import AttendanceOverview from "./pages/admin/AttendanceOverview";
+import DrivesOverview from "./pages/admin/DrivesOverview";
+import FuelingsOverview from "./pages/admin/FuelingsOverview";
+import Reports from "./pages/admin/Reports";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -67,6 +71,10 @@ const App = () => (
               <Route path="employees" element={<Employees />} />
               <Route path="vehicles" element={<Vehicles />} />
               <Route path="projects" element={<Projects />} />
+              <Route path="attendance-overview" element={<AttendanceOverview />} />
+              <Route path="drives-overview" element={<DrivesOverview />} />
+              <Route path="fuelings-overview" element={<FuelingsOverview />} />
+              <Route path="reports" element={<Reports />} />
             </Route>
 
             {/* Catch-all route */}
