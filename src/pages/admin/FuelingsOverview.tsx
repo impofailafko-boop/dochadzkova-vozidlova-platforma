@@ -28,11 +28,16 @@ const FuelingsOverview = () => {
   const [filters, setFilters] = useState({
     startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     endDate: new Date().toISOString().split('T')[0],
-    userId: '',
-    vehicleId: '',
+    userId: 'all',
+    vehicleId: 'all',
   });
 
-  const { data: fuelings, isLoading } = useAdminFuelings(filters);
+  const { data: fuelings, isLoading } = useAdminFuelings({
+    startDate: filters.startDate,
+    endDate: filters.endDate,
+    ...(filters.userId !== 'all' && { userId: filters.userId }),
+    ...(filters.vehicleId !== 'all' && { vehicleId: filters.vehicleId }),
+  });
   const { employees } = useEmployees();
   const { vehicles } = useAdminVehicles();
 
@@ -132,7 +137,7 @@ const FuelingsOverview = () => {
                   <SelectValue placeholder="Všetci" />
                 </SelectTrigger>
                 <SelectContent className="bg-popover z-50">
-                  <SelectItem value="">Všetci</SelectItem>
+                  <SelectItem value="all">Všetci</SelectItem>
                   {employees?.map((emp: any) => (
                     <SelectItem key={emp.user_id} value={emp.user_id}>
                       {emp.full_name}
@@ -151,7 +156,7 @@ const FuelingsOverview = () => {
                   <SelectValue placeholder="Všetky" />
                 </SelectTrigger>
                 <SelectContent className="bg-popover z-50">
-                  <SelectItem value="">Všetky</SelectItem>
+                  <SelectItem value="all">Všetky</SelectItem>
                   {vehicles?.map((vehicle: any) => (
                     <SelectItem key={vehicle.id} value={vehicle.id}>
                       {vehicle.spz}

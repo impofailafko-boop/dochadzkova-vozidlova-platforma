@@ -27,10 +27,14 @@ const AttendanceOverview = () => {
   const [filters, setFilters] = useState({
     startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     endDate: new Date().toISOString().split('T')[0],
-    userId: '',
+    userId: 'all',
   });
 
-  const { data: attendance, isLoading } = useAdminAttendance(filters);
+  const { data: attendance, isLoading } = useAdminAttendance(
+    filters.userId === 'all' 
+      ? { startDate: filters.startDate, endDate: filters.endDate }
+      : filters
+  );
   const { employees } = useEmployees();
 
   const handleExport = () => {
@@ -103,7 +107,7 @@ const AttendanceOverview = () => {
                   <SelectValue placeholder="Všetci" />
                 </SelectTrigger>
                 <SelectContent className="bg-popover z-50">
-                  <SelectItem value="">Všetci</SelectItem>
+                  <SelectItem value="all">Všetci</SelectItem>
                   {employees?.map((emp: any) => (
                     <SelectItem key={emp.user_id} value={emp.user_id}>
                       {emp.full_name}

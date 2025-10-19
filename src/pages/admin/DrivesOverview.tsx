@@ -29,12 +29,18 @@ const DrivesOverview = () => {
   const [filters, setFilters] = useState({
     startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     endDate: new Date().toISOString().split('T')[0],
-    userId: '',
-    vehicleId: '',
-    projectId: '',
+    userId: 'all',
+    vehicleId: 'all',
+    projectId: 'all',
   });
 
-  const { data: drives, isLoading } = useAdminDrives(filters);
+  const { data: drives, isLoading } = useAdminDrives({
+    startDate: filters.startDate,
+    endDate: filters.endDate,
+    ...(filters.userId !== 'all' && { userId: filters.userId }),
+    ...(filters.vehicleId !== 'all' && { vehicleId: filters.vehicleId }),
+    ...(filters.projectId !== 'all' && { projectId: filters.projectId }),
+  });
   const { employees } = useEmployees();
   const { vehicles } = useAdminVehicles();
   const { projects } = useAdminProjects();
@@ -131,7 +137,7 @@ const DrivesOverview = () => {
                   <SelectValue placeholder="Všetci" />
                 </SelectTrigger>
                 <SelectContent className="bg-popover z-50">
-                  <SelectItem value="">Všetci</SelectItem>
+                  <SelectItem value="all">Všetci</SelectItem>
                   {employees?.map((emp: any) => (
                     <SelectItem key={emp.user_id} value={emp.user_id}>
                       {emp.full_name}
@@ -150,7 +156,7 @@ const DrivesOverview = () => {
                   <SelectValue placeholder="Všetky" />
                 </SelectTrigger>
                 <SelectContent className="bg-popover z-50">
-                  <SelectItem value="">Všetky</SelectItem>
+                  <SelectItem value="all">Všetky</SelectItem>
                   {vehicles?.map((vehicle: any) => (
                     <SelectItem key={vehicle.id} value={vehicle.id}>
                       {vehicle.spz}
@@ -169,7 +175,7 @@ const DrivesOverview = () => {
                   <SelectValue placeholder="Všetky" />
                 </SelectTrigger>
                 <SelectContent className="bg-popover z-50">
-                  <SelectItem value="">Všetky</SelectItem>
+                  <SelectItem value="all">Všetky</SelectItem>
                   {projects?.map((project: any) => (
                     <SelectItem key={project.id} value={project.id}>
                       {project.name}
