@@ -23,15 +23,15 @@ import {
 
 const items = [
   { title: 'Dashboard', url: '/admin', icon: LayoutDashboard },
-  { title: 'Zamestnanci', url: '/admin/users', icon: Users },
+  { title: 'Zamestnanci', url: '/admin/employees', icon: Users },
   { title: 'Vozidlá', url: '/admin/vehicles', icon: Car },
   { title: 'Projekty', url: '/admin/projects', icon: Briefcase },
 ];
 
 const viewItems = [
-  { title: 'Dochádzka', url: '/admin/attendance', icon: Clock },
-  { title: 'Jazdy', url: '/admin/vehicle-logs', icon: Route },
-  { title: 'Tankovania', url: '/admin/fuel-logs', icon: Fuel },
+  { title: 'Dochádzka', url: '/admin/attendance-overview', icon: Clock },
+  { title: 'Jazdy', url: '/admin/drives-overview', icon: Route },
+  { title: 'Tankovania', url: '/admin/fuelings-overview', icon: Fuel },
   { title: 'Reporty', url: '/admin/reports', icon: BarChart3 },
 ];
 
