@@ -1,6 +1,6 @@
 # PROJECT STATUS - Živý stav aplikácie
 
-*Posledná aktualizácia: 2025-01-20 20:50 - Pridaný stĺpec "Projekt" aj do History → Tankovania tab*
+*Posledná aktualizácia: 2025-01-20 21:15 - Admin sekcie upravené: Zamestnanci → Aktuálny projekt (bez role UI), Projekty → 3 stavy (Naplánované/Aktívne/Hotové)*
 
 ---
 
@@ -185,15 +185,19 @@ Všetky bugy opravené! ✅
 ### ✅ FÁZA 3 - HOTOVÉ featury (2025-01-20)
 7. ✅ **Filter projekty v Tankovaniach** - Pridaný project_id stĺpec + filter v Admin FuelingsOverview + voliteľný select v Employee Fueling formulári
 8. ✅ **Projekty v History** - Projekty sa zobrazujú v `/history` → tab "Jazdy" aj "Tankovania" (stĺpec "Projekt" + JOIN v useVehicleLogs a useFuelLogs)
+9. ✅ **Admin sekcie upravené**:
+   - **Zamestnanci** - Odstránený "Rola" stĺpec, zostal len "Aktuálny projekt" dropdown (role sa naďalej spravujú cez backend)
+   - **Projekty** - Stav zmenený na 3 možnosti: "Naplánované" / "Aktívne" / "Hotové" (namiesto planned/active/completed enum)
 
-### MEDIUM PRIORITY (Fáza 3-4)
-9. **Dodatočný príchod** - Tlačidlo s povinnou poznámkou
-10. **Notifikácie** - Upozornenie na zabudnutý odchod
+### MEDIUM PRIORITY (Fáza 4)
+10. **Dodatočný príchod** - Tlačidlo s povinnou poznámkou
+11. **Notifikácie** - Upozornenie na zabudnutý odchod
+12. **CSV Export všetkého** - Jedno tlačidlo na export dochádzky + jazdy + tankovania do jedného CSV súboru (s filtrami)
 
-### LOW PRIORITY (Fáza 4+)
-11. **Dashboard kalendár** - Denné reporty po kliknutí na deň
-12. **Excel export** - Komplexný export pre verifikáciu
-13. **Dark/Light mode** toggle
+### LOW PRIORITY (Fáza 5+)
+13. **Dashboard kalendár** - Denné reporty po kliknutí na deň
+14. **Dark/Light mode** toggle
+15. **Dizajn update** - Prispôsobenie farieb podľa pikolo.sk stránky
 14. ~~**Profile editing** pre employeea~~ ✅ HOTOVÉ
 15. **Admin role assignment UI** - Vrátiť možnosť zmeny role cez UI (Employee/Admin dropdown v tabuľke Employees)
 16. **Pridať grafy do Reports** (recharts - line charts pre trends)
