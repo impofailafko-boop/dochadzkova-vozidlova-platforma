@@ -155,7 +155,6 @@ const Employees = () => {
                 <TableRow>
                   <TableHead>Meno</TableHead>
                   <TableHead>Telefón</TableHead>
-                  <TableHead>Rola</TableHead>
                   <TableHead>Aktuálny projekt</TableHead>
                   <TableHead className="text-right">Akcie</TableHead>
                 </TableRow>
@@ -168,24 +167,10 @@ const Employees = () => {
                       <TableCell>{employee.phone || '-'}</TableCell>
                       <TableCell>
                         <Select 
-                          value={employee.role || 'employee'} 
-                          onValueChange={(value) => handleRoleChange(employee.user_id, value)}
-                        >
-                          <SelectTrigger className="w-[140px]">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="employee">Employee</SelectItem>
-                            <SelectItem value="admin">Admin</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </TableCell>
-                      <TableCell>
-                        <Select 
                           value={employee.current_project_id || 'none'} 
                           onValueChange={(value) => handleProjectChange(employee.user_id, value)}
                         >
-                          <SelectTrigger className="w-[180px]">
+                          <SelectTrigger className="w-[200px]">
                             <SelectValue placeholder="Žiadny projekt" />
                           </SelectTrigger>
                           <SelectContent>
@@ -228,7 +213,7 @@ const Employees = () => {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center text-muted-foreground">
+                    <TableCell colSpan={4} className="text-center text-muted-foreground">
                       Žiadni zamestnanci
                     </TableCell>
                   </TableRow>
