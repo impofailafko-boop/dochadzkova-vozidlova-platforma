@@ -87,6 +87,17 @@ export function useVehicleLogs(userId: string | undefined) {
     mutationFn: async (input: CompleteLogInput) => {
       if (!userId) throw new Error('User not authenticated');
 
+      // First, get the log to calculate km_driven
+      const { data: logData, error: fetchError } = await supabase
+        .from('vehicle_logs')
+        .select('km_start')
+        .eq('id', input.logId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      const km_driven = input.km_end - logData.km_start;
+
       let photoUrl = null;
       
       // Upload photo if provided
@@ -106,6 +117,7 @@ export function useVehicleLogs(userId: string | undefined) {
         .from('vehicle_logs')
         .update({
           km_end: input.km_end,
+          km_driven: km_driven,
           photo_km_end: photoUrl,
           is_completed: true,
         })
