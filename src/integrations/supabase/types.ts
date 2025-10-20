@@ -60,6 +60,7 @@ export type Database = {
           liters: number
           note: string | null
           price: number | null
+          project_id: string | null
           user_id: string
           vehicle_id: string
         }
@@ -70,6 +71,7 @@ export type Database = {
           liters: number
           note?: string | null
           price?: number | null
+          project_id?: string | null
           user_id: string
           vehicle_id: string
         }
@@ -80,10 +82,18 @@ export type Database = {
           liters?: number
           note?: string | null
           price?: number | null
+          project_id?: string | null
           user_id?: string
           vehicle_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "fuel_logs_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "fuel_logs_user_id_fkey"
             columns: ["user_id"]

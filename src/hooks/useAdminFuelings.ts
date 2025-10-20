@@ -6,6 +6,7 @@ export function useAdminFuelings(filters?: {
   endDate?: string; 
   userId?: string;
   vehicleId?: string;
+  projectId?: string;
 }) {
   return useQuery({
     queryKey: ['admin-fuelings', filters],
@@ -22,6 +23,9 @@ export function useAdminFuelings(filters?: {
             spz,
             brand,
             type
+          ),
+          projects (
+            name
           )
         `)
         .order('date', { ascending: false });
@@ -37,6 +41,9 @@ export function useAdminFuelings(filters?: {
       }
       if (filters?.vehicleId) {
         query = query.eq('vehicle_id', filters.vehicleId);
+      }
+      if (filters?.projectId) {
+        query = query.eq('project_id', filters.projectId);
       }
 
       const { data, error } = await query.limit(100);

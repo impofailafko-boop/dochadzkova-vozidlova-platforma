@@ -1,6 +1,7 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { useVehicles } from '@/hooks/useVehicles';
 import { useFuelLogs } from '@/hooks/useFuelLogs';
+import { useProjects } from '@/hooks/useProjects';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,6 +22,7 @@ import { toast } from 'sonner';
 
 const fuelLogSchema = z.object({
   vehicle_id: z.string().min(1, 'Vyberte vozidlo'),
+  project_id: z.string().optional(),
   date: z.string().refine((date) => {
     const selectedDate = new Date(date);
     const today = new Date();
@@ -37,12 +39,14 @@ type FuelLogFormData = z.infer<typeof fuelLogSchema>;
 const Fueling = () => {
   const { user } = useAuth();
   const { data: vehicles, isLoading: loadingVehicles } = useVehicles();
+  const { data: projects, isLoading: loadingProjects } = useProjects();
   const { createLog, isCreating } = useFuelLogs(user?.id);
 
   const form = useForm<FuelLogFormData>({
     resolver: zodResolver(fuelLogSchema),
     defaultValues: {
       vehicle_id: '',
+      project_id: '',
       date: new Date().toISOString().split('T')[0],
       liters: 0,
       price: 0,
@@ -54,6 +58,7 @@ const Fueling = () => {
     createLog(
       {
         vehicle_id: data.vehicle_id,
+        project_id: data.project_id || undefined,
         date: data.date,
         liters: data.liters,
         price: data.price && data.price > 0 ? data.price : undefined,
@@ -63,6 +68,7 @@ const Fueling = () => {
         onSuccess: () => {
           form.reset({
             vehicle_id: '',
+            project_id: '',
             date: new Date().toISOString().split('T')[0],
             liters: 0,
             price: 0,
@@ -92,7 +98,7 @@ const Fueling = () => {
           <CardDescription>Vyplňte údaje o tankovaní</CardDescription>
         </CardHeader>
         <CardContent>
-          {loadingVehicles ? (
+          {loadingVehicles || loadingProjects ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
@@ -116,6 +122,31 @@ const Fueling = () => {
                             {vehicles?.map((vehicle) => (
                               <SelectItem key={vehicle.id} value={vehicle.id}>
                                 {vehicle.spz} - {vehicle.brand} {vehicle.type}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="project_id"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Projekt - voliteľný</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Vyberte projekt" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent className="bg-popover z-50">
+                            {projects?.map((project) => (
+                              <SelectItem key={project.id} value={project.id}>
+                                {project.name}
                               </SelectItem>
                             ))}
                           </SelectContent>

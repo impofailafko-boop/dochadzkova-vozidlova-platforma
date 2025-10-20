@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAdminFuelings } from '@/hooks/useAdminFuelings';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useAdminVehicles } from '@/hooks/useAdminVehicles';
+import { useAdminProjects } from '@/hooks/useAdminProjects';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -30,6 +31,7 @@ const FuelingsOverview = () => {
     endDate: new Date().toISOString().split('T')[0],
     userId: 'all',
     vehicleId: 'all',
+    projectId: 'all',
   });
 
   const { data: fuelings, isLoading } = useAdminFuelings({
@@ -37,9 +39,11 @@ const FuelingsOverview = () => {
     endDate: filters.endDate,
     ...(filters.userId !== 'all' && { userId: filters.userId }),
     ...(filters.vehicleId !== 'all' && { vehicleId: filters.vehicleId }),
+    ...(filters.projectId !== 'all' && { projectId: filters.projectId }),
   });
   const { employees } = useEmployees();
   const { vehicles } = useAdminVehicles();
+  const { projects } = useAdminProjects();
 
   const totalLiters = fuelings?.reduce((sum: number, fuel: any) => sum + (fuel.liters || 0), 0) || 0;
   const totalPrice = fuelings?.reduce((sum: number, fuel: any) => sum + (fuel.price || 0), 0) || 0;
@@ -48,11 +52,12 @@ const FuelingsOverview = () => {
     if (!fuelings || fuelings.length === 0) return;
 
     const csv = [
-      ['Dátum', 'Zamestnanec', 'Vozidlo', 'Litre', 'Cena', 'Poznámka'].join(','),
+      ['Dátum', 'Zamestnanec', 'Vozidlo', 'Projekt', 'Litre', 'Cena', 'Poznámka'].join(','),
       ...fuelings.map((record: any) => [
         record.date,
         record.profiles?.full_name || '-',
         record.vehicles?.spz || '-',
+        record.projects?.name || '-',
         record.liters,
         record.price || '-',
         record.note || '-',
@@ -108,7 +113,7 @@ const FuelingsOverview = () => {
           <CardDescription>Filtrovanie záznamov tankovaní</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
             <div className="space-y-2">
               <Label htmlFor="startDate">Od dátumu</Label>
               <Input
@@ -165,6 +170,25 @@ const FuelingsOverview = () => {
                 </SelectContent>
               </Select>
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="project">Projekt</Label>
+              <Select
+                value={filters.projectId}
+                onValueChange={(value) => setFilters({ ...filters, projectId: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Všetky" />
+                </SelectTrigger>
+                <SelectContent className="bg-popover z-50">
+                  <SelectItem value="all">Všetky</SelectItem>
+                  {projects?.map((project: any) => (
+                    <SelectItem key={project.id} value={project.id}>
+                      {project.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -190,6 +214,7 @@ const FuelingsOverview = () => {
                   <TableHead>Dátum</TableHead>
                   <TableHead>Zamestnanec</TableHead>
                   <TableHead>Vozidlo</TableHead>
+                  <TableHead>Projekt</TableHead>
                   <TableHead className="text-right">Litre</TableHead>
                   <TableHead className="text-right">Cena</TableHead>
                   <TableHead>Poznámka</TableHead>
@@ -204,6 +229,7 @@ const FuelingsOverview = () => {
                       </TableCell>
                       <TableCell>{record.profiles?.full_name || '-'}</TableCell>
                       <TableCell>{record.vehicles?.spz || '-'}</TableCell>
+                      <TableCell>{record.projects?.name || '-'}</TableCell>
                       <TableCell className="text-right">{record.liters} L</TableCell>
                       <TableCell className="text-right">
                         {record.price ? `${record.price}€` : '-'}
@@ -213,7 +239,7 @@ const FuelingsOverview = () => {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center text-muted-foreground">
+                    <TableCell colSpan={7} className="text-center text-muted-foreground">
                       Žiadne záznamy
                     </TableCell>
                   </TableRow>

@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 
 interface FuelLogInput {
   vehicle_id: string;
+  project_id?: string;
   date: string;
   liters: number;
   price?: number;
@@ -22,7 +23,8 @@ export function useFuelLogs(userId: string | undefined) {
         .from('fuel_logs')
         .select(`
           *,
-          vehicles (spz, brand, type)
+          vehicles (spz, brand, type),
+          projects (name)
         `)
         .eq('user_id', userId)
         .order('date', { ascending: false })
