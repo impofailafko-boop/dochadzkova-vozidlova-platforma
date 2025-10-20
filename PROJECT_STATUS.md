@@ -1,6 +1,6 @@
 # PROJECT STATUS - Živý stav aplikácie
 
-*Posledná aktualizácia: 2025-01-20 15:30 - Fáza 1 dokončená*
+*Posledná aktualizácia: 2025-01-20 16:45 - Fáza 2 dokončená (fotky kilometrov)*
 
 ---
 
@@ -19,7 +19,7 @@
 - [x] **Vehicles Management** - Plný CRUD: create, edit (SPZ, značka, model, km), toggle status
 - [x] **Projects Management** - Plný CRUD: create, edit (názov, popis, stav) + 3 stavy (Naplánované/Aktívne/Hotové)
 - [x] **AttendanceOverview** - Tabuľka všetkých dochádzok s filtrami (dátum, zamestnanec) + CSV export
-- [x] **DrivesOverview** - Tabuľka jázd s filtrami (dátum, zamestnanec, vozidlo, projekt) + štatistiky km + CSV export
+- [x] **DrivesOverview** - ✅ FÁZA 2: Tabuľka s filtrami + status badge (Prebieha/Ukončená) + štatistiky len z ukončených jázd + CSV export
 - [x] **FuelingsOverview** - Tabuľka tankovaní s filtrami (dátum, zamestnanec, vozidlo) + štatistiky (litre, cena) + CSV export
 - [x] **Reports** - Komplexný dashboard: sumárne štatistiky (hodiny, km, náklady, spotreba) + CSV export všetkého
 
@@ -27,17 +27,20 @@
 - [x] **Employee Dashboard** - AttendanceButton widget + rýchle linky na všetky funkcie
 - [x] **Attendance check-in/check-out** - Zaznamenávanie príchodu a odchodu s výpočtom hodín
 - [x] **Attendance history** - Posledných 30 dní v `/attendance` stránke + v `/history` tabe
-- [x] **VehicleUse** - Plný formulár: výber vozidla, projektu, dátum, km start/end + automatický výpočet km
+- [x] **VehicleUse** - ✅ FÁZA 2: "Začať jazdu" s km_start + foto (workflow s neskorším ukončením)
+- [x] **History** - ✅ FÁZA 2: Zobrazenie statusu jázd (Prebieha/Ukončená) + tlačidlo "Ukončiť jazdu" 
+- [x] **Complete Drive Dialog** - ✅ FÁZA 2: Dialog na ukončenie jazdy s km_end + voliteľnou fotkou
 - [x] **Fueling** - Plný formulár: výber vozidla, dátum, litre, cena (voliteľná), poznámka (voliteľná)
-- [x] **History** - 3 taby (Dochádzka, Jazdy, Tankovania) s posledných 30 záznamov každého typu
 
 ### Databáza
 - [x] **Tabuľky vytvorené** - attendance, fuel_logs, profiles, projects, user_roles, vehicle_logs, vehicles
 - [x] **RLS policies** - Všetky tabuľky majú základné RLS (users own + admin all)
 - [x] **has_role() funkcia** - Security definer funkcia pre kontrolu rolí
 - [x] **Auto-create profile** - Trigger `handle_new_user()` po registrácii
-- [x] **Project status enum** - ✅ IMPLEMENTOVANÉ (2025-01-20): project_status enum (planned/active/completed)
-- [x] **Current project tracking** - ✅ IMPLEMENTOVANÉ (2025-01-20): profiles.current_project_id foreign key
+- [x] **Project status enum** - ✅ FÁZA 1: project_status enum (planned/active/completed)
+- [x] **Current project tracking** - ✅ FÁZA 1: profiles.current_project_id foreign key
+- [x] **Storage bucket** - ✅ FÁZA 2: vehicle-photos bucket pre fotky kilometrov (RLS policies)
+- [x] **Vehicle logs workflow** - ✅ FÁZA 2: is_completed, photo_km_start, photo_km_end stĺpce + km_end nullable
 
 ### UI/UX
 - [x] **Sidebar navigácia** - AdminSidebar + EmployeeSidebar (shadcn/ui sidebar)
