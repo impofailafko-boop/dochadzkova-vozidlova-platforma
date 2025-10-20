@@ -17,7 +17,7 @@
 /dashboard           → Employee Dashboard (AttendanceButton + 3 quick action linky)
 /attendance          → Dochádzka (AttendanceButton + tabuľka histórie 30 dní)
 /vehicle-use         → Pridanie jazdy (formulár: vozidlo, projekt, dátum, km start/end)
-/fueling             → Pridanie tankovania (formulár: vozidlo, dátum, litre, cena, poznámka)
+/fueling             → Pridanie tankovania (formulár: vozidlo, projekt (voliteľný), dátum, litre, cena, poznámka)
 /history             → História všetkého (3 taby: Dochádzka, Jazdy, Tankovania - každý 30 záznamov)
 ```
 
@@ -29,7 +29,7 @@
 /admin/projects                 → CRUD projektov (tabuľka + create/edit dialog + 3 stavy: Naplánované/Aktívne/Hotové)
 /admin/attendance-overview      → Prehľad dochádzky (filtre: dátum, zamestnanec) + tabuľka + CSV export
 /admin/drives-overview          → Prehľad jázd (filtre: dátum, zamestnanec, vozidlo, projekt) + štatistiky + CSV export
-/admin/fuelings-overview        → Prehľad tankovaní (filtre: dátum, zamestnanec, vozidlo) + štatistiky + CSV export
+/admin/fuelings-overview        → Prehľad tankovaní (filtre: dátum, zamestnanec, vozidlo, projekt) + štatistiky + CSV export
 /admin/reports                  → Komplexné reporty (4 štatistiky karty + sumár + CSV export všetkého)
 ```
 
@@ -84,8 +84,8 @@
 ### Tankovanie
 | Hook | Kde sa používa | Čo robí | Cache Key |
 |------|----------------|---------|-----------|
-| `useFuelLogs` | `/fueling`, `/history` | Create/fetch záznamov tankovania | `['fuel-logs', userId]` |
-| `useAdminFuelings` | `/admin/fuelings-overview` | Fetch tankovaní všetkých (s filtrami) | `['admin-fuelings', filters]` |
+| `useFuelLogs` | `/fueling`, `/history` | Create/fetch záznamov tankovania (s project_id) | `['fuel-logs', userId]` |
+| `useAdminFuelings` | `/admin/fuelings-overview` | Fetch tankovaní všetkých (s filtrami: dátum, user, vehicle, project) | `['admin-fuelings', filters]` |
 
 ### Projekty
 | Hook | Kde sa používa | Čo robí | Cache Key |
@@ -433,9 +433,10 @@ ALL: has_role(auth.uid(), 'admin')
 7. **✅ FÁZA 2:** Automatický update vehicles.current_km len pri ukončení jazdy (trigger)
 
 ### Tankovanie (Fuel Logs)
-1. **liters > 0** - Musí byť kladné číslo (CHÝBA VALIDÁCIA!)
-2. **price >= 0** - Cena nesmie byť záporná (CHÝBA VALIDÁCIA!)
+1. **liters > 0** - Musí byť kladné číslo (✅ CLIENT-SIDE Zod validácia)
+2. **price >= 0** - Cena nesmie byť záporná (✅ CLIENT-SIDE Zod validácia)
 3. **Len aktívne vozidlá** - Tankovať sa môžu len is_active = true vozidlá
+4. **✅ FÁZA 3:** Projekt je VOLITEĽNÝ pri tankovaní (project_id nullable)
 
 ### Zamestnanci (Profiles)
 1. **Unique email** - Email je primary key v auth.users

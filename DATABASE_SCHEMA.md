@@ -68,6 +68,7 @@
 | `id` | uuid | No | `gen_random_uuid()` | Primary key |
 | `user_id` | uuid | No | - | Kto tankoval |
 | `vehicle_id` | uuid | No | - | Ktoré vozidlo |
+| `project_id` | uuid | Yes | - | Pre ktorý projekt (voliteľné) |
 | `date` | date | No | - | Dátum tankovania |
 | `liters` | numeric | No | - | Počet litrov |
 | `price` | numeric | Yes | - | Celková cena |
@@ -78,6 +79,7 @@
 ```sql
 ✅ CREATE INDEX idx_fuel_logs_user_id ON fuel_logs(user_id);
 ✅ CREATE INDEX idx_fuel_logs_vehicle_id ON fuel_logs(vehicle_id);
+✅ CREATE INDEX idx_fuel_logs_project_id ON fuel_logs(project_id);
 ✅ CREATE INDEX idx_fuel_logs_date ON fuel_logs(date);
 ```
 
@@ -99,6 +101,7 @@
 ### Vzťahy
 - `user_id` → (implicitne) `auth.users.id`
 - `vehicle_id` → (nie je definovaný foreign key v schéme, ale je používaný v kóde)
+- `project_id` → `projects.id` (foreign key, nullable)
 
 ---
 

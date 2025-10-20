@@ -1,6 +1,6 @@
 # PROJECT STATUS - Živý stav aplikácie
 
-*Posledná aktualizácia: 2025-01-20 20:15 - Dokumentácia aktualizovaná podľa aktuálneho stavu (odstránený Rola stĺpec z Employees)*
+*Posledná aktualizácia: 2025-01-20 20:30 - Implementovaný filter projektov v Tankovaniach (fuel_logs.project_id + UI filtre)*
 
 ---
 
@@ -19,7 +19,7 @@
 - [x] **Vehicles Management** - Plný CRUD: create, edit (SPZ, značka, model, km), toggle status
 - [x] **Projects Management** - Plný CRUD: create, edit (názov, popis) + 3 stavy (Naplánované/Aktívne/Hotové)
 - [x] **AttendanceOverview** - Tabuľka všetkých dochádzok s filtrami (dátum, zamestnanec) + CSV export
-- [x] **FuelingsOverview** - Tabuľka tankovaní s filtrami (dátum, zamestnanec, vozidlo) + štatistiky (litre, cena) + CSV export
+- [x] **FuelingsOverview** - Tabuľka tankovaní s filtrami (dátum, zamestnanec, vozidlo, projekt) + štatistiky (litre, cena) + CSV export
 - [x] **Reports** - Komplexný dashboard: sumárne štatistiky (hodiny, km, náklady, spotreba) + CSV export všetkého
 
 ### Admin Funkcie (Fáza 2 - Workflow Jázd)
@@ -29,7 +29,7 @@
 - [x] **Employee Dashboard** - AttendanceButton widget + rýchle linky na všetky funkcie
 - [x] **Attendance check-in/check-out** - Zaznamenávanie príchodu a odchodu s výpočtom hodín
 - [x] **Attendance history** - Posledných 30 dní v `/attendance` stránke + v `/history` tabe
-- [x] **Fueling** - Plný formulár: výber vozidla, dátum, litre, cena (voliteľná), poznámka (voliteľná)
+- [x] **Fueling** - Plný formulár: výber vozidla, dátum, litre, cena (voliteľná), projekt (voliteľný), poznámka (voliteľná)
 
 ### Employee Funkcie (Fáza 2 - Workflow Jázd s Fotkami)
 - [x] **VehicleUse - Začať Jazdu** - Formulár: vozidlo, projekt, dátum, km_start + POVINNÁ fotka tachometra
@@ -122,7 +122,7 @@ Všetky bugy opravené! ✅
 
 ### Tabuľky
 - ✅ `attendance` (7 stĺpcov, RLS ✅)
-- ✅ `fuel_logs` (8 stĺpcov, RLS ✅)
+- ✅ `fuel_logs` (9 stĺpcov, RLS ✅) - ✅ PRIDANÉ: project_id (voliteľný)
 - ✅ `profiles` (6 stĺpcov, RLS ✅) - ✅ PRIDANÉ: current_project_id
 - ✅ `projects` (6 stĺpcov, RLS ✅) - ✅ PRIDANÉ: status enum (planned/active/completed)
 - ✅ `user_roles` (4 stĺpce, RLS ✅)
@@ -182,9 +182,11 @@ Všetky bugy opravené! ✅
 11. ✅ **Statistics fix** - Štatistiky počítajú len ukončené jazdy (`is_completed = true`)
 12. ✅ **CSV export update** - Export obsahuje status + foto URLs
 
+### ✅ FÁZA 3 - HOTOVÉ featury (2025-01-20)
+7. ✅ **Filter projekty v Tankovaniach** - Pridaný project_id stĺpec + filter v Admin FuelingsOverview + voliteľný select v Employee Fueling formulári
+
 ### MEDIUM PRIORITY (Fáza 3-4)
-7. **Projekty do History** - Zobraziť projekty v histórii jázd
-8. **Filter projekty v Tankovaniach** - Pridať filter na projekty
+8. **Projekty do History** - Zobraziť projekty v histórii jázd (zatiaľ len v Jazdy tabe)
 9. **Dodatočný príchod** - Tlačidlo s povinnou poznámkou
 10. **Notifikácie** - Upozornenie na zabudnutý odchod
 
