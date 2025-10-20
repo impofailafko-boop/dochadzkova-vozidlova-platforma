@@ -1,6 +1,6 @@
 # PROJECT STATUS - Živý stav aplikácie
 
-*Posledná aktualizácia: 2025-01-20 21:15 - Admin sekcie upravené: Zamestnanci → Aktuálny projekt (bez role UI), Projekty → 3 stavy (Naplánované/Aktívne/Hotové)*
+*Posledná aktualizácia: 2025-01-20 21:30 - Zdokumentovaný stav evidencie vozidiel (body 10-12) - všetko implementované a funkčné*
 
 ---
 
@@ -188,16 +188,20 @@ Všetky bugy opravené! ✅
 9. ✅ **Admin sekcie upravené**:
    - **Zamestnanci** - Odstránený "Rola" stĺpec, zostal len "Aktuálny projekt" dropdown (role sa naďalej spravujú cez backend)
    - **Projekty** - Stav zmenený na 3 možnosti: "Naplánované" / "Aktívne" / "Hotové" (namiesto planned/active/completed enum)
+10. ✅ **Evidencia vozidiel - workflow s fotkami (body 10-12)**:
+   - **Bod 11:** `/vehicle-use` obsahuje pole na fotku km_start (voliteľná) → upload do storage `vehicle-photos`
+   - **Bod 10:** km_end pole je SKRYTÉ pri začatí jazdy, zobrazí sa len po ukončení v `/history`
+   - **Bod 12:** `/history` → Tab "Jazdy" → tlačidlo "Ukončiť jazdu" otvorí dialog s km_end (povinné) + fotka km_end (voliteľná) + real-time výpočet km_driven
 
 ### MEDIUM PRIORITY (Fáza 4)
-10. **Dodatočný príchod** - Tlačidlo s povinnou poznámkou
-11. **Notifikácie** - Upozornenie na zabudnutý odchod
-12. **CSV Export všetkého** - Jedno tlačidlo na export dochádzky + jazdy + tankovania do jedného CSV súboru (s filtrami)
+11. **Dodatočný príchod** - Tlačidlo s povinnou poznámkou
+12. **Notifikácie** - Upozornenie na zabudnutý odchod
+13. **CSV Export všetkého** - Jedno tlačidlo na export dochádzky + jazdy + tankovania do jedného CSV súboru (s filtrami)
+14. **Dizajn update** - Prispôsobenie farieb podľa pikolo.sk stránky
 
 ### LOW PRIORITY (Fáza 5+)
-13. **Dashboard kalendár** - Denné reporty po kliknutí na deň
-14. **Dark/Light mode** toggle
-15. **Dizajn update** - Prispôsobenie farieb podľa pikolo.sk stránky
+15. **Dashboard kalendár** - Denné reporty po kliknutí na deň
+16. **Dark/Light mode** toggle
 14. ~~**Profile editing** pre employeea~~ ✅ HOTOVÉ
 15. **Admin role assignment UI** - Vrátiť možnosť zmeny role cez UI (Employee/Admin dropdown v tabuľke Employees)
 16. **Pridať grafy do Reports** (recharts - line charts pre trends)
