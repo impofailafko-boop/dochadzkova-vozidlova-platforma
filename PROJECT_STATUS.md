@@ -1,6 +1,6 @@
 # PROJECT STATUS - Živý stav aplikácie
 
-*Posledná aktualizácia: 2025-01-20 21:30 - Zdokumentovaný stav evidencie vozidiel (body 10-12) - všetko implementované a funkčné*
+*Posledná aktualizácia: 2025-01-20 21:45 - Dokončený dizajn update (bod 2) - zelené farby namiesto sivých*
 
 ---
 
@@ -192,19 +192,24 @@ Všetky bugy opravené! ✅
    - **Bod 11:** `/vehicle-use` obsahuje pole na fotku km_start (voliteľná) → upload do storage `vehicle-photos`
    - **Bod 10:** km_end pole je SKRYTÉ pri začatí jazdy, zobrazí sa len po ukončení v `/history`
    - **Bod 12:** `/history` → Tab "Jazdy" → tlačidlo "Ukončiť jazdu" otvorí dialog s km_end (povinné) + fotka km_end (voliteľná) + real-time výpočet km_driven
+11. ✅ **Dizajn update (bod 2)** - Farby prispôsobené Pikolo dizajnu:
+   - Nahradené sivé tóny (gray/slate) zelenými v celom design systéme
+   - `index.css` - všetky HSL farby používajú zelené tóny (hue 150°)
+   - Light mode: zelené cards, borders, muted, sidebar backgrounds
+   - Dark mode: tmavo-zelené pozadie a komponenty
+   - Konzistentná zelená farebná schéma naprieč celou aplikáciou
 
 ### MEDIUM PRIORITY (Fáza 4)
-11. **Dodatočný príchod** - Tlačidlo s povinnou poznámkou
-12. **Notifikácie** - Upozornenie na zabudnutý odchod
-13. **CSV Export všetkého** - Jedno tlačidlo na export dochádzky + jazdy + tankovania do jedného CSV súboru (s filtrami)
-14. **Dizajn update** - Prispôsobenie farieb podľa pikolo.sk stránky
+12. **Dodatočný príchod (bod 4)** - Tlačidlo v `/attendance` s povinnou poznámkou prečo zabudol prísť včas
+13. **Notifikácie (bod 3)** - Upozornenie ak zamestnanec nezaznamenal odchod (napr. o 18:00)
+14. **CSV/Excel Export (bod 9)** - Jedno tlačidlo na export všetkých dát (dochádzka + jazdy + tankovania) s filtrami (dátumy, projekt, zamestnanec)
 
 ### LOW PRIORITY (Fáza 5+)
-15. **Dashboard kalendár** - Denné reporty po kliknutí na deň
+15. **Dashboard kalendár (bod 8)** - Kalendár v `/dashboard` alebo `/admin` s dennými reportmi (attendance + drives + fuelings) po kliknutí na deň + filter projektov
 16. **Dark/Light mode** toggle
-14. ~~**Profile editing** pre employeea~~ ✅ HOTOVÉ
-15. **Admin role assignment UI** - Vrátiť možnosť zmeny role cez UI (Employee/Admin dropdown v tabuľke Employees)
-16. **Pridať grafy do Reports** (recharts - line charts pre trends)
+17. ~~**Profile editing** pre employeea~~ ✅ HOTOVÉ
+18. **Admin role assignment UI** - Vrátiť možnosť zmeny role cez UI (Employee/Admin dropdown v tabuľke Employees)
+19. **Pridať grafy do Reports** (recharts - line charts pre trends)
 17. **Delete pre Vehicles/Projects** (momentálne len toggle status)
 18. **Pagination** pre admin overview tabuľky (momentálne limit 100)
 
