@@ -15,21 +15,21 @@
 
 ### Admin Funkcie
 - [x] **Admin Dashboard** - Štatistiky (počet zamestnancov, vozidiel, projektov, dnešná dochádzka)
-- [x] **Employees Management** - Pridávanie/mazanie zamestnancov cez UI
-- [x] **Vehicles (čiastočné)** - Základná stránka existuje (stále treba dokončiť)
-- [x] **Projects (čiastočné)** - Základná stránka existuje (stále treba dokončiť)
-- [x] **AttendanceOverview stránka** - Existuje v routingu (obsah nezistený)
-- [x] **DrivesOverview stránka** - Existuje v routingu (obsah nezistený)
-- [x] **FuelingsOverview stránka** - Existuje v routingu (obsah nezistený)
-- [x] **Reports stránka** - Existuje v routingu (obsah nezistený)
+- [x] **Employees Management** - Plný CRUD: pridávanie/mazanie zamestnancov
+- [x] **Vehicles Management** - Plný CRUD: create, edit (SPZ, značka, model, km), toggle status
+- [x] **Projects Management** - Plný CRUD: create, edit (názov, popis), toggle status
+- [x] **AttendanceOverview** - Tabuľka všetkých dochádzok s filtrami (dátum, zamestnanec) + CSV export
+- [x] **DrivesOverview** - Tabuľka jázd s filtrami (dátum, zamestnanec, vozidlo, projekt) + štatistiky km + CSV export
+- [x] **FuelingsOverview** - Tabuľka tankovaní s filtrami (dátum, zamestnanec, vozidlo) + štatistiky (litre, cena) + CSV export
+- [x] **Reports** - Komplexný dashboard: sumárne štatistiky (hodiny, km, náklady, spotreba) + CSV export všetkého
 
-### Employee Funkce
-- [x] **Employee Dashboard** - AttendanceButton widget + rýchle linky
-- [x] **Attendance check-in/check-out** - Zaznamenávanie príchodu a odchodu
-- [x] **Attendance history** - Posledných 30 dní (v `/attendance` stránke)
-- [x] **VehicleUse stránka** - Existuje v routingu (obsah nezistený)
-- [x] **Fueling stránka** - Existuje v routingu (obsah nezistený)
-- [x] **History stránka** - Existuje v routingu (obsah nezistený)
+### Employee Funkcie
+- [x] **Employee Dashboard** - AttendanceButton widget + rýchle linky na všetky funkcie
+- [x] **Attendance check-in/check-out** - Zaznamenávanie príchodu a odchodu s výpočtom hodín
+- [x] **Attendance history** - Posledných 30 dní v `/attendance` stránke + v `/history` tabe
+- [x] **VehicleUse** - Plný formulár: výber vozidla, projektu, dátum, km start/end + automatický výpočet km
+- [x] **Fueling** - Plný formulár: výber vozidla, dátum, litre, cena (voliteľná), poznámka (voliteľná)
+- [x] **History** - 3 taby (Dochádzka, Jazdy, Tankovania) s posledných 30 záznamov každého typu
 
 ### Databáza
 - [x] **Tabuľky vytvorené** - attendance, fuel_logs, profiles, projects, user_roles, vehicle_logs, vehicles
@@ -47,18 +47,7 @@
 
 ## ⏳ ROZROBENÉ / ČIASTOČNE HOTOVÉ
 
-### Admin Stránky
-- [ ] **Vehicles page** - Stránka existuje ale nepoznáme obsah (pravdepodobne treba CRUD pre vozidlá)
-- [ ] **Projects page** - Stránka existuje ale nepoznáme obsah (pravdepodobne treba CRUD pre projekty)
-- [ ] **AttendanceOverview** - Nepoznáme obsah (pravdepodobne tabuľka všetkých dochádzok)
-- [ ] **DrivesOverview** - Nepoznáme obsah (pravdepodobne tabuľka všetkých jázd)
-- [ ] **FuelingsOverview** - Nepoznáme obsah (pravdepodobne tabuľka všetkých tankovaní)
-- [ ] **Reports** - Nepoznáme obsah (pravdepodobne grafy a štatistiky)
-
-### Employee Stránky
-- [ ] **VehicleUse page** - Stránka existuje ale nepoznáme obsah (pravdepodobne formulár na pridanie jazdy)
-- [ ] **Fueling page** - Stránka existuje ale nepoznáme obsah (pravdepodobne formulár na pridanie tankovania)
-- [ ] **History page** - Stránka existuje ale nepoznáme obsah (pravdepodobne kompletná história)
+**NIČ!** Všetky hlavné stránky a funkcie sú hotové.
 
 ---
 
@@ -74,10 +63,10 @@
 ### Features
 - [ ] **Employee profile editing** - Zamestnanec nemôže upraviť svoj profil (telefón, meno)
 - [ ] **Admin role assignment** - Nie je možné zmeniť rolu používateľa (len default employee)
-- [ ] **Vehicle current_km tracking** - `current_km` sa pravdepodobne neaktualizuje automaticky
-- [ ] **Filter & search** - CHÝBA filtrovanie v admin overview stránkach
-- [ ] **Pagination** - CHÝBA na veľké datasety (momentálne limit 30-100)
-- [ ] **Export do Excel** - CHÝBA export dát do CSV/Excel
+- [ ] **Vehicle current_km tracking** - `current_km` sa neaktualizuje automaticky po jazdách
+- [ ] **Delete functionality** - Vehicles a Projects nemajú delete (len toggle status)
+- [ ] **Pagination for History** - Employee history page nemá filtrovanie podľa dátumu
+- [ ] **Charts in Reports** - Reports stránka má len číselné štatistiky, chýbajú grafy
 
 ### Security & Error Handling
 - [ ] **Error boundaries** - CHÝBA React error boundary pre graceful fails
@@ -139,22 +128,22 @@
 ## 🎯 PRIORITY (čo urobiť ďalej)
 
 ### HIGH PRIORITY
-1. **Opraviť viacnásobný check-in bug**
-2. **Dokončiť admin overview stránky** (AttendanceOverview, DrivesOverview, FuelingsOverview)
-3. **Dokončiť employee stránky** (VehicleUse, Fueling, History)
-4. **Pridať input validácie** (Zod schémy)
+1. **Opraviť viacnásobný check-in bug** (DB constraint + UI)
+2. **Pridať input validácie** (Zod schémy pre všetky formuláre)
+3. **Pridať DB indexy** pre performance (user_id na všetkých tabuľkách)
+4. **Implementovať automatic current_km update** (trigger/funkcia po insert vehicle_logs)
 
 ### MEDIUM PRIORITY
-5. **Dokončiť Vehicles CRUD** (admin page)
-6. **Dokončiť Projects CRUD** (admin page)
-7. **Implementovať Reports stránku** (grafy a štatistiky)
-8. **Pridať DB indexy** pre performance
+5. **Pridať grafy do Reports** (recharts - line charts pre trends)
+6. **Implementovať Delete pre Vehicles/Projects** (momentálne len toggle status)
+7. **Pagination** pre admin overview tabuľky (momentálne limit 100)
+8. **Filter pre History** (dátum od-do)
 
 ### LOW PRIORITY
 9. **Dark/Light mode** toggle
-10. **Export do Excel** funkcionalita
-11. **Pagination** na veľké datasety
-12. **Profile editing** pre employeea
+10. **Profile editing** pre employeea
+11. **Admin role assignment UI** (zmena role cez UI namiesto SQL)
+12. **Confirmation dialogs** pri všetkých delete akciách
 
 ---
 

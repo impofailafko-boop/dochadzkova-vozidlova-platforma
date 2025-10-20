@@ -14,23 +14,23 @@
 
 ### Employee Routes (role: "employee")
 ```
-/dashboard           → Employee Dashboard (AttendanceButton + quick links)
-/attendance          → Dochádzka (check-in/out + history table)
-/vehicle-use         → Pridanie záznamu jazdy
-/fueling             → Pridanie záznamu tankovania
-/history             → Kompletná história (všetko)
+/dashboard           → Employee Dashboard (AttendanceButton + 3 quick action linky)
+/attendance          → Dochádzka (AttendanceButton + tabuľka histórie 30 dní)
+/vehicle-use         → Pridanie jazdy (formulár: vozidlo, projekt, dátum, km start/end)
+/fueling             → Pridanie tankovania (formulár: vozidlo, dátum, litre, cena, poznámka)
+/history             → História všetkého (3 taby: Dochádzka, Jazdy, Tankovania - každý 30 záznamov)
 ```
 
 ### Admin Routes (role: "admin")
 ```
-/admin               → Admin Dashboard (štatistiky)
-/admin/employees     → CRUD zamestnancov
-/admin/vehicles      → CRUD vozidiel
-/admin/projects      → CRUD projektov
-/admin/attendance-overview  → Prehľad dochádzky všetkých
-/admin/drives-overview      → Prehľad jázd všetkých
-/admin/fuelings-overview    → Prehľad tankovaní všetkých
-/admin/reports       → Grafy a reporty
+/admin                          → Admin Dashboard (4 štatistiky karty)
+/admin/employees                → CRUD zamestnancov (tabuľka + create/delete dialogy)
+/admin/vehicles                 → CRUD vozidiel (tabuľka + create/edit dialog + toggle status)
+/admin/projects                 → CRUD projektov (tabuľka + create/edit dialog + toggle status)
+/admin/attendance-overview      → Prehľad dochádzky (filtre: dátum, zamestnanec) + tabuľka + CSV export
+/admin/drives-overview          → Prehľad jázd (filtre: dátum, zamestnanec, vozidlo, projekt) + štatistiky + CSV export
+/admin/fuelings-overview        → Prehľad tankovaní (filtre: dátum, zamestnanec, vozidlo) + štatistiky + CSV export
+/admin/reports                  → Komplexné reporty (4 štatistiky karty + sumár + CSV export všetkého)
 ```
 
 ---
