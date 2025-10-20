@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useVehicles } from '@/hooks/useVehicles';
 import { useProjects } from '@/hooks/useProjects';
@@ -15,6 +14,29 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Loader2 } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { toast } from 'sonner';
+
+const vehicleLogSchema = z.object({
+  vehicle_id: z.string().min(1, 'Vyberte vozidlo'),
+  project_id: z.string().min(1, 'Vyberte projekt'),
+  date: z.string().refine((date) => {
+    const selectedDate = new Date(date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return selectedDate <= today;
+  }, 'Dátum nemôže byť v budúcnosti'),
+  km_start: z.coerce.number().positive('Kilometre musia byť kladné číslo').int('Kilometre musia byť celé číslo'),
+  km_end: z.coerce.number().positive('Kilometre musia byť kladné číslo').int('Kilometre musia byť celé číslo'),
+}).refine((data) => data.km_end > data.km_start, {
+  message: 'Konečné kilometre musia byť vyššie ako počiatočné',
+  path: ['km_end'],
+});
+
+type VehicleLogFormData = z.infer<typeof vehicleLogSchema>;
 
 const VehicleUse = () => {
   const { user } = useAuth();
@@ -22,40 +44,46 @@ const VehicleUse = () => {
   const { data: projects, isLoading: loadingProjects } = useProjects();
   const { createLog, isCreating } = useVehicleLogs(user?.id);
 
-  const [formData, setFormData] = useState({
-    vehicle_id: '',
-    project_id: '',
-    date: new Date().toISOString().split('T')[0],
-    km_start: '',
-    km_end: '',
-  });
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!formData.vehicle_id || !formData.project_id || !formData.km_start || !formData.km_end) {
-      return;
-    }
-
-    createLog({
-      vehicle_id: formData.vehicle_id,
-      project_id: formData.project_id,
-      date: formData.date,
-      km_start: parseInt(formData.km_start),
-      km_end: parseInt(formData.km_end),
-    });
-
-    // Reset form
-    setFormData({
+  const form = useForm<VehicleLogFormData>({
+    resolver: zodResolver(vehicleLogSchema),
+    defaultValues: {
       vehicle_id: '',
       project_id: '',
       date: new Date().toISOString().split('T')[0],
-      km_start: '',
-      km_end: '',
-    });
+      km_start: 0,
+      km_end: 0,
+    },
+  });
+
+  const handleSubmit = (data: VehicleLogFormData) => {
+    createLog(
+      {
+        vehicle_id: data.vehicle_id,
+        project_id: data.project_id,
+        date: data.date,
+        km_start: data.km_start,
+        km_end: data.km_end,
+      },
+      {
+        onSuccess: () => {
+          form.reset({
+            vehicle_id: '',
+            project_id: '',
+            date: new Date().toISOString().split('T')[0],
+            km_start: 0,
+            km_end: 0,
+          });
+          toast.success('Záznam o jazde bol úspešne uložený');
+        },
+        onError: (error) => {
+          toast.error('Chyba pri ukladaní záznamu: ' + error.message);
+        },
+      }
+    );
   };
 
   const isLoading = loadingVehicles || loadingProjects;
+  const kmDriven = form.watch('km_end') - form.watch('km_start');
 
   return (
     <div className="p-6 space-y-6">
@@ -77,117 +105,125 @@ const VehicleUse = () => {
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="vehicle">Vozidlo (SPZ)</Label>
-                  <Select
-                    value={formData.vehicle_id}
-                    onValueChange={(value) =>
-                      setFormData({ ...formData, vehicle_id: value })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Vyberte vozidlo" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-popover z-50">
-                      {vehicles?.map((vehicle) => (
-                        <SelectItem key={vehicle.id} value={vehicle.id}>
-                          {vehicle.spz} - {vehicle.brand} {vehicle.type}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="project">Projekt</Label>
-                  <Select
-                    value={formData.project_id}
-                    onValueChange={(value) =>
-                      setFormData({ ...formData, project_id: value })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Vyberte projekt" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-popover z-50">
-                      {projects?.map((project) => (
-                        <SelectItem key={project.id} value={project.id}>
-                          {project.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="date">Dátum</Label>
-                  <Input
-                    id="date"
-                    type="date"
-                    value={formData.date}
-                    onChange={(e) =>
-                      setFormData({ ...formData, date: e.target.value })
-                    }
-                    required
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <FormField
+                    control={form.control}
+                    name="vehicle_id"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Vozidlo (SPZ)</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Vyberte vozidlo" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent className="bg-popover z-50">
+                            {vehicles?.map((vehicle) => (
+                              <SelectItem key={vehicle.id} value={vehicle.id}>
+                                {vehicle.spz} - {vehicle.brand} {vehicle.type}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="km_start">Kilometre na začiatku</Label>
-                  <Input
-                    id="km_start"
-                    type="number"
-                    placeholder="napr. 45000"
-                    value={formData.km_start}
-                    onChange={(e) =>
-                      setFormData({ ...formData, km_start: e.target.value })
-                    }
-                    required
+                  <FormField
+                    control={form.control}
+                    name="project_id"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Projekt</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Vyberte projekt" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent className="bg-popover z-50">
+                            {projects?.map((project) => (
+                              <SelectItem key={project.id} value={project.id}>
+                                {project.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="km_end">Kilometre na konci</Label>
-                  <Input
-                    id="km_end"
-                    type="number"
-                    placeholder="napr. 45150"
-                    value={formData.km_end}
-                    onChange={(e) =>
-                      setFormData({ ...formData, km_end: e.target.value })
-                    }
-                    required
+                  <FormField
+                    control={form.control}
+                    name="date"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Dátum</FormLabel>
+                        <FormControl>
+                          <Input type="date" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                </div>
 
-                <div className="space-y-2 flex items-end">
-                  <div className="w-full">
-                    <p className="text-sm text-muted-foreground">
-                      Najazdené kilometre:{' '}
-                      <span className="font-bold text-foreground">
-                        {formData.km_start && formData.km_end
-                          ? parseInt(formData.km_end) - parseInt(formData.km_start)
-                          : 0}{' '}
-                        km
-                      </span>
-                    </p>
+                  <FormField
+                    control={form.control}
+                    name="km_start"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Kilometre na začiatku</FormLabel>
+                        <FormControl>
+                          <Input type="number" placeholder="napr. 45000" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="km_end"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Kilometre na konci</FormLabel>
+                        <FormControl>
+                          <Input type="number" placeholder="napr. 45150" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className="space-y-2 flex items-end">
+                    <div className="w-full">
+                      <p className="text-sm text-muted-foreground">
+                        Najazdené kilometre:{' '}
+                        <span className="font-bold text-foreground">
+                          {kmDriven > 0 ? kmDriven : 0} km
+                        </span>
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <Button type="submit" disabled={isCreating} className="w-full">
-                {isCreating ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Ukladám...
-                  </>
-                ) : (
-                  'Uložiť záznam'
-                )}
-              </Button>
-            </form>
+                <Button type="submit" disabled={isCreating} className="w-full">
+                  {isCreating ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Ukladám...
+                    </>
+                  ) : (
+                    'Uložiť záznam'
+                  )}
+                </Button>
+              </form>
+            </Form>
           )}
         </CardContent>
       </Card>
