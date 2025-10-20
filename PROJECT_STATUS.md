@@ -1,6 +1,6 @@
 # PROJECT STATUS - Živý stav aplikácie
 
-*Posledná aktualizácia: 2025-01-20 17:00 - Fáza 2 dokončená a zdokumentovaná*
+*Posledná aktualizácia: 2025-01-20 20:15 - Dokumentácia aktualizovaná podľa aktuálneho stavu (odstránený Rola stĺpec z Employees)*
 
 ---
 
@@ -15,7 +15,7 @@
 
 ### Admin Funkcie (Fáza 1)
 - [x] **Admin Dashboard** - Štatistiky (počet zamestnancov, vozidiel, projektov, dnešná dochádzka)
-- [x] **Employees Management** - Plný CRUD: pridávanie/mazanie zamestnancov + priradenie aktuálneho projektu
+- [x] **Employees Management** - CRUD: pridávanie/mazanie zamestnancov + priradenie aktuálneho projektu (bez zmeny role v UI)
 - [x] **Vehicles Management** - Plný CRUD: create, edit (SPZ, značka, model, km), toggle status
 - [x] **Projects Management** - Plný CRUD: create, edit (názov, popis) + 3 stavy (Naplánované/Aktívne/Hotové)
 - [x] **AttendanceOverview** - Tabuľka všetkých dochádzok s filtrami (dátum, zamestnanec) + CSV export
@@ -85,7 +85,7 @@
 
 ### Features
 - [x] **Employee profile editing** - ✅ IMPLEMENTOVANÉ: Zamestnanec môže upraviť svoj profil (telefón, meno) v stránke /profile
-- [x] **Admin role assignment** - ✅ IMPLEMENTOVANÉ: Admin môže zmeniť rolu používateľa v UI (Employee/Admin dropdown)
+- [ ] **Admin role assignment UI** - CHÝBA: Admin nemôže zmeniť rolu cez UI, len cez SQL alebo API (tabuľka Employees zobrazuje len Aktuálny projekt)
 - [x] **Vehicle current_km tracking** - ✅ OPRAVENÉ: Automatický update cez DB trigger
 - [x] **Employee deletion** - ✅ OPRAVENÉ: Admin môže mazať zamestnancov (DELETE policy pridaná)
 - [ ] **Delete functionality** - Vehicles a Projects nemajú delete (len toggle status)
@@ -192,8 +192,8 @@ Všetky bugy opravené! ✅
 11. **Dashboard kalendár** - Denné reporty po kliknutí na deň
 12. **Excel export** - Komplexný export pre verifikáciu
 13. **Dark/Light mode** toggle
-14. **Profile editing** pre employeea
-15. **Admin role assignment UI** (zmena role cez UI namiesto SQL)
+14. ~~**Profile editing** pre employeea~~ ✅ HOTOVÉ
+15. **Admin role assignment UI** - Vrátiť možnosť zmeny role cez UI (Employee/Admin dropdown v tabuľke Employees)
 16. **Pridať grafy do Reports** (recharts - line charts pre trends)
 17. **Delete pre Vehicles/Projects** (momentálne len toggle status)
 18. **Pagination** pre admin overview tabuľky (momentálne limit 100)

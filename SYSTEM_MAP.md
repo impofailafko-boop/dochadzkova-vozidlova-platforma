@@ -24,7 +24,7 @@
 ### Admin Routes (role: "admin")
 ```
 /admin                          → Admin Dashboard (4 štatistiky karty)
-/admin/employees                → CRUD zamestnancov (tabuľka + create/delete dialogy + aktuálny projekt dropdown)
+/admin/employees                → CRUD zamestnancov (tabuľka + create/delete dialogy + aktuálny projekt dropdown, BEZ role dropdownu)
 /admin/vehicles                 → CRUD vozidiel (tabuľka + create/edit dialog + toggle status)
 /admin/projects                 → CRUD projektov (tabuľka + create/edit dialog + 3 stavy: Naplánované/Aktívne/Hotové)
 /admin/attendance-overview      → Prehľad dochádzky (filtre: dátum, zamestnanec) + tabuľka + CSV export
