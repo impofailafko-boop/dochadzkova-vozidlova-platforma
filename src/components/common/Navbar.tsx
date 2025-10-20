@@ -8,8 +8,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { LogOut, User, Car } from 'lucide-react';
+import { LogOut, User } from 'lucide-react';
 import { SidebarTrigger } from '@/components/ui/sidebar';
+import pikoloLogo from '@/assets/pikolo-logo.png';
 
 const Navbar = () => {
   const { user, signOut, role } = useAuth();
@@ -19,10 +20,8 @@ const Navbar = () => {
       <div className="flex h-14 items-center px-4">
         <SidebarTrigger className="mr-4" />
         
-        <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
-            <Car className="h-4 w-4" />
-          </div>
+        <div className="flex items-center gap-3">
+          <img src={pikoloLogo} alt="PIKOLO s.r.o." className="h-10 w-auto" />
           <h1 className="text-lg font-semibold">Dochádzková platforma</h1>
         </div>
 
