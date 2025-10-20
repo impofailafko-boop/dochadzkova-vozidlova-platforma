@@ -408,16 +408,18 @@ CREATE TRIGGER on_auth_user_created
 **Kód:**
 ```sql
 CREATE OR REPLACE FUNCTION public.update_vehicle_current_km()
-RETURNS trigger
+RETURNS TRIGGER
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = 'public'
+SET search_path = public
 AS $$
 BEGIN
-  -- Update the vehicle's current_km with the km_end from the new log
-  UPDATE public.vehicles
-  SET current_km = NEW.km_end
-  WHERE id = NEW.vehicle_id;
+  -- Only update if km_end is not NULL
+  IF NEW.km_end IS NOT NULL THEN
+    UPDATE public.vehicles
+    SET current_km = NEW.km_end
+    WHERE id = NEW.vehicle_id;
+  END IF;
   
   RETURN NEW;
 END;
@@ -427,16 +429,15 @@ $$;
 **Trigger:**
 ```sql
 CREATE TRIGGER trigger_update_vehicle_km
-  AFTER UPDATE OF km_end ON vehicle_logs
+  AFTER INSERT OR UPDATE OF km_end ON vehicle_logs
   FOR EACH ROW
-  WHEN (NEW.km_end IS NOT NULL AND OLD.km_end IS NULL)
   EXECUTE FUNCTION public.update_vehicle_current_km();
 ```
 
 **Flow:**
 1. User ukončí jazdu (UPDATE `vehicle_logs` SET `km_end = X`)
-2. Trigger sa spustí ak `km_end` sa zmenilo z NULL na hodnotu
-3. Funkcia aktualizuje `vehicles.current_km` na nový `km_end`
+2. Trigger sa spustí po INSERT alebo UPDATE na `km_end`
+3. Funkcia skontroluje či `km_end IS NOT NULL` a aktualizuje `vehicles.current_km`
 
 ---
 
