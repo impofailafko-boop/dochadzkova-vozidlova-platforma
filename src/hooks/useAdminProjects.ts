@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 interface ProjectInput {
   name: string;
   description?: string;
+  status?: 'planned' | 'active' | 'completed';
 }
 
 export function useAdminProjects() {
@@ -60,11 +61,11 @@ export function useAdminProjects() {
     },
   });
 
-  const toggleProjectStatus = useMutation({
-    mutationFn: async ({ id, isActive }: { id: string; isActive: boolean }) => {
+  const updateProjectStatus = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: 'planned' | 'active' | 'completed' }) => {
       const { error } = await supabase
         .from('projects')
-        .update({ is_active: isActive })
+        .update({ status })
         .eq('id', id);
 
       if (error) throw error;
@@ -84,9 +85,9 @@ export function useAdminProjects() {
     isLoading,
     createProject: createProject.mutate,
     updateProject: updateProject.mutate,
-    toggleProjectStatus: toggleProjectStatus.mutate,
+    updateProjectStatus: updateProjectStatus.mutate,
     isCreating: createProject.isPending,
     isUpdating: updateProject.isPending,
-    isToggling: toggleProjectStatus.isPending,
+    isUpdatingStatus: updateProjectStatus.isPending,
   };
 }

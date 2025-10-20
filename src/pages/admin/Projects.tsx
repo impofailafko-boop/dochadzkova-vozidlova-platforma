@@ -7,6 +7,13 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -26,12 +33,13 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Plus, Edit, Power } from 'lucide-react';
 
 const Projects = () => {
-  const { projects, isLoading, createProject, updateProject, toggleProjectStatus, isCreating } = useAdminProjects();
+  const { projects, isLoading, createProject, updateProject, updateProjectStatus, isCreating, isUpdating } = useAdminProjects();
   const [open, setOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<any>(null);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
+    status: 'planned' as 'planned' | 'active' | 'completed',
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -43,7 +51,7 @@ const Projects = () => {
       createProject(formData);
     }
 
-    setFormData({ name: '', description: '' });
+    setFormData({ name: '', description: '', status: 'planned' });
     setEditingProject(null);
     setOpen(false);
   };
@@ -53,12 +61,22 @@ const Projects = () => {
     setFormData({
       name: project.name,
       description: project.description || '',
+      status: project.status || 'planned',
     });
     setOpen(true);
   };
 
-  const handleToggleStatus = (id: string, currentStatus: boolean) => {
-    toggleProjectStatus({ id, isActive: !currentStatus });
+  const handleStatusChange = (id: string, newStatus: 'planned' | 'active' | 'completed') => {
+    updateProjectStatus({ id, status: newStatus });
+  };
+
+  const getStatusBadge = (status: string) => {
+    const variants = {
+      planned: { variant: 'secondary' as const, label: 'Naplánované' },
+      active: { variant: 'default' as const, label: 'Aktívne' },
+      completed: { variant: 'outline' as const, label: 'Hotové' },
+    };
+    return variants[status as keyof typeof variants] || variants.planned;
   };
 
   return (
@@ -73,7 +91,7 @@ const Projects = () => {
           setOpen(o);
           if (!o) {
             setEditingProject(null);
-            setFormData({ name: '', description: '' });
+            setFormData({ name: '', description: '', status: 'planned' });
           }
         }}>
           <DialogTrigger asChild>
@@ -112,8 +130,21 @@ const Projects = () => {
                   rows={3}
                 />
               </div>
-              <Button type="submit" disabled={isCreating} className="w-full">
-                {isCreating ? 'Ukladám...' : editingProject ? 'Uložiť zmeny' : 'Vytvoriť'}
+              <div className="space-y-2">
+                <Label htmlFor="status">Stav projektu</Label>
+                <Select value={formData.status} onValueChange={(value: any) => setFormData({ ...formData, status: value })}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="planned">Naplánované</SelectItem>
+                    <SelectItem value="active">Aktívne</SelectItem>
+                    <SelectItem value="completed">Hotové</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button type="submit" disabled={isCreating || isUpdating} className="w-full">
+                {(isCreating || isUpdating) ? 'Ukladám...' : editingProject ? 'Uložiť zmeny' : 'Vytvoriť'}
               </Button>
             </form>
           </DialogContent>
@@ -144,33 +175,41 @@ const Projects = () => {
               </TableHeader>
               <TableBody>
                 {projects && projects.length > 0 ? (
-                  projects.map((project) => (
-                    <TableRow key={project.id}>
-                      <TableCell className="font-medium">{project.name}</TableCell>
-                      <TableCell className="max-w-md truncate">
-                        {project.description || '-'}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={project.is_active ? 'default' : 'secondary'}>
-                          {project.is_active ? 'Aktívny' : 'Neaktívny'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
+                  projects.map((project) => {
+                    const statusInfo = getStatusBadge(project.status);
+                    return (
+                      <TableRow key={project.id}>
+                        <TableCell className="font-medium">{project.name}</TableCell>
+                        <TableCell className="max-w-md truncate">
+                          {project.description || '-'}
+                        </TableCell>
+                        <TableCell>
+                          <Select 
+                            value={project.status} 
+                            onValueChange={(value: any) => handleStatusChange(project.id, value)}
+                          >
+                            <SelectTrigger className="w-[140px]">
+                              <SelectValue>
+                                <Badge variant={statusInfo.variant}>
+                                  {statusInfo.label}
+                                </Badge>
+                              </SelectValue>
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="planned">Naplánované</SelectItem>
+                              <SelectItem value="active">Aktívne</SelectItem>
+                              <SelectItem value="completed">Hotové</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </TableCell>
+                        <TableCell className="text-right">
                           <Button variant="ghost" size="sm" onClick={() => handleEdit(project)}>
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleToggleStatus(project.id, project.is_active)}
-                          >
-                            <Power className={`h-4 w-4 ${project.is_active ? 'text-green-600' : 'text-gray-400'}`} />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
                 ) : (
                   <TableRow>
                     <TableCell colSpan={4} className="text-center text-muted-foreground">

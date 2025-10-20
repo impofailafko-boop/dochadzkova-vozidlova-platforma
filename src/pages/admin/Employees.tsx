@@ -1,9 +1,17 @@
 import { useState } from 'react';
 import { useEmployees } from '@/hooks/useEmployees';
+import { useAdminProjects } from '@/hooks/useAdminProjects';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   Dialog,
   DialogContent,
@@ -35,7 +43,8 @@ import {
 } from '@/components/ui/alert-dialog';
 
 const Employees = () => {
-  const { employees, isLoading, createEmployee, deleteEmployee, isCreating } = useEmployees();
+  const { employees, isLoading, createEmployee, deleteEmployee, updateEmployeeProject, isCreating } = useEmployees();
+  const { projects } = useAdminProjects();
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
@@ -49,6 +58,10 @@ const Employees = () => {
     createEmployee(formData);
     setFormData({ email: '', password: '', full_name: '', phone: '' });
     setOpen(false);
+  };
+
+  const handleProjectChange = (userId: string, projectId: string) => {
+    updateEmployeeProject({ userId, projectId: projectId === 'none' ? null : projectId });
   };
 
   return (
@@ -138,7 +151,7 @@ const Employees = () => {
                 <TableRow>
                   <TableHead>Meno</TableHead>
                   <TableHead>Telefón</TableHead>
-                  <TableHead>Rola</TableHead>
+                  <TableHead>Aktuálny projekt</TableHead>
                   <TableHead className="text-right">Akcie</TableHead>
                 </TableRow>
               </TableHeader>
@@ -148,8 +161,23 @@ const Employees = () => {
                     <TableRow key={employee.id}>
                       <TableCell className="font-medium">{employee.full_name}</TableCell>
                       <TableCell>{employee.phone || '-'}</TableCell>
-                      <TableCell className="capitalize">
-                        {employee.user_roles?.[0]?.role || 'employee'}
+                      <TableCell>
+                        <Select 
+                          value={employee.current_project_id || 'none'} 
+                          onValueChange={(value) => handleProjectChange(employee.user_id, value)}
+                        >
+                          <SelectTrigger className="w-[180px]">
+                            <SelectValue placeholder="Žiadny projekt" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">Žiadny projekt</SelectItem>
+                            {projects?.map((project: any) => (
+                              <SelectItem key={project.id} value={project.id}>
+                                {project.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </TableCell>
                       <TableCell className="text-right">
                         <AlertDialog>

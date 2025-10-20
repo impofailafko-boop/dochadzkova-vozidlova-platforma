@@ -19,7 +19,8 @@ export function useEmployees() {
         .from('profiles')
         .select(`
           *,
-          user_roles (role)
+          user_roles (role),
+          projects:current_project_id (id, name, status)
         `)
         .order('full_name');
 
@@ -83,12 +84,32 @@ export function useEmployees() {
     },
   });
 
+  const updateEmployeeProject = useMutation({
+    mutationFn: async ({ userId, projectId }: { userId: string; projectId: string | null }) => {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ current_project_id: projectId })
+        .eq('user_id', userId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['employees'] });
+      toast.success('Projekt zamestnanca aktualizovaný');
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Chyba pri aktualizácii projektu');
+    },
+  });
+
   return {
     employees,
     isLoading,
     createEmployee: createEmployee.mutate,
     deleteEmployee: deleteEmployee.mutate,
+    updateEmployeeProject: updateEmployeeProject.mutate,
     isCreating: createEmployee.isPending,
     isDeleting: deleteEmployee.isPending,
+    isUpdatingProject: updateEmployeeProject.isPending,
   };
 }

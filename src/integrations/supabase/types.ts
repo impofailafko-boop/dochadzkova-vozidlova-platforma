@@ -103,6 +103,7 @@ export type Database = {
       profiles: {
         Row: {
           created_at: string
+          current_project_id: string | null
           full_name: string
           id: string
           phone: string | null
@@ -110,6 +111,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          current_project_id?: string | null
           full_name: string
           id?: string
           phone?: string | null
@@ -117,12 +119,21 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          current_project_id?: string | null
           full_name?: string
           id?: string
           phone?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_current_project_id_fkey"
+            columns: ["current_project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       projects: {
         Row: {
@@ -131,6 +142,7 @@ export type Database = {
           id: string
           is_active: boolean
           name: string
+          status: Database["public"]["Enums"]["project_status"] | null
         }
         Insert: {
           created_at?: string
@@ -138,6 +150,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           name: string
+          status?: Database["public"]["Enums"]["project_status"] | null
         }
         Update: {
           created_at?: string
@@ -145,6 +158,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           name?: string
+          status?: Database["public"]["Enums"]["project_status"] | null
         }
         Relationships: []
       }
@@ -280,6 +294,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "employee"
+      project_status: "planned" | "active" | "completed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -408,6 +423,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "employee"],
+      project_status: ["planned", "active", "completed"],
     },
   },
 } as const
