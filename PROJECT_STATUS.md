@@ -39,9 +39,11 @@
 
 ### UI/UX
 - [x] **Sidebar navigácia** - AdminSidebar + EmployeeSidebar (shadcn/ui sidebar)
-- [x] **Navbar** - Top navigation s logout tlačidlom
+- [x] **Navbar** - Top navigation s logout tlačidlom + PIKOLO logo
 - [x] **Responsive design** - Základná responsivita implementovaná
 - [x] **Toast notifikácie** - Sonner pre user feedback
+- [x] **Branding** - PIKOLO logo (transparent background) v navbar + zelená firemná farba
+- [x] **Design system** - Primárna biela, sekundárna zelená (#2d4a2d), sidebar zelený motív
 
 ---
 
@@ -150,3 +152,15 @@ Všetky bugy opravené! ✅
 - **TypeScript** - Celý projekt je v TypeScript ✅
 - **Tailwind** - Design system používa semantic tokens z `index.css`
 - **React Query** - Všetky data fetching cez TanStack Query ✅
+- **Branding** - PIKOLO s.r.o. logo + zelená firemná farba (HSL: 150 30% 25%) implementované
+
+## 🎨 DESIGN SYSTEM
+
+### Farby (HSL)
+- **Primárna**: Biela (`0 0% 100%`) - hlavná farba pozadia
+- **Sekundárna**: Zelená (`150 30% 25%`) - firemná farba PIKOLO
+- **Accent**: Tmavo zelená (`150 35% 35%`) - zvýraznenie
+- **Sidebar**: Tmavo zelená (`150 30% 15%` dark mode) / Svetlá (`0 0% 98%` light mode)
+
+### Assets
+- **Logo**: `src/assets/pikolo-logo.png` - Transparent PNG, importované v Navbar
