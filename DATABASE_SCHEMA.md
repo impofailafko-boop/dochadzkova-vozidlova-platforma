@@ -137,6 +137,7 @@
 - ❌ **Users nemôžu DELETE** svoj vlastný profil (správne!)
 - ⚠️ Employee nemôže INSERT svoj profil (správne, admin/trigger musí)
 - ✅ **IMPLEMENTOVANÉ (2025-01-20):** `current_project_id` - aktuálny projekt zamestnanca (nullable)
+- ✅ **IMPLEMENTOVANÉ (2025-01-20):** Employee môže UPDATE svoj profil (full_name, phone) cez stránku /profile
 
 ### Vzťahy
 - `user_id` → (implicitne) `auth.users.id` (nie je foreign key v schéme)
@@ -218,7 +219,7 @@ CREATE TYPE app_role AS ENUM ('admin', 'employee');
 - ✅ **KRITICKÉ:** Role sú v separátnej tabuľke (nie na profile!)
 - ✅ Unique constraint `(user_id, role)` - user môže mať každú rolu max 1x
 - ✅ Default rola je `'employee'`
-- ⚠️ **CHÝBA UI:** Admin nemôže zmeniť rolu (iba cez SQL)
+- ✅ **IMPLEMENTOVANÉ (2025-01-20):** Admin môže zmeniť rolu cez UI (Employee/Admin dropdown)
 
 ### Vzťahy
 - `user_id` → (implicitne) `auth.users.id`

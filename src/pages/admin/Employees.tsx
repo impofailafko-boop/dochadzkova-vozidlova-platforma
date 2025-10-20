@@ -43,7 +43,7 @@ import {
 } from '@/components/ui/alert-dialog';
 
 const Employees = () => {
-  const { employees, isLoading, createEmployee, deleteEmployee, updateEmployeeProject, isCreating } = useEmployees();
+  const { employees, isLoading, createEmployee, deleteEmployee, updateEmployeeProject, updateEmployeeRole, isCreating } = useEmployees();
   const { projects } = useAdminProjects();
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -62,6 +62,10 @@ const Employees = () => {
 
   const handleProjectChange = (userId: string, projectId: string) => {
     updateEmployeeProject({ userId, projectId: projectId === 'none' ? null : projectId });
+  };
+
+  const handleRoleChange = (userId: string, role: string) => {
+    updateEmployeeRole({ userId, role: role as 'admin' | 'employee' });
   };
 
   return (
@@ -151,6 +155,7 @@ const Employees = () => {
                 <TableRow>
                   <TableHead>Meno</TableHead>
                   <TableHead>Telefón</TableHead>
+                  <TableHead>Rola</TableHead>
                   <TableHead>Aktuálny projekt</TableHead>
                   <TableHead className="text-right">Akcie</TableHead>
                 </TableRow>
@@ -161,6 +166,20 @@ const Employees = () => {
                     <TableRow key={employee.id}>
                       <TableCell className="font-medium">{employee.full_name}</TableCell>
                       <TableCell>{employee.phone || '-'}</TableCell>
+                      <TableCell>
+                        <Select 
+                          value={employee.role || 'employee'} 
+                          onValueChange={(value) => handleRoleChange(employee.user_id, value)}
+                        >
+                          <SelectTrigger className="w-[140px]">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="employee">Employee</SelectItem>
+                            <SelectItem value="admin">Admin</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
                       <TableCell>
                         <Select 
                           value={employee.current_project_id || 'none'} 
@@ -209,7 +228,7 @@ const Employees = () => {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center text-muted-foreground">
+                    <TableCell colSpan={5} className="text-center text-muted-foreground">
                       Žiadni zamestnanci
                     </TableCell>
                   </TableRow>

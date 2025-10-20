@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import ErrorBoundary from "@/components/common/ErrorBoundary";
 import ProtectedRoute from "@/components/common/ProtectedRoute";
 import RoleGuard from "@/components/common/RoleGuard";
 import EmployeeLayout from "@/components/layouts/EmployeeLayout";
@@ -14,6 +15,7 @@ import Attendance from "./pages/employee/Attendance";
 import VehicleUse from "./pages/employee/VehicleUse";
 import Fueling from "./pages/employee/Fueling";
 import History from "./pages/employee/History";
+import Profile from "./pages/employee/Profile";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import Employees from "./pages/admin/Employees";
 import Vehicles from "./pages/admin/Vehicles";
@@ -27,63 +29,66 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AuthProvider>
-          <Routes>
-            {/* Public routes */}
-            <Route path="/" element={<Navigate to="/auth" replace />} />
-            <Route path="/auth" element={<Auth />} />
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AuthProvider>
+            <Routes>
+              {/* Public routes */}
+              <Route path="/" element={<Navigate to="/auth" replace />} />
+              <Route path="/auth" element={<Auth />} />
 
-            {/* Protected Employee routes */}
-            <Route
-              path="/"
-              element={
-                <ProtectedRoute>
-                  <RoleGuard allowedRole="employee">
-                    <EmployeeLayout />
-                  </RoleGuard>
-                </ProtectedRoute>
-              }
-            >
-              <Route path="dashboard" element={<Dashboard />} />
-              <Route path="attendance" element={<Attendance />} />
-              <Route path="vehicle-use" element={<VehicleUse />} />
-              <Route path="fueling" element={<Fueling />} />
-              <Route path="history" element={<History />} />
-            </Route>
+              {/* Protected Employee routes */}
+              <Route
+                path="/"
+                element={
+                  <ProtectedRoute>
+                    <RoleGuard allowedRole="employee">
+                      <EmployeeLayout />
+                    </RoleGuard>
+                  </ProtectedRoute>
+                }
+              >
+                <Route path="dashboard" element={<Dashboard />} />
+                <Route path="attendance" element={<Attendance />} />
+                <Route path="vehicle-use" element={<VehicleUse />} />
+                <Route path="fueling" element={<Fueling />} />
+                <Route path="history" element={<History />} />
+                <Route path="profile" element={<Profile />} />
+              </Route>
 
-            {/* Protected Admin routes */}
-            <Route
-              path="/admin"
-              element={
-                <ProtectedRoute>
-                  <RoleGuard allowedRole="admin">
-                    <AdminLayout />
-                  </RoleGuard>
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<AdminDashboard />} />
-              <Route path="employees" element={<Employees />} />
-              <Route path="vehicles" element={<Vehicles />} />
-              <Route path="projects" element={<Projects />} />
-              <Route path="attendance-overview" element={<AttendanceOverview />} />
-              <Route path="drives-overview" element={<DrivesOverview />} />
-              <Route path="fuelings-overview" element={<FuelingsOverview />} />
-              <Route path="reports" element={<Reports />} />
-            </Route>
+              {/* Protected Admin routes */}
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute>
+                    <RoleGuard allowedRole="admin">
+                      <AdminLayout />
+                    </RoleGuard>
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<AdminDashboard />} />
+                <Route path="employees" element={<Employees />} />
+                <Route path="vehicles" element={<Vehicles />} />
+                <Route path="projects" element={<Projects />} />
+                <Route path="attendance-overview" element={<AttendanceOverview />} />
+                <Route path="drives-overview" element={<DrivesOverview />} />
+                <Route path="fuelings-overview" element={<FuelingsOverview />} />
+                <Route path="reports" element={<Reports />} />
+              </Route>
 
-            {/* Catch-all route */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </AuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+              {/* Catch-all route */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </AuthProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;

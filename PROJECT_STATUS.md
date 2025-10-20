@@ -84,8 +84,8 @@
 - [ ] **Obmedzenie času dochádzky** - CHÝBA pravidlo pre max hodiny/deň
 
 ### Features
-- [ ] **Employee profile editing** - Zamestnanec nemôže upraviť svoj profil (telefón, meno)
-- [ ] **Admin role assignment** - Nie je možné zmeniť rolu používateľa (len default employee)
+- [x] **Employee profile editing** - ✅ IMPLEMENTOVANÉ: Zamestnanec môže upraviť svoj profil (telefón, meno) v stránke /profile
+- [x] **Admin role assignment** - ✅ IMPLEMENTOVANÉ: Admin môže zmeniť rolu používateľa v UI (Employee/Admin dropdown)
 - [x] **Vehicle current_km tracking** - ✅ OPRAVENÉ: Automatický update cez DB trigger
 - [x] **Employee deletion** - ✅ OPRAVENÉ: Admin môže mazať zamestnancov (DELETE policy pridaná)
 - [ ] **Delete functionality** - Vehicles a Projects nemajú delete (len toggle status)
@@ -93,7 +93,7 @@
 - [ ] **Charts in Reports** - Reports stránka má len číselné štatistiky, chýbajú grafy
 
 ### Security & Error Handling
-- [ ] **Error boundaries** - CHÝBA React error boundary pre graceful fails
+- [x] **Error boundaries** - ✅ IMPLEMENTOVANÉ: React Error Boundary pre graceful fails
 - [x] **Loading states** - ✅ IMPLEMENTOVANÉ (2025-01-20): Všetky mutácie majú loading UI
 - [ ] **Optimistic updates** - CHÝBA v niektorých mutáciách
 - [ ] **Rate limiting** - CHÝBA ochrana proti spamu (napr. viacnásobné submity)

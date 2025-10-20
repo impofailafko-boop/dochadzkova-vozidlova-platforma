@@ -19,13 +19,16 @@ export function useEmployees() {
         .from('profiles')
         .select(`
           *,
-          user_roles (role),
+          user_roles!inner (role),
           projects:current_project_id (id, name, status)
         `)
         .order('full_name');
 
       if (error) throw error;
-      return data;
+      return data?.map(profile => ({
+        ...profile,
+        role: profile.user_roles?.[0]?.role || 'employee'
+      }));
     },
   });
 
@@ -102,12 +105,31 @@ export function useEmployees() {
     },
   });
 
+  const updateEmployeeRole = useMutation({
+    mutationFn: async ({ userId, role }: { userId: string; role: 'admin' | 'employee' }) => {
+      const { error } = await supabase
+        .from('user_roles')
+        .update({ role })
+        .eq('user_id', userId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['employees'] });
+      toast.success('Rola zamestnanca aktualizovaná');
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Chyba pri aktualizácii role');
+    },
+  });
+
   return {
     employees,
     isLoading,
     createEmployee: createEmployee.mutate,
     deleteEmployee: deleteEmployee.mutate,
     updateEmployeeProject: updateEmployeeProject.mutate,
+    updateEmployeeRole: updateEmployeeRole.mutate,
     isCreating: createEmployee.isPending,
     isDeleting: deleteEmployee.isPending,
     isUpdatingProject: updateEmployeeProject.isPending,
