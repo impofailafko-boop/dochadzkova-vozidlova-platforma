@@ -112,6 +112,7 @@
 | `user_id` | uuid | No | - | Foreign key na auth.users (UNIQUE) |
 | `full_name` | text | No | - | Celé meno používateľa |
 | `phone` | text | Yes | - | Telefónne číslo |
+| `current_project_id` | uuid | Yes | - | Aktuálny projekt zamestnanca |
 | `created_at` | timestamptz | No | `now()` | Timestamp vytvorenia |
 
 ### Indexes
@@ -135,9 +136,11 @@
 - ✅ **Admin môže DELETE** profily (policy pridaná)
 - ❌ **Users nemôžu DELETE** svoj vlastný profil (správne!)
 - ⚠️ Employee nemôže INSERT svoj profil (správne, admin/trigger musí)
+- ✅ **IMPLEMENTOVANÉ (2025-01-20):** `current_project_id` - aktuálny projekt zamestnanca (nullable)
 
 ### Vzťahy
 - `user_id` → (implicitne) `auth.users.id` (nie je foreign key v schéme)
+- `current_project_id` → `projects.id` (foreign key)
 
 ---
 
@@ -150,25 +153,32 @@
 | `id` | uuid | No | `gen_random_uuid()` | Primary key |
 | `name` | text | No | - | Názov projektu |
 | `description` | text | Yes | - | Popis projektu |
-| `is_active` | boolean | No | `true` | Aktívny/neaktívny |
+| `status` | project_status | No | `'planned'` | Stav projektu (enum) |
+| `is_active` | boolean | No | `true` | Aktívny/neaktívny (DEPRECATED, používa sa status) |
 | `created_at` | timestamptz | No | `now()` | Timestamp vytvorenia |
+
+### ENUM: project_status
+```sql
+CREATE TYPE project_status AS ENUM ('planned', 'active', 'completed');
+```
 
 ### Indexes
 ```sql
--- ⚠️ CHÝBA: CREATE INDEX idx_projects_is_active ON projects(is_active);
+-- ⚠️ ODPORÚČANÉ: CREATE INDEX idx_projects_status ON projects(status);
 ```
 
 ### RLS Policies
 
 | Policy Name | Command | Using | With Check |
 |-------------|---------|-------|------------|
-| Employees can view active projects | SELECT | `is_active = true` | - |
+| Employees can view active projects | SELECT | `status = 'active'` | - |
 | Admins can manage all projects | ALL | `has_role(auth.uid(), 'admin')` | - |
 
 ### Business Pravidlá
-- ✅ Employee vidí len `is_active = true` projekty
-- ✅ Admin môže deaktivovať projekt (toggle `is_active`)
-- ⚠️ **CHÝBA:** Check constraint `name` nie je prázdny
+- ✅ Employee vidí len `status = 'active'` projekty
+- ✅ Admin môže meniť status projektu (planned/active/completed)
+- ✅ **IMPLEMENTOVANÉ (2025-01-20):** Tri stavy namiesto boolean
+- ⚠️ `is_active` stĺpec je ponechaný pre backward compatibility, ale NEPOUŽÍVA SA
 
 ### Vzťahy
 - Žiadne foreign keys
@@ -448,14 +458,15 @@ CHECK (departure_time IS NULL OR arrival_time IS NULL OR departure_time > arriva
 
 ### Implicitné vzťahy (používané v kóde)
 ```
-attendance.user_id        → auth.users.id
-fuel_logs.user_id         → auth.users.id
-fuel_logs.vehicle_id      → vehicles.id
-profiles.user_id          → auth.users.id (UNIQUE)
-user_roles.user_id        → auth.users.id
-vehicle_logs.user_id      → auth.users.id
-vehicle_logs.vehicle_id   → vehicles.id
-vehicle_logs.project_id   → projects.id
+attendance.user_id              → auth.users.id
+fuel_logs.user_id               → auth.users.id
+fuel_logs.vehicle_id            → vehicles.id
+profiles.user_id                → auth.users.id (UNIQUE)
+profiles.current_project_id     → projects.id (FK)
+user_roles.user_id              → auth.users.id
+vehicle_logs.user_id            → auth.users.id
+vehicle_logs.vehicle_id         → vehicles.id
+vehicle_logs.project_id         → projects.id
 ```
 
 ### Možné foreign keys (ak chceme)
@@ -485,6 +496,7 @@ erDiagram
     VEHICLES ||--o{ VEHICLE_LOGS : "vehicle_id"
     
     PROJECTS ||--o{ VEHICLE_LOGS : "project_id"
+    PROJECTS ||--o{ PROFILES : "current_project_id"
     
     AUTH_USERS {
         uuid id PK
@@ -497,6 +509,7 @@ erDiagram
         uuid user_id UK
         text full_name
         text phone
+        uuid current_project_id FK
     }
     
     USER_ROLES {

@@ -1,6 +1,6 @@
 # PROJECT STATUS - Živý stav aplikácie
 
-*Posledná aktualizácia: 2025-01-20*
+*Posledná aktualizácia: 2025-01-20 15:30 - Fáza 1 dokončená*
 
 ---
 
@@ -15,9 +15,9 @@
 
 ### Admin Funkcie
 - [x] **Admin Dashboard** - Štatistiky (počet zamestnancov, vozidiel, projektov, dnešná dochádzka)
-- [x] **Employees Management** - Plný CRUD: pridávanie/mazanie zamestnancov
+- [x] **Employees Management** - Plný CRUD: pridávanie/mazanie zamestnancov + priradenie aktuálneho projektu
 - [x] **Vehicles Management** - Plný CRUD: create, edit (SPZ, značka, model, km), toggle status
-- [x] **Projects Management** - Plný CRUD: create, edit (názov, popis), toggle status
+- [x] **Projects Management** - Plný CRUD: create, edit (názov, popis, stav) + 3 stavy (Naplánované/Aktívne/Hotové)
 - [x] **AttendanceOverview** - Tabuľka všetkých dochádzok s filtrami (dátum, zamestnanec) + CSV export
 - [x] **DrivesOverview** - Tabuľka jázd s filtrami (dátum, zamestnanec, vozidlo, projekt) + štatistiky km + CSV export
 - [x] **FuelingsOverview** - Tabuľka tankovaní s filtrami (dátum, zamestnanec, vozidlo) + štatistiky (litre, cena) + CSV export
@@ -36,6 +36,8 @@
 - [x] **RLS policies** - Všetky tabuľky majú základné RLS (users own + admin all)
 - [x] **has_role() funkcia** - Security definer funkcia pre kontrolu rolí
 - [x] **Auto-create profile** - Trigger `handle_new_user()` po registrácii
+- [x] **Project status enum** - ✅ IMPLEMENTOVANÉ (2025-01-20): project_status enum (planned/active/completed)
+- [x] **Current project tracking** - ✅ IMPLEMENTOVANÉ (2025-01-20): profiles.current_project_id foreign key
 
 ### UI/UX
 - [x] **Sidebar navigácia** - AdminSidebar + EmployeeSidebar (shadcn/ui sidebar)
@@ -73,7 +75,7 @@
 
 ### Security & Error Handling
 - [ ] **Error boundaries** - CHÝBA React error boundary pre graceful fails
-- [ ] **Loading states** - Niektoré mutácie nemajú proper loading UI
+- [x] **Loading states** - ✅ IMPLEMENTOVANÉ (2025-01-20): Všetky mutácie majú loading UI
 - [ ] **Optimistic updates** - CHÝBA v niektorých mutáciách
 - [ ] **Rate limiting** - CHÝBA ochrana proti spamu (napr. viacnásobné submity)
 
@@ -81,8 +83,8 @@
 - [ ] **Dark/Light mode toggle** - CHÝBA prepínač témy
 - [ ] **Sidebar collapse** - Sidebar sa nedá zminimalizovať na mobile
 - [ ] **Empty states** - Niektoré stránky nemajú pekné empty states
-- [ ] **Confirmation dialogs** - CHÝBA pri niektorých delete akciách
-- [ ] **Form reset** - Formuláre sa neresetujú po úspešnom submite
+- [x] **Confirmation dialogs** - ✅ IMPLEMENTOVANÉ: Pri delete akciách (employees)
+- [x] **Form reset** - ✅ IMPLEMENTOVANÉ (2025-01-20): Formuláre sa resetujú po úspešnom submite
 
 ---
 
@@ -102,8 +104,8 @@ Všetky bugy opravené! ✅
 ### Tabuľky
 - ✅ `attendance` (7 stĺpcov, RLS ✅)
 - ✅ `fuel_logs` (8 stĺpcov, RLS ✅)
-- ✅ `profiles` (5 stĺpcov, RLS ✅)
-- ✅ `projects` (5 stĺpcov, RLS ✅)
+- ✅ `profiles` (6 stĺpcov, RLS ✅) - ✅ PRIDANÉ: current_project_id
+- ✅ `projects` (6 stĺpcov, RLS ✅) - ✅ PRIDANÉ: status enum (planned/active/completed)
 - ✅ `user_roles` (4 stĺpce, RLS ✅)
 - ✅ `vehicle_logs` (9 stĺpcov, RLS ✅)
 - ✅ `vehicles` (7 stĺpcov, RLS ✅)
@@ -124,6 +126,12 @@ Všetky bugy opravené! ✅
 
 ## 🎯 PRIORITY (čo urobiť ďalej)
 
+### ✅ FÁZA 1 HOTOVÁ (2025-01-20)
+1. ✅ **Stavy projektov** - Implementované 3 stavy (Naplánované/Aktívne/Hotové) namiesto boolean
+2. ✅ **Aktuálny projekt pre zamestnancov** - Pridaný stĺpec current_project_id + UI dropdown v admin
+3. ✅ **Form reset** - Všetky formuláre sa resetujú po úspešnom uložení
+4. ✅ **Loading states** - Všetky mutácie majú proper loading UI (disabled button + text)
+
 ### HIGH PRIORITY ✅ HOTOVO!
 1. ✅ **Opraviť viacnásobný check-in bug** - DB constraint + unique index implementovaný
 2. ✅ **Pridať input validácie** - Zod schémy pre VehicleUse a Fueling formuláre
@@ -131,17 +139,22 @@ Všetky bugy opravené! ✅
 4. ✅ **Implementovať automatic current_km update** - Trigger `trigger_update_vehicle_km` vytvorený
 5. ✅ **Employee deletion fix** - DELETE policy na profiles pridaná
 
-### MEDIUM PRIORITY
-5. **Pridať grafy do Reports** (recharts - line charts pre trends)
-6. **Implementovať Delete pre Vehicles/Projects** (momentálne len toggle status)
-7. **Pagination** pre admin overview tabuľky (momentálne limit 100)
-8. **Filter pre History** (dátum od-do)
+### MEDIUM PRIORITY (Fáza 2-4)
+6. **Fotky kilometrov** - Start/end fotky pri jazdách
+7. **Projekty do History** - Zobraziť projekty v histórii jázd
+8. **Filter projekty v Tankovaniach** - Pridať filter na projekty
+9. **Dodatočný príchod** - Tlačidlo s povinnou poznámkou
+10. **Notifikácie** - Upozornenie na zabudnutý odchod
 
-### LOW PRIORITY
-9. **Dark/Light mode** toggle
-10. **Profile editing** pre employeea
-11. **Admin role assignment UI** (zmena role cez UI namiesto SQL)
-12. **Confirmation dialogs** pri všetkých delete akciách
+### LOW PRIORITY (Fáza 4+)
+11. **Dashboard kalendár** - Denné reporty po kliknutí na deň
+12. **Excel export** - Komplexný export pre verifikáciu
+13. **Dark/Light mode** toggle
+14. **Profile editing** pre employeea
+15. **Admin role assignment UI** (zmena role cez UI namiesto SQL)
+16. **Pridať grafy do Reports** (recharts - line charts pre trends)
+17. **Delete pre Vehicles/Projects** (momentálne len toggle status)
+18. **Pagination** pre admin overview tabuľky (momentálne limit 100)
 
 ---
 

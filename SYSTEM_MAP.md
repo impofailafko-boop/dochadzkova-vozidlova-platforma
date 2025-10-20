@@ -24,9 +24,9 @@
 ### Admin Routes (role: "admin")
 ```
 /admin                          → Admin Dashboard (4 štatistiky karty)
-/admin/employees                → CRUD zamestnancov (tabuľka + create/delete dialogy)
+/admin/employees                → CRUD zamestnancov (tabuľka + create/delete dialogy + aktuálny projekt dropdown)
 /admin/vehicles                 → CRUD vozidiel (tabuľka + create/edit dialog + toggle status)
-/admin/projects                 → CRUD projektov (tabuľka + create/edit dialog + toggle status)
+/admin/projects                 → CRUD projektov (tabuľka + create/edit dialog + 3 stavy: Naplánované/Aktívne/Hotové)
 /admin/attendance-overview      → Prehľad dochádzky (filtre: dátum, zamestnanec) + tabuľka + CSV export
 /admin/drives-overview          → Prehľad jázd (filtre: dátum, zamestnanec, vozidlo, projekt) + štatistiky + CSV export
 /admin/fuelings-overview        → Prehľad tankovaní (filtre: dátum, zamestnanec, vozidlo) + štatistiky + CSV export
@@ -65,7 +65,7 @@
 | Hook | Kde sa používa | Čo robí | Cache Key |
 |------|----------------|---------|-----------|
 | `useAuth` | Všade kde treba user/role | Context pre auth state, signIn/signUp/signOut | - |
-| `useEmployees` | `/admin/employees` | Fetch/create/delete employeea | `['employees']` |
+| `useEmployees` | `/admin/employees` | Fetch/create/delete employeea + update current_project | `['employees']` |
 
 ### Dochádzka (Attendance)
 | Hook | Kde sa používa | Čo robí | Cache Key |
@@ -90,8 +90,8 @@
 ### Projekty
 | Hook | Kde sa používa | Čo robí | Cache Key |
 |------|----------------|---------|-----------|
-| `useProjects` | `/vehicle-use` (select projekt) | Fetch aktívnych projektov | `['projects']` |
-| `useAdminProjects` | `/admin/projects` | CRUD projektov | `['admin-projects']` |
+| `useProjects` | `/vehicle-use` (select projekt) | Fetch projektov so statusom 'active' | `['projects']` |
+| `useAdminProjects` | `/admin/projects` | CRUD projektov + update status (planned/active/completed) | `['admin-projects']` |
 
 ---
 
@@ -366,9 +366,9 @@ ALL: has_role(auth.uid(), 'admin')
 3. **Total hours calculation** - Automaticky počíta (departure_time - arrival_time)
 
 ### Jazdy (Vehicle Logs)
-1. **km_end > km_start** - Konečný stav musí byť vyšší ako začiatočný (CHÝBA VALIDÁCIA!)
+1. **km_end > km_start** - Konečný stav musí byť vyšší ako začiatočný (✅ CLIENT-SIDE validácia)
 2. **Len aktívne vozidlá** - Môžu sa používať len is_active = true vozidlá
-3. **Len aktívne projekty** - Jazda musí byť priradená k is_active = true projektu
+3. **Len aktívne projekty** - Jazda musí byť priradená k projektom so statusom 'active'
 
 ### Tankovanie (Fuel Logs)
 1. **liters > 0** - Musí byť kladné číslo (CHÝBA VALIDÁCIA!)
