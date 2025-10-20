@@ -43,6 +43,10 @@ export function useAttendance(userId: string | undefined) {
 
       if (error) throw error;
     },
+    onMutate: () => {
+      // Dismiss any existing toasts to prevent duplicates
+      toast.dismiss();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['attendance'] });
       toast.success('Príchod zaznamenaný');
@@ -76,6 +80,10 @@ export function useAttendance(userId: string | undefined) {
 
       if (error) throw error;
     },
+    onMutate: () => {
+      // Dismiss any existing toasts to prevent duplicates
+      toast.dismiss();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['attendance'] });
       toast.success('Odchod zaznamenaný');
@@ -85,24 +93,26 @@ export function useAttendance(userId: string | undefined) {
     },
   });
 
-  // Get user's attendance history
-  const { data: history } = useQuery({
-    queryKey: ['attendance', 'history', userId],
-    queryFn: async () => {
-      if (!userId) return [];
-      
-      const { data, error } = await supabase
-        .from('attendance')
-        .select('*')
-        .eq('user_id', userId)
-        .order('date', { ascending: false })
-        .limit(30);
+  // Get user's attendance history with pagination
+  const getHistory = (limit: number = 30) => {
+    return useQuery({
+      queryKey: ['attendance', 'history', userId, limit],
+      queryFn: async () => {
+        if (!userId) return [];
+        
+        const { data, error } = await supabase
+          .from('attendance')
+          .select('*')
+          .eq('user_id', userId)
+          .order('date', { ascending: false })
+          .limit(limit);
 
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!userId,
-  });
+        if (error) throw error;
+        return data;
+      },
+      enabled: !!userId,
+    });
+  };
 
   return {
     todayAttendance,
@@ -111,6 +121,6 @@ export function useAttendance(userId: string | undefined) {
     recordDeparture: recordDeparture.mutate,
     isRecordingArrival: recordArrival.isPending,
     isRecordingDeparture: recordDeparture.isPending,
-    history,
+    getHistory,
   };
 }

@@ -26,7 +26,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
 
   // Fetch user role from user_roles table
-  const fetchUserRole = async (userId: string) => {
+  const fetchUserRole = async (userId: string): Promise<UserRole> => {
     try {
       const { data, error } = await supabase
         .from('user_roles')
@@ -36,13 +36,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (error) {
         console.error('Error fetching user role:', error);
-        return null;
+        // Fallback to 'employee' if role not found (prevents infinite loop)
+        return 'employee';
       }
 
-      return data?.role as UserRole;
+      return data?.role as UserRole || 'employee';
     } catch (error) {
       console.error('Error in fetchUserRole:', error);
-      return null;
+      // Fallback to 'employee' on error (prevents infinite loop)
+      return 'employee';
     }
   };
 

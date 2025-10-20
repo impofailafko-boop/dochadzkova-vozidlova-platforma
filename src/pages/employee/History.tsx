@@ -17,7 +17,8 @@ import { Clock, Car, Fuel } from 'lucide-react';
 
 const History = () => {
   const { user } = useAuth();
-  const { history: attendanceHistory, isLoading: loadingAttendance } = useAttendance(user?.id);
+  const { getHistory } = useAttendance(user?.id);
+  const { data: attendanceHistory, isLoading: loadingAttendance } = getHistory(30);
   const { logs: vehicleLogs, isLoading: loadingVehicle } = useVehicleLogs(user?.id);
   const { logs: fuelLogs, isLoading: loadingFuel } = useFuelLogs(user?.id);
 

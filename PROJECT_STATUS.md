@@ -86,21 +86,12 @@
 
 ## 🐛 ZNÁME BUGY
 
-1. ~~**Dochádzka - viacnásobný check-in možný**~~ ✅ **OPRAVENÉ**
-   - ~~User môže zavolať `recordArrival` viackrát v ten istý deň~~
-   - ✅ **Fix implementovaný:** DB unique constraint na `(user_id, date)` pridaný
+Všetky bugy opravené! ✅
 
-2. **Attendance history limit**
-   - V `useAttendance` je `.limit(30)` ale v UI nie je pagination
-   - **Fix:** Pridať "Load more" alebo pagination
-
-3. **Auth redirect loop možný**
-   - Ak user má session ale nemá role v DB, môže nastať loop
-   - **Fix:** Pridať fallback v AuthContext ak `fetchUserRole` vráti `null`
-
-4. **Toast duplicity**
-   - Pri rýchlych klikoch sa môžu zobraziť viacnásobné toasty
-   - **Fix:** Debounce button clicks alebo pridať `toast.dismiss()`
+~~1. **Dochádzka - viacnásobný check-in možný**~~ ✅ OPRAVENÉ
+~~2. **Attendance history limit**~~ ✅ OPRAVENÉ - Pagination tlačidlo "Načítať ďalších 30" pridané
+~~3. **Auth redirect loop možný**~~ ✅ OPRAVENÉ - Fallback na 'employee' role pridaný
+~~4. **Toast duplicity**~~ ✅ OPRAVENÉ - toast.dismiss() pridaný pred mutáciami
 
 ---
 
