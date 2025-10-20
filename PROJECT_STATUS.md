@@ -107,8 +107,11 @@ Všetky bugy opravené! ✅
 - ✅ `profiles` (6 stĺpcov, RLS ✅) - ✅ PRIDANÉ: current_project_id
 - ✅ `projects` (6 stĺpcov, RLS ✅) - ✅ PRIDANÉ: status enum (planned/active/completed)
 - ✅ `user_roles` (4 stĺpce, RLS ✅)
-- ✅ `vehicle_logs` (9 stĺpcov, RLS ✅)
+- ✅ `vehicle_logs` (12 stĺpcov, RLS ✅) - ✅ PRIDANÉ: photo_km_start, photo_km_end, is_completed
 - ✅ `vehicles` (7 stĺpcov, RLS ✅)
+
+### Storage Buckets
+- ✅ `vehicle-photos` - Fotky stavov kilometrov (RLS: vlastník upload/view, admin view all)
 
 ### Funkcie
 - ✅ `has_role(_user_id, _role)` - Security definer kontrola role
@@ -139,8 +142,10 @@ Všetky bugy opravené! ✅
 4. ✅ **Implementovať automatic current_km update** - Trigger `trigger_update_vehicle_km` vytvorený
 5. ✅ **Employee deletion fix** - DELETE policy na profiles pridaná
 
-### MEDIUM PRIORITY (Fáza 2-4)
-6. **Fotky kilometrov** - Start/end fotky pri jazdách
+### ✅ FÁZA 2 HOTOVÁ (2025-01-20)
+6. ✅ **Fotky kilometrov** - Workflow s fotkami: začať jazdu (km_start + foto), neskôr ukončiť (km_end + foto)
+
+### MEDIUM PRIORITY (Fáza 3-4)
 7. **Projekty do History** - Zobraziť projekty v histórii jázd
 8. **Filter projekty v Tankovaniach** - Pridať filter na projekty
 9. **Dodatočný príchod** - Tlačidlo s povinnou poznámkou

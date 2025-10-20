@@ -22,8 +22,9 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Download } from 'lucide-react';
+import { Download, CheckCircle2, AlertCircle } from 'lucide-react';
 
 const DrivesOverview = () => {
   const [filters, setFilters] = useState({
@@ -45,21 +46,25 @@ const DrivesOverview = () => {
   const { vehicles } = useAdminVehicles();
   const { projects } = useAdminProjects();
 
-  const totalKm = drives?.reduce((sum: number, drive: any) => sum + (drive.km_driven || 0), 0) || 0;
+  const totalKm = drives?.reduce((sum: number, drive: any) => 
+    sum + (drive.is_completed ? (drive.km_driven || 0) : 0), 0) || 0;
+  const completedDrives = drives?.filter((d: any) => d.is_completed).length || 0;
+  const inProgressDrives = drives?.filter((d: any) => !d.is_completed).length || 0;
 
   const handleExport = () => {
     if (!drives || drives.length === 0) return;
 
     const csv = [
-      ['Dátum', 'Zamestnanec', 'Vozidlo', 'Projekt', 'Km začiatku', 'Km konca', 'Km celkom'].join(','),
+      ['Dátum', 'Zamestnanec', 'Vozidlo', 'Projekt', 'Status', 'Km začiatku', 'Km konca', 'Km celkom'].join(','),
       ...drives.map((record: any) => [
         record.date,
         record.profiles?.full_name || '-',
         record.vehicles?.spz || '-',
         record.projects?.name || '-',
+        record.is_completed ? 'Ukončená' : 'Prebieha',
         record.km_start,
-        record.km_end,
-        record.km_driven,
+        record.km_end || '-',
+        record.km_driven || '-',
       ].join(',')),
     ].join('\n');
 
@@ -89,14 +94,25 @@ const DrivesOverview = () => {
           <CardTitle>Štatistiky</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-3">
             <div>
               <p className="text-sm text-muted-foreground">Celkový počet jázd</p>
               <p className="text-2xl font-bold">{drives?.length || 0}</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {completedDrives} ukončených, {inProgressDrives} prebieha
+              </p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Celkové kilometre</p>
               <p className="text-2xl font-bold">{totalKm.toLocaleString()} km</p>
+              <p className="text-xs text-muted-foreground mt-1">Iba ukončené jazdy</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Priemerné kilometre</p>
+              <p className="text-2xl font-bold">
+                {completedDrives > 0 ? Math.round(totalKm / completedDrives) : 0} km
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">Na jazdu</p>
             </div>
           </div>
         </CardContent>
@@ -210,6 +226,7 @@ const DrivesOverview = () => {
                   <TableHead>Zamestnanec</TableHead>
                   <TableHead>Vozidlo</TableHead>
                   <TableHead>Projekt</TableHead>
+                  <TableHead>Status</TableHead>
                   <TableHead className="text-right">Km</TableHead>
                 </TableRow>
               </TableHeader>
@@ -223,12 +240,27 @@ const DrivesOverview = () => {
                       <TableCell>{record.profiles?.full_name || '-'}</TableCell>
                       <TableCell>{record.vehicles?.spz || '-'}</TableCell>
                       <TableCell>{record.projects?.name || '-'}</TableCell>
-                      <TableCell className="text-right">{record.km_driven} km</TableCell>
+                      <TableCell>
+                        {record.is_completed ? (
+                          <Badge variant="default" className="gap-1">
+                            <CheckCircle2 className="h-3 w-3" />
+                            Ukončená
+                          </Badge>
+                        ) : (
+                          <Badge variant="secondary" className="gap-1">
+                            <AlertCircle className="h-3 w-3" />
+                            Prebieha
+                          </Badge>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {record.is_completed ? `${record.km_driven} km` : `${record.km_start} km →`}
+                      </TableCell>
                     </TableRow>
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center text-muted-foreground">
+                    <TableCell colSpan={6} className="text-center text-muted-foreground">
                       Žiadne záznamy
                     </TableCell>
                   </TableRow>

@@ -30,10 +30,7 @@ const vehicleLogSchema = z.object({
     return selectedDate <= today;
   }, 'Dátum nemôže byť v budúcnosti'),
   km_start: z.coerce.number().positive('Kilometre musia byť kladné číslo').int('Kilometre musia byť celé číslo'),
-  km_end: z.coerce.number().positive('Kilometre musia byť kladné číslo').int('Kilometre musia byť celé číslo'),
-}).refine((data) => data.km_end > data.km_start, {
-  message: 'Konečné kilometre musia byť vyššie ako počiatočné',
-  path: ['km_end'],
+  photo_km_start: z.instanceof(File).optional(),
 });
 
 type VehicleLogFormData = z.infer<typeof vehicleLogSchema>;
@@ -51,7 +48,6 @@ const VehicleUse = () => {
       project_id: '',
       date: new Date().toISOString().split('T')[0],
       km_start: 0,
-      km_end: 0,
     },
   });
 
@@ -62,7 +58,7 @@ const VehicleUse = () => {
         project_id: data.project_id,
         date: data.date,
         km_start: data.km_start,
-        km_end: data.km_end,
+        photo_km_start: data.photo_km_start,
       },
       {
         onSuccess: () => {
@@ -71,9 +67,8 @@ const VehicleUse = () => {
             project_id: '',
             date: new Date().toISOString().split('T')[0],
             km_start: 0,
-            km_end: 0,
           });
-          toast.success('Záznam o jazde bol úspešne uložený');
+          toast.success('Jazda začatá - nezabudnite ju neskôr ukončiť');
         },
         onError: (error) => {
           toast.error('Chyba pri ukladaní záznamu: ' + error.message);
@@ -83,7 +78,6 @@ const VehicleUse = () => {
   };
 
   const isLoading = loadingVehicles || loadingProjects;
-  const kmDriven = form.watch('km_end') - form.watch('km_start');
 
   return (
     <div className="p-6 space-y-6">
@@ -96,8 +90,8 @@ const VehicleUse = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Nová jazda</CardTitle>
-          <CardDescription>Vyplňte údaje o použití vozidla</CardDescription>
+          <CardTitle>Začať jazdu</CardTitle>
+          <CardDescription>Zaznamenajte začiatok jazdy a stav kilometrov</CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -188,38 +182,35 @@ const VehicleUse = () => {
 
                   <FormField
                     control={form.control}
-                    name="km_end"
-                    render={({ field }) => (
+                    name="photo_km_start"
+                    render={({ field: { value, onChange, ...field } }) => (
                       <FormItem>
-                        <FormLabel>Kilometre na konci</FormLabel>
+                        <FormLabel>Foto stavu kilometrov</FormLabel>
                         <FormControl>
-                          <Input type="number" placeholder="napr. 45150" {...field} />
+                          <Input 
+                            type="file" 
+                            accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) onChange(file);
+                            }}
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-
-                  <div className="space-y-2 flex items-end">
-                    <div className="w-full">
-                      <p className="text-sm text-muted-foreground">
-                        Najazdené kilometre:{' '}
-                        <span className="font-bold text-foreground">
-                          {kmDriven > 0 ? kmDriven : 0} km
-                        </span>
-                      </p>
-                    </div>
-                  </div>
                 </div>
 
                 <Button type="submit" disabled={isCreating} className="w-full">
                   {isCreating ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Ukladám...
+                      Začínam...
                     </>
                   ) : (
-                    'Uložiť záznam'
+                    'Začať jazdu'
                   )}
                 </Button>
               </form>

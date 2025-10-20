@@ -196,9 +196,12 @@ export type Database = {
           created_at: string
           date: string
           id: string
+          is_completed: boolean | null
           km_driven: number | null
-          km_end: number
+          km_end: number | null
           km_start: number
+          photo_km_end: string | null
+          photo_km_start: string | null
           project_id: string
           user_id: string
           vehicle_id: string
@@ -207,9 +210,12 @@ export type Database = {
           created_at?: string
           date: string
           id?: string
+          is_completed?: boolean | null
           km_driven?: number | null
-          km_end: number
+          km_end?: number | null
           km_start: number
+          photo_km_end?: string | null
+          photo_km_start?: string | null
           project_id: string
           user_id: string
           vehicle_id: string
@@ -218,9 +224,12 @@ export type Database = {
           created_at?: string
           date?: string
           id?: string
+          is_completed?: boolean | null
           km_driven?: number | null
-          km_end?: number
+          km_end?: number | null
           km_start?: number
+          photo_km_end?: string | null
+          photo_km_start?: string | null
           project_id?: string
           user_id?: string
           vehicle_id?: string

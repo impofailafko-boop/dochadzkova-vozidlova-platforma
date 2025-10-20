@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAttendance } from '@/hooks/useAttendance';
 import { useVehicleLogs } from '@/hooks/useVehicleLogs';
@@ -13,7 +14,10 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Clock, Car, Fuel } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Clock, Car, Fuel, CheckCircle2, AlertCircle } from 'lucide-react';
+import { CompleteDriveDialog } from '@/components/employee/CompleteDriveDialog';
 
 const History = () => {
   const { user } = useAuth();
@@ -21,6 +25,7 @@ const History = () => {
   const { data: attendanceHistory, isLoading: loadingAttendance } = getHistory(30);
   const { logs: vehicleLogs, isLoading: loadingVehicle } = useVehicleLogs(user?.id);
   const { logs: fuelLogs, isLoading: loadingFuel } = useFuelLogs(user?.id);
+  const [selectedLog, setSelectedLog] = useState<any>(null);
 
   return (
     <div className="p-6 space-y-6">
@@ -118,7 +123,9 @@ const History = () => {
                       <TableHead>Dátum</TableHead>
                       <TableHead>Vozidlo</TableHead>
                       <TableHead>Projekt</TableHead>
+                      <TableHead>Status</TableHead>
                       <TableHead className="text-right">Kilometre</TableHead>
+                      <TableHead></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -130,14 +137,37 @@ const History = () => {
                           </TableCell>
                           <TableCell>{log.vehicles?.spz}</TableCell>
                           <TableCell>{log.projects?.name}</TableCell>
+                          <TableCell>
+                            {log.is_completed ? (
+                              <Badge variant="default" className="gap-1">
+                                <CheckCircle2 className="h-3 w-3" />
+                                Ukončená
+                              </Badge>
+                            ) : (
+                              <Badge variant="secondary" className="gap-1">
+                                <AlertCircle className="h-3 w-3" />
+                                Prebieha
+                              </Badge>
+                            )}
+                          </TableCell>
                           <TableCell className="text-right">
-                            {log.km_driven} km
+                            {log.is_completed ? `${log.km_driven} km` : `${log.km_start} km →`}
+                          </TableCell>
+                          <TableCell>
+                            {!log.is_completed && (
+                              <Button
+                                size="sm"
+                                onClick={() => setSelectedLog(log)}
+                              >
+                                Ukončiť
+                              </Button>
+                            )}
                           </TableCell>
                         </TableRow>
                       ))
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={4} className="text-center text-muted-foreground">
+                        <TableCell colSpan={6} className="text-center text-muted-foreground">
                           Žiadne záznamy
                         </TableCell>
                       </TableRow>
@@ -202,6 +232,14 @@ const History = () => {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {selectedLog && (
+        <CompleteDriveDialog
+          open={!!selectedLog}
+          onOpenChange={(open) => !open && setSelectedLog(null)}
+          log={selectedLog}
+        />
+      )}
     </div>
   );
 };

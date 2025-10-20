@@ -237,8 +237,11 @@ CREATE TYPE app_role AS ENUM ('admin', 'employee');
 | `project_id` | uuid | No | - | Pre ktorý projekt |
 | `date` | date | No | - | Dátum jazdy |
 | `km_start` | integer | No | - | Začiatočný stav km |
-| `km_end` | integer | No | - | Konečný stav km |
+| `km_end` | integer | Yes | - | Konečný stav km (nullable pre rozpracované jazdy) |
 | `km_driven` | integer | Yes | - | Ujazdené km (vypočítané) |
+| `photo_km_start` | text | Yes | - | Cesta k fotke začiatočného stavu km |
+| `photo_km_end` | text | Yes | - | Cesta k fotke konečného stavu km |
+| `is_completed` | boolean | No | `false` | Či je jazda ukončená |
 | `created_at` | timestamptz | No | `now()` | Timestamp vytvorenia |
 
 ### Indexes
@@ -262,7 +265,10 @@ CREATE TYPE app_role AS ENUM ('admin', 'employee');
 ### Business Pravidlá
 - ✅ **CLIENT-SIDE:** Zod validácia `km_end > km_start` + pozitívne celé čísla
 - ✅ **TRIGGER:** `trigger_update_vehicle_km` automaticky aktualizuje `vehicles.current_km`
-- `km_driven` je nullable (pravdepodobne by sa malo počítať automaticky)
+- ✅ **IMPLEMENTOVANÉ (2025-01-20):** Workflow s fotkami - užívateľ začne jazdu s km_start a foto, neskôr ukončí s km_end a foto
+- ✅ **STORAGE:** `vehicle-photos` bucket pre fotky km stavov (RLS: vlastník môže upload/view, admin view all)
+- `km_driven` je nullable (počíta sa až po ukončení jazdy)
+- `km_end` je nullable (vyplní sa až pri ukončení jazdy)
 
 ### Vzťahy
 - `user_id` → (implicitne) `auth.users.id`
