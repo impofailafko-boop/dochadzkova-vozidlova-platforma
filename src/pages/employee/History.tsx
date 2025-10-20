@@ -198,6 +198,7 @@ const History = () => {
                     <TableRow>
                       <TableHead>Dátum</TableHead>
                       <TableHead>Vozidlo</TableHead>
+                      <TableHead>Projekt</TableHead>
                       <TableHead className="text-right">Litre</TableHead>
                       <TableHead className="text-right">Cena</TableHead>
                     </TableRow>
@@ -210,6 +211,7 @@ const History = () => {
                             {new Date(log.date).toLocaleDateString('sk-SK')}
                           </TableCell>
                           <TableCell>{log.vehicles?.spz}</TableCell>
+                          <TableCell>{log.projects?.name || '-'}</TableCell>
                           <TableCell className="text-right">
                             {log.liters} L
                           </TableCell>
@@ -220,7 +222,7 @@ const History = () => {
                       ))
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={4} className="text-center text-muted-foreground">
+                        <TableCell colSpan={5} className="text-center text-muted-foreground">
                           Žiadne záznamy
                         </TableCell>
                       </TableRow>

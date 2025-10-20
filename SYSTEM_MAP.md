@@ -18,7 +18,7 @@
 /attendance          → Dochádzka (AttendanceButton + tabuľka histórie 30 dní)
 /vehicle-use         → Pridanie jazdy (formulár: vozidlo, projekt, dátum, km start/end)
 /fueling             → Pridanie tankovania (formulár: vozidlo, projekt (voliteľný), dátum, litre, cena, poznámka)
-/history             → História všetkého (3 taby: Dochádzka, Jazdy, Tankovania - každý 30 záznamov)
+/history             → História všetkého (3 taby: Dochádzka, Jazdy + projekty, Tankovania + projekty - každý 30 záznamov)
 ```
 
 ### Admin Routes (role: "admin")
@@ -78,7 +78,7 @@
 |------|----------------|---------|-----------|
 | `useVehicles` | Employee stránky | Fetch aktívnych vozidiel | `['vehicles']` |
 | `useAdminVehicles` | `/admin/vehicles` | CRUD vozidiel | `['admin-vehicles']` |
-| `useVehicleLogs` | `/vehicle-use`, `/history` | Create/fetch záznamov jázd | `['vehicle-logs', userId]` |
+| `useVehicleLogs` | `/vehicle-use`, `/history` | Create/fetch záznamov jázd (s projektami) | `['vehicle-logs', userId]` |
 | `useAdminDrives` | `/admin/drives-overview` | Fetch jázd všetkých (s filtrami) | `['admin-drives', filters]` |
 
 ### Tankovanie

@@ -1,6 +1,6 @@
 # PROJECT STATUS - Živý stav aplikácie
 
-*Posledná aktualizácia: 2025-01-20 20:30 - Implementovaný filter projektov v Tankovaniach (fuel_logs.project_id + UI filtre)*
+*Posledná aktualizácia: 2025-01-20 20:50 - Pridaný stĺpec "Projekt" aj do History → Tankovania tab*
 
 ---
 
@@ -184,9 +184,9 @@ Všetky bugy opravené! ✅
 
 ### ✅ FÁZA 3 - HOTOVÉ featury (2025-01-20)
 7. ✅ **Filter projekty v Tankovaniach** - Pridaný project_id stĺpec + filter v Admin FuelingsOverview + voliteľný select v Employee Fueling formulári
+8. ✅ **Projekty v History** - Projekty sa zobrazujú v `/history` → tab "Jazdy" aj "Tankovania" (stĺpec "Projekt" + JOIN v useVehicleLogs a useFuelLogs)
 
 ### MEDIUM PRIORITY (Fáza 3-4)
-8. **Projekty do History** - Zobraziť projekty v histórii jázd (zatiaľ len v Jazdy tabe)
 9. **Dodatočný príchod** - Tlačidlo s povinnou poznámkou
 10. **Notifikácie** - Upozornenie na zabudnutý odchod
 
