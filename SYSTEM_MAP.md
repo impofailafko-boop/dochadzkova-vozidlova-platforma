@@ -249,23 +249,81 @@ ALL: has_role(auth.uid(), 'admin')
 15. Toast: "Odchod zaznamenaný"
 ```
 
-### Pridanie Jazdy (Vehicle Use) Flow
+### Pridanie Jazdy (Vehicle Use) Flow - FÁZA 2 WORKFLOW
+
+**A) Začatie Jazdy:**
 ```
 1. Employee → /vehicle-use
    ↓
-2. Formulár: Vyberie vozidlo, projekt, km_start, km_end, dátum
+2. Formulár: Vyberie vozidlo, projekt, dátum, km_start
    ↓
-3. useVehicleLogs.createLog({ vehicle_id, project_id, date, km_start, km_end })
+3. Vyberie fotku tachometra (POVINNÁ)
    ↓
-4. supabase.insert('vehicle_logs', { ...input, user_id })
+4. Submit → uploadVehiclePhoto(file, userId)
    ↓
-5. RLS: CHECK auth.uid() = user_id ✅
+5. Supabase Storage: upload do bucket 'vehicle-photos'
+   Path: ${userId}/${timestamp}_${fileName}
+   RLS: CHECK auth.uid() = ${userId} ✅
    ↓
-6. Success → invalidate ['vehicle-logs']
+6. Získa publicUrl fotky
    ↓
-7. Toast: "Jazda zaznamenaná"
+7. useVehicleLogs.createLog({
+      vehicle_id,
+      project_id,
+      date,
+      km_start,
+      photo_km_start: publicUrl,
+      is_completed: false,  // KĽÚČOVÉ!
+      km_end: null,         // Vyplní sa neskôr
+      km_driven: null       // Vypočíta sa neskôr
+   })
    ↓
-8. Môže sa updatnúť vehicles.current_km (ALE ZATIAĽ NEPREBIEHA)
+8. supabase.insert('vehicle_logs', { ...input, user_id })
+   ↓
+9. RLS: CHECK auth.uid() = user_id ✅
+   ↓
+10. Success → invalidate ['vehicle-logs']
+    ↓
+11. Toast: "Jazda začatá"
+```
+
+**B) Ukončenie Jazdy:**
+```
+1. Employee → /history → Tab "Jazdy"
+   ↓
+2. Vidí jazdy so statusom "Prebieha" (červený badge)
+   ↓
+3. Klik na tlačidlo "Ukončiť jazdu"
+   ↓
+4. CompleteDriveDialog sa otvorí
+   ↓
+5. Formulár: km_end (required), fotka (optional)
+   ↓
+6. Validácia: km_end > km_start (client-side Zod)
+   ↓
+7. Ak fotka existuje → uploadVehiclePhoto(file, userId)
+   ↓
+8. useVehicleLogs.completeLog({
+      id: driveId,
+      km_end,
+      photo_km_end: photoUrl | null,
+      is_completed: true,
+      km_driven: km_end - km_start  // Vypočítané
+   })
+   ↓
+9. supabase.update('vehicle_logs', { ...input })
+      .eq('id', id)
+      .eq('user_id', userId)  // Extra security
+   ↓
+10. RLS: USING auth.uid() = user_id ✅
+    ↓
+11. TRIGGER: trigger_update_vehicle_km sa spustí
+    ↓
+12. UPDATE vehicles SET current_km = km_end WHERE id = vehicle_id
+    ↓
+13. Success → invalidate ['vehicle-logs']
+    ↓
+14. Toast: "Jazda ukončená. Aktuálny stav vozidla: {km_end} km"
 ```
 
 ### Admin Vytvorenie Employeea
@@ -366,9 +424,13 @@ ALL: has_role(auth.uid(), 'admin')
 3. **Total hours calculation** - Automaticky počíta (departure_time - arrival_time)
 
 ### Jazdy (Vehicle Logs)
-1. **km_end > km_start** - Konečný stav musí byť vyšší ako začiatočný (✅ CLIENT-SIDE validácia)
+1. **km_end > km_start** - Konečný stav musí byť vyšší ako začiatočný (✅ CLIENT-SIDE Zod validácia)
 2. **Len aktívne vozidlá** - Môžu sa používať len is_active = true vozidlá
 3. **Len aktívne projekty** - Jazda musí byť priradená k projektom so statusom 'active'
+4. **✅ FÁZA 2:** Fotka km_start je POVINNÁ pri začatí jazdy
+5. **✅ FÁZA 2:** Fotka km_end je VOLITEĽNÁ pri ukončení jazdy
+6. **✅ FÁZA 2:** Jazda môže byť v stave "Prebieha" (is_completed = false, km_end = null)
+7. **✅ FÁZA 2:** Automatický update vehicles.current_km len pri ukončení jazdy (trigger)
 
 ### Tankovanie (Fuel Logs)
 1. **liters > 0** - Musí byť kladné číslo (CHÝBA VALIDÁCIA!)
