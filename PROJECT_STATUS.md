@@ -54,16 +54,17 @@
 ## ❌ CHÝBA / NEFUNGUJE
 
 ### Validácie & Business Pravidlá
-- [ ] **Viacnásobný check-in** - CHÝBA ochrana proti viacnásobným check-inom v ten istý deň
-- [ ] **Validácia kilometrov** - CHÝBA kontrola že `km_end > km_start` pri záznamoch jázd
-- [ ] **Validácia tankovania** - CHÝBA kontrola že `liters > 0` a `price >= 0`
-- [ ] **Input validácie** - CHÝBA Zod schéma validácia pre formuláre
+- [x] **Viacnásobný check-in** - ✅ OPRAVENÉ: DB unique constraint na `(user_id, date)`
+- [x] **Validácia kilometrov** - ✅ OPRAVENÉ: Zod validácia `km_end > km_start` + pozitívne km
+- [x] **Validácia tankovania** - ✅ OPRAVENÉ: Zod validácia `liters > 0` a `price >= 0`
+- [x] **Input validácie** - ✅ OPRAVENÉ: Zod schémy pre VehicleUse a Fueling formuláre
 - [ ] **Obmedzenie času dochádzky** - CHÝBA pravidlo pre max hodiny/deň
 
 ### Features
 - [ ] **Employee profile editing** - Zamestnanec nemôže upraviť svoj profil (telefón, meno)
 - [ ] **Admin role assignment** - Nie je možné zmeniť rolu používateľa (len default employee)
-- [ ] **Vehicle current_km tracking** - `current_km` sa neaktualizuje automaticky po jazdách
+- [x] **Vehicle current_km tracking** - ✅ OPRAVENÉ: Automatický update cez DB trigger
+- [x] **Employee deletion** - ✅ OPRAVENÉ: Admin môže mazať zamestnancov (DELETE policy pridaná)
 - [ ] **Delete functionality** - Vehicles a Projects nemajú delete (len toggle status)
 - [ ] **Pagination for History** - Employee history page nemá filtrovanie podľa dátumu
 - [ ] **Charts in Reports** - Reports stránka má len číselné štatistiky, chýbajú grafy
@@ -85,9 +86,9 @@
 
 ## 🐛 ZNÁME BUGY
 
-1. **Dochádzka - viacnásobný check-in možný** 
-   - User môže zavolať `recordArrival` viackrát v ten istý deň
-   - **Fix:** Pridať DB unique constraint na `(user_id, date)` + UI disablovať tlačidlo
+1. ~~**Dochádzka - viacnásobný check-in možný**~~ ✅ **OPRAVENÉ**
+   - ~~User môže zavolať `recordArrival` viackrát v ten istý deň~~
+   - ✅ **Fix implementovaný:** DB unique constraint na `(user_id, date)` pridaný
 
 2. **Attendance history limit**
    - V `useAttendance` je `.limit(30)` ale v UI nie je pagination
@@ -118,20 +119,24 @@
 - ✅ `has_role(_user_id, _role)` - Security definer kontrola role
 - ✅ `handle_new_user()` - Trigger na auto-vytvorenie profilu
 
-### Chýbajúce indexy
-- ⚠️ `attendance.user_id` - Neindexovaný (dotazy môžu byť pomalé)
-- ⚠️ `fuel_logs.user_id` - Neindexovaný
-- ⚠️ `vehicle_logs.user_id` - Neindexovaný
+### Indexy
+- ✅ `attendance.user_id`, `attendance.date` - Indexované
+- ✅ `fuel_logs.user_id`, `fuel_logs.vehicle_id`, `fuel_logs.date` - Indexované
+- ✅ `vehicle_logs.user_id`, `vehicle_logs.vehicle_id`, `vehicle_logs.date` - Indexované
+
+### Triggers
+- ✅ `trigger_update_vehicle_km` - Automaticky aktualizuje `vehicles.current_km` po insert/update vehicle_logs
 
 ---
 
 ## 🎯 PRIORITY (čo urobiť ďalej)
 
-### HIGH PRIORITY
-1. **Opraviť viacnásobný check-in bug** (DB constraint + UI)
-2. **Pridať input validácie** (Zod schémy pre všetky formuláre)
-3. **Pridať DB indexy** pre performance (user_id na všetkých tabuľkách)
-4. **Implementovať automatic current_km update** (trigger/funkcia po insert vehicle_logs)
+### HIGH PRIORITY ✅ HOTOVO!
+1. ✅ **Opraviť viacnásobný check-in bug** - DB constraint + unique index implementovaný
+2. ✅ **Pridať input validácie** - Zod schémy pre VehicleUse a Fueling formuláre
+3. ✅ **Pridať DB indexy** - Všetky kritické indexy vytvorené (user_id, vehicle_id, date)
+4. ✅ **Implementovať automatic current_km update** - Trigger `trigger_update_vehicle_km` vytvorený
+5. ✅ **Employee deletion fix** - DELETE policy na profiles pridaná
 
 ### MEDIUM PRIORITY
 5. **Pridať grafy do Reports** (recharts - line charts pre trends)

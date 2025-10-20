@@ -35,8 +35,8 @@
 ### Indexes
 ```sql
 -- PRIMARY KEY index (automatický)
--- ⚠️ CHÝBA: CREATE INDEX idx_attendance_user_id ON attendance(user_id);
--- ⚠️ CHÝBA: CREATE INDEX idx_attendance_date ON attendance(date);
+✅ CREATE INDEX idx_attendance_user_id ON attendance(user_id);
+✅ CREATE INDEX idx_attendance_date ON attendance(date);
 ```
 
 ### RLS Policies
@@ -50,7 +50,7 @@
 | Admins can manage all attendance | ALL | `has_role(auth.uid(), 'admin')` | - |
 
 ### Business Pravidlá
-- ⚠️ **CHÝBA:** Unique constraint na `(user_id, date)` - user môže mať len 1 záznam za deň
+- ✅ **CONSTRAINT:** `attendance_user_date_unique` - user môže mať len 1 záznam za deň
 - ⚠️ **CHÝBA:** Check constraint `departure_time > arrival_time` (ak oba vyplnené)
 - ✅ `total_hours` sa počíta v aplikačnom kóde (nie DB trigger)
 
@@ -76,9 +76,9 @@
 
 ### Indexes
 ```sql
--- ⚠️ CHÝBA: CREATE INDEX idx_fuel_logs_user_id ON fuel_logs(user_id);
--- ⚠️ CHÝBA: CREATE INDEX idx_fuel_logs_vehicle_id ON fuel_logs(vehicle_id);
--- ⚠️ CHÝBA: CREATE INDEX idx_fuel_logs_date ON fuel_logs(date);
+✅ CREATE INDEX idx_fuel_logs_user_id ON fuel_logs(user_id);
+✅ CREATE INDEX idx_fuel_logs_vehicle_id ON fuel_logs(vehicle_id);
+✅ CREATE INDEX idx_fuel_logs_date ON fuel_logs(date);
 ```
 
 ### RLS Policies
@@ -92,8 +92,9 @@
 | Admins can manage all fuel logs | ALL | `has_role(auth.uid(), 'admin')` | - |
 
 ### Business Pravidlá
-- ⚠️ **CHÝBA:** Check constraint `liters > 0`
-- ⚠️ **CHÝBA:** Check constraint `price >= 0` (ak nie NULL)
+- ✅ **CLIENT-SIDE:** Zod validácia `liters > 0` (max 500L)
+- ✅ **CLIENT-SIDE:** Zod validácia `price >= 0` (max 10000€)
+- ⚠️ **POZNÁMKA:** DB constraints neboli pridané (validácia len na frontend)
 
 ### Vzťahy
 - `user_id` → (implicitne) `auth.users.id`
@@ -127,10 +128,12 @@
 | Admins can view all profiles | SELECT | `has_role(auth.uid(), 'admin')` | - |
 | Admins can insert profiles | INSERT | - | `has_role(auth.uid(), 'admin')` |
 | Admins can update all profiles | UPDATE | `has_role(auth.uid(), 'admin')` | - |
+| Admins can delete profiles | DELETE | `has_role(auth.uid(), 'admin')` | - |
 
 ### Business Pravidlá
 - ✅ Auto-vytvorenie cez trigger `handle_new_user()` po signup
-- ❌ **Users nemôžu DELETE** svoj profil (správne!)
+- ✅ **Admin môže DELETE** profily (policy pridaná)
+- ❌ **Users nemôžu DELETE** svoj vlastný profil (správne!)
 - ⚠️ Employee nemôže INSERT svoj profil (správne, admin/trigger musí)
 
 ### Vzťahy
@@ -230,10 +233,10 @@ CREATE TYPE app_role AS ENUM ('admin', 'employee');
 
 ### Indexes
 ```sql
--- ⚠️ CHÝBA: CREATE INDEX idx_vehicle_logs_user_id ON vehicle_logs(user_id);
--- ⚠️ CHÝBA: CREATE INDEX idx_vehicle_logs_vehicle_id ON vehicle_logs(vehicle_id);
--- ⚠️ CHÝBA: CREATE INDEX idx_vehicle_logs_project_id ON vehicle_logs(project_id);
--- ⚠️ CHÝBA: CREATE INDEX idx_vehicle_logs_date ON vehicle_logs(date);
+✅ CREATE INDEX idx_vehicle_logs_user_id ON vehicle_logs(user_id);
+✅ CREATE INDEX idx_vehicle_logs_vehicle_id ON vehicle_logs(vehicle_id);
+-- ⚠️ CHÝBA: CREATE INDEX idx_vehicle_logs_project_id ON vehicle_logs(project_id); (nebol pridaný)
+✅ CREATE INDEX idx_vehicle_logs_date ON vehicle_logs(date);
 ```
 
 ### RLS Policies
@@ -247,8 +250,8 @@ CREATE TYPE app_role AS ENUM ('admin', 'employee');
 | Admins can manage all vehicle logs | ALL | `has_role(auth.uid(), 'admin')` | - |
 
 ### Business Pravidlá
-- ⚠️ **CHÝBA:** Check constraint `km_end > km_start`
-- ⚠️ **CHÝBA:** Trigger/funkcia na automatický update `vehicles.current_km`
+- ✅ **CLIENT-SIDE:** Zod validácia `km_end > km_start` + pozitívne celé čísla
+- ✅ **TRIGGER:** `trigger_update_vehicle_km` automaticky aktualizuje `vehicles.current_km`
 - `km_driven` je nullable (pravdepodobne by sa malo počítať automaticky)
 
 ### Vzťahy
@@ -288,7 +291,7 @@ CREATE TYPE app_role AS ENUM ('admin', 'employee');
 ### Business Pravidlá
 - ✅ Employee vidí len `is_active = true` vozidlá
 - ✅ Admin môže deaktivovať vozidlo (toggle `is_active`)
-- ⚠️ **CHÝBA:** Auto-update `current_km` po každej jazde (vehicle_logs)
+- ✅ **TRIGGER:** Auto-update `current_km` po každej jazde implementovaný (funkcia `update_vehicle_current_km`)
 - ⚠️ **CHÝBA:** Unique constraint na `spz` (ak to je požiadavka)
 
 ### Vzťahy
@@ -383,28 +386,39 @@ CREATE TRIGGER on_auth_user_created
 
 ## 🚨 CHÝBAJÚCE CONSTRAINTS & INDEXES
 
-### Critical (treba opraviť)
+### ✅ Implementované (2025-01-20)
 ```sql
--- Dochádzka: Ochrana proti viacnásobným check-inom
+-- ✅ Dochádzka: Ochrana proti viacnásobným check-inom
 ALTER TABLE attendance 
-ADD CONSTRAINT unique_user_date UNIQUE (user_id, date);
+ADD CONSTRAINT attendance_user_date_unique UNIQUE (user_id, date);
 
--- Tankovania: Validácia litrov
-ALTER TABLE fuel_logs 
-ADD CONSTRAINT check_liters_positive CHECK (liters > 0);
-
--- Jazdy: Validácia km
-ALTER TABLE vehicle_logs 
-ADD CONSTRAINT check_km_end_greater CHECK (km_end > km_start);
-
--- Indexes pre performance
+-- ✅ Indexes pre performance (všetky vytvorené)
 CREATE INDEX idx_attendance_user_id ON attendance(user_id);
 CREATE INDEX idx_attendance_date ON attendance(date);
 CREATE INDEX idx_fuel_logs_user_id ON fuel_logs(user_id);
 CREATE INDEX idx_fuel_logs_vehicle_id ON fuel_logs(vehicle_id);
+CREATE INDEX idx_fuel_logs_date ON fuel_logs(date);
 CREATE INDEX idx_vehicle_logs_user_id ON vehicle_logs(user_id);
 CREATE INDEX idx_vehicle_logs_vehicle_id ON vehicle_logs(vehicle_id);
-CREATE INDEX idx_vehicle_logs_project_id ON vehicle_logs(project_id);
+CREATE INDEX idx_vehicle_logs_date ON vehicle_logs(date);
+
+-- ✅ Trigger pre automatic current_km update
+CREATE FUNCTION update_vehicle_current_km() ...
+CREATE TRIGGER trigger_update_vehicle_km ...
+
+-- ✅ DELETE policy pre profiles (admins)
+CREATE POLICY "Admins can delete profiles" ...
+```
+
+### Nie je implementované (len client-side validácia)
+```sql
+-- ⚠️ Tankovania: Validácia litrov (len Zod)
+-- ALTER TABLE fuel_logs 
+-- ADD CONSTRAINT check_liters_positive CHECK (liters > 0);
+
+-- ⚠️ Jazdy: Validácia km (len Zod)
+-- ALTER TABLE vehicle_logs 
+-- ADD CONSTRAINT check_km_end_greater CHECK (km_end > km_start);
 ```
 
 ### Optional (nice to have)
