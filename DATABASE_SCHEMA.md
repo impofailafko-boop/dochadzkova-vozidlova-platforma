@@ -401,6 +401,90 @@ CREATE TRIGGER on_auth_user_created
 
 ---
 
+### 3. `update_vehicle_current_km() RETURNS trigger`
+
+**Účel:** Automaticky aktualizovať `vehicles.current_km` po ukončení jazdy
+
+**Kód:**
+```sql
+CREATE OR REPLACE FUNCTION public.update_vehicle_current_km()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = 'public'
+AS $$
+BEGIN
+  -- Update the vehicle's current_km with the km_end from the new log
+  UPDATE public.vehicles
+  SET current_km = NEW.km_end
+  WHERE id = NEW.vehicle_id;
+  
+  RETURN NEW;
+END;
+$$;
+```
+
+**Trigger:**
+```sql
+CREATE TRIGGER trigger_update_vehicle_km
+  AFTER UPDATE OF km_end ON vehicle_logs
+  FOR EACH ROW
+  WHEN (NEW.km_end IS NOT NULL AND OLD.km_end IS NULL)
+  EXECUTE FUNCTION public.update_vehicle_current_km();
+```
+
+**Flow:**
+1. User ukončí jazdu (UPDATE `vehicle_logs` SET `km_end = X`)
+2. Trigger sa spustí ak `km_end` sa zmenilo z NULL na hodnotu
+3. Funkcia aktualizuje `vehicles.current_km` na nový `km_end`
+
+---
+
+---
+
+## 📦 STORAGE BUCKETS
+
+### `vehicle-photos` (Private)
+
+**Účel:** Úložisko pre fotky odometrov pri začatí/ukončení jazdy
+
+**Konfigurácia:**
+```sql
+-- Bucket je PRIVATE (public = false)
+INSERT INTO storage.buckets (id, name, public) 
+VALUES ('vehicle-photos', 'vehicle-photos', false);
+```
+
+**RLS Policies:**
+
+| Policy Name | Command | Using | With Check |
+|-------------|---------|-------|------------|
+| Users can upload own vehicle photos | INSERT | - | `auth.uid()::text = (storage.foldername(name))[1]` |
+| Users can view own vehicle photos | SELECT | `auth.uid()::text = (storage.foldername(name))[1]` | - |
+| Admins can view all vehicle photos | SELECT | `has_role(auth.uid(), 'admin')` | - |
+
+**File Path Pattern:**
+```
+vehicle-photos/
+  └── {user_id}/
+      └── {timestamp}_{type}.jpg
+```
+
+**Príklad:**
+```
+vehicle-photos/550e8400-e29b-41d4-a716-446655440000/1737377940123_start.jpg
+```
+
+**Business Pravidlá:**
+- ✅ Employee môže nahrať fotku len do svojho folderu (`user_id`)
+- ✅ Employee môže vidieť len svoje fotky
+- ✅ Admin môže vidieť všetky fotky
+- ✅ Fotky sú súčasťou workflow začatia/ukončenia jazdy
+- ⚠️ **CHÝBA:** Validácia file size (max 5MB odporúčané)
+- ⚠️ **CHÝBA:** Validácia file type (len JPG/PNG/WEBP)
+
+---
+
 ## 🚨 CHÝBAJÚCE CONSTRAINTS & INDEXES
 
 ### ✅ Implementované (2025-01-20)
@@ -553,6 +637,9 @@ erDiagram
         int km_start
         int km_end
         int km_driven
+        text photo_km_start
+        text photo_km_end
+        bool is_completed
     }
     
     VEHICLES {
@@ -586,9 +673,11 @@ ALL: has_role(auth.uid(), 'admin')
 ```
 
 ### Výnimky
-- **projects, vehicles:** Employee môže vidieť len `is_active = true`
+- **projects:** Employee môže vidieť len `status = 'active'`
+- **vehicles:** Employee môže vidieť len `is_active = true`
 - **profiles:** Employee nemôže INSERT (admin/trigger musí)
-- **profiles:** Employee nemôže DELETE (nikto nemôže)
+- **profiles:** Admin môže DELETE (employee nemôže)
+- **storage.objects (vehicle-photos):** Employee môže upload/view len svoje, Admin view all
 
 ---
 
@@ -600,3 +689,6 @@ ALL: has_role(auth.uid(), 'admin')
 4. **Soft delete pattern** - `is_active` flag namiesto DELETE
 5. **Timestamps** - Všetky tabuľky majú `created_at`
 6. **Chýbajú updated_at** - Žiadna tabuľka nemá `updated_at` stĺpec + trigger
+7. **Storage bucket** - `vehicle-photos` pre fotky odometrov (private)
+8. **Photo workflow** - Employee začne jazdu s km_start + foto, ukončí s km_end + foto
+9. **Trigger auto-update** - `vehicles.current_km` sa automaticky aktualizuje po ukončení jazdy
