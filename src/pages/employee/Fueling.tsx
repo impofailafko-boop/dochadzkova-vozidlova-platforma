@@ -32,6 +32,7 @@ const fuelLogSchema = z.object({
   liters: z.coerce.number().positive('Počet litrov musí byť kladné číslo').max(500, 'Počet litrov je príliš vysoký'),
   price: z.coerce.number().positive('Cena musí byť kladné číslo').max(10000, 'Cena je príliš vysoká').optional().or(z.literal(0)),
   note: z.string().max(500, 'Poznámka je príliš dlhá').optional(),
+  photo_receipt: z.instanceof(File).optional(),
 });
 
 type FuelLogFormData = z.infer<typeof fuelLogSchema>;
@@ -63,6 +64,7 @@ const Fueling = () => {
         liters: data.liters,
         price: data.price && data.price > 0 ? data.price : undefined,
         note: data.note || undefined,
+        photo_receipt: data.photo_receipt,
       },
       {
         onSuccess: () => {
@@ -209,6 +211,28 @@ const Fueling = () => {
                         <Textarea
                           placeholder="Prípadné poznámky k tankovaniu..."
                           rows={3}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="photo_receipt"
+                  render={({ field: { value, onChange, ...field } }) => (
+                    <FormItem>
+                      <FormLabel>Foto účtenky - voliteľné</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="file" 
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) onChange(file);
+                          }}
                           {...field}
                         />
                       </FormControl>

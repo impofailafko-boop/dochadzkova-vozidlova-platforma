@@ -9,6 +9,7 @@ interface FuelLogInput {
   liters: number;
   price?: number;
   note?: string;
+  photo_receipt?: File;
 }
 
 export function useFuelLogs(userId: string | undefined) {
@@ -40,10 +41,31 @@ export function useFuelLogs(userId: string | undefined) {
     mutationFn: async (input: FuelLogInput) => {
       if (!userId) throw new Error('User not authenticated');
 
+      let photoUrl = null;
+      
+      // Upload photo if provided
+      if (input.photo_receipt) {
+        const fileExt = input.photo_receipt.name.split('.').pop();
+        const fileName = `${userId}/${Date.now()}_receipt.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('vehicle-photos')
+          .upload(fileName, input.photo_receipt);
+
+        if (uploadError) throw uploadError;
+        photoUrl = fileName;
+      }
+
       const { error } = await supabase
         .from('fuel_logs')
         .insert({
-          ...input,
+          vehicle_id: input.vehicle_id,
+          project_id: input.project_id,
+          date: input.date,
+          liters: input.liters,
+          price: input.price,
+          note: input.note,
+          photo_receipt: photoUrl,
           user_id: userId,
         });
 

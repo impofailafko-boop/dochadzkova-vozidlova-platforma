@@ -59,6 +59,7 @@ export type Database = {
           id: string
           liters: number
           note: string | null
+          photo_receipt: string | null
           price: number | null
           project_id: string | null
           user_id: string
@@ -70,6 +71,7 @@ export type Database = {
           id?: string
           liters: number
           note?: string | null
+          photo_receipt?: string | null
           price?: number | null
           project_id?: string | null
           user_id: string
@@ -81,6 +83,7 @@ export type Database = {
           id?: string
           liters?: number
           note?: string | null
+          photo_receipt?: string | null
           price?: number | null
           project_id?: string | null
           user_id?: string
