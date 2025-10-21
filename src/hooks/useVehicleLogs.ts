@@ -88,12 +88,58 @@ export function useVehicleLogs(userId: string | undefined, params?: { limit?: nu
 
       if (error) throw error;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['vehicle-logs'] });
+    onMutate: async (input: VehicleLogInput) => {
+      // Dismiss any existing toasts
+      toast.dismiss();
+      
+      // Cancel outgoing queries
+      await queryClient.cancelQueries({ queryKey: ['vehicle-logs', userId] });
+      
+      // Snapshot previous data
+      const previousLogs = queryClient.getQueryData(['vehicle-logs', userId, limit, offset, startDate, endDate]);
+      
+      // Create optimistic log entry
+      const optimisticLog = {
+        id: 'temp-' + Date.now(),
+        user_id: userId,
+        vehicle_id: input.vehicle_id,
+        project_id: input.project_id,
+        date: input.date,
+        km_start: input.km_start,
+        km_end: null,
+        km_driven: null,
+        photo_km_start: null,
+        photo_km_end: null,
+        is_completed: false,
+        created_at: new Date().toISOString(),
+        vehicles: null,
+        projects: null,
+      };
+      
+      // Optimistically update logs
+      queryClient.setQueryData(['vehicle-logs', userId, limit, offset, startDate, endDate], (old: any) => {
+        if (!old) return { data: [optimisticLog], count: 1 };
+        return {
+          data: [optimisticLog, ...old.data],
+          count: old.count + 1,
+        };
+      });
+      
+      // Show success toast immediately
       toast.success('Jazda zaznamenaná');
+      
+      return { previousLogs };
     },
-    onError: (error: any) => {
+    onError: (error: any, _variables, context) => {
+      // Rollback to previous state
+      if (context?.previousLogs !== undefined) {
+        queryClient.setQueryData(['vehicle-logs', userId, limit, offset, startDate, endDate], context.previousLogs);
+      }
       toast.error(error.message || 'Chyba pri zaznamenaní jazdy');
+    },
+    onSettled: () => {
+      // Always refetch after error or success to sync with server
+      queryClient.invalidateQueries({ queryKey: ['vehicle-logs'] });
     },
   });
 
@@ -139,12 +185,52 @@ export function useVehicleLogs(userId: string | undefined, params?: { limit?: nu
 
       if (error) throw error;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['vehicle-logs'] });
+    onMutate: async (input: CompleteLogInput) => {
+      // Dismiss any existing toasts
+      toast.dismiss();
+      
+      // Cancel outgoing queries
+      await queryClient.cancelQueries({ queryKey: ['vehicle-logs', userId] });
+      
+      // Snapshot previous data
+      const previousLogs = queryClient.getQueryData(['vehicle-logs', userId, limit, offset, startDate, endDate]);
+      
+      // Optimistically update the log
+      queryClient.setQueryData(['vehicle-logs', userId, limit, offset, startDate, endDate], (old: any) => {
+        if (!old) return old;
+        
+        return {
+          ...old,
+          data: old.data.map((log: any) => {
+            if (log.id === input.logId) {
+              const km_driven = input.km_end - log.km_start;
+              return {
+                ...log,
+                km_end: input.km_end,
+                km_driven: km_driven,
+                is_completed: true,
+              };
+            }
+            return log;
+          }),
+        };
+      });
+      
+      // Show success toast immediately
       toast.success('Jazda ukončená');
+      
+      return { previousLogs };
     },
-    onError: (error: any) => {
+    onError: (error: any, _variables, context) => {
+      // Rollback to previous state
+      if (context?.previousLogs !== undefined) {
+        queryClient.setQueryData(['vehicle-logs', userId, limit, offset, startDate, endDate], context.previousLogs);
+      }
       toast.error(error.message || 'Chyba pri ukončení jazdy');
+    },
+    onSettled: () => {
+      // Always refetch after error or success to sync with server
+      queryClient.invalidateQueries({ queryKey: ['vehicle-logs'] });
     },
   });
 
