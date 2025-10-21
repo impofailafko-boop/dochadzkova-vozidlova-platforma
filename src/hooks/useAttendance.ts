@@ -43,16 +43,46 @@ export function useAttendance(userId: string | undefined) {
 
       if (error) throw error;
     },
-    onMutate: () => {
+    onMutate: async () => {
       // Dismiss any existing toasts to prevent duplicates
       toast.dismiss();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['attendance'] });
+      
+      // Cancel outgoing queries to prevent race conditions
+      await queryClient.cancelQueries({ queryKey: ['attendance', 'today', userId] });
+      
+      // Snapshot previous data
+      const previousAttendance = queryClient.getQueryData(['attendance', 'today', userId]);
+      
+      // Optimistically update to new value
+      const today = new Date().toISOString().split('T')[0];
+      const now = new Date().toTimeString().split(' ')[0];
+      
+      queryClient.setQueryData(['attendance', 'today', userId], {
+        id: 'temp-id',
+        user_id: userId,
+        date: today,
+        arrival_time: now,
+        departure_time: null,
+        total_hours: null,
+        created_at: new Date().toISOString(),
+      });
+      
+      // Show success toast immediately
       toast.success('Príchod zaznamenaný');
+      
+      // Return context for rollback
+      return { previousAttendance };
     },
-    onError: (error: any) => {
+    onError: (error: any, _variables, context) => {
+      // Rollback to previous state
+      if (context?.previousAttendance !== undefined) {
+        queryClient.setQueryData(['attendance', 'today', userId], context.previousAttendance);
+      }
       toast.error(error.message || 'Chyba pri zaznamenaní príchodu');
+    },
+    onSettled: () => {
+      // Always refetch after error or success to sync with server
+      queryClient.invalidateQueries({ queryKey: ['attendance'] });
     },
   });
 
@@ -80,16 +110,49 @@ export function useAttendance(userId: string | undefined) {
 
       if (error) throw error;
     },
-    onMutate: () => {
+    onMutate: async () => {
       // Dismiss any existing toasts to prevent duplicates
       toast.dismiss();
+      
+      // Cancel outgoing queries to prevent race conditions
+      await queryClient.cancelQueries({ queryKey: ['attendance', 'today', userId] });
+      
+      // Snapshot previous data
+      const previousAttendance = queryClient.getQueryData(['attendance', 'today', userId]);
+      
+      // Calculate optimistic values
+      if (todayAttendance) {
+        const now = new Date().toTimeString().split(' ')[0];
+        const arrivalTime = todayAttendance.arrival_time;
+        const arrival = new Date(`1970-01-01T${arrivalTime}`);
+        const departure = new Date(`1970-01-01T${now}`);
+        const diffMs = departure.getTime() - arrival.getTime();
+        const totalHours = (diffMs / (1000 * 60 * 60)).toFixed(2);
+        
+        // Optimistically update to new value
+        queryClient.setQueryData(['attendance', 'today', userId], {
+          ...todayAttendance,
+          departure_time: now,
+          total_hours: parseFloat(totalHours),
+        });
+        
+        // Show success toast immediately
+        toast.success('Odchod zaznamenaný');
+      }
+      
+      // Return context for rollback
+      return { previousAttendance };
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['attendance'] });
-      toast.success('Odchod zaznamenaný');
-    },
-    onError: (error: any) => {
+    onError: (error: any, _variables, context) => {
+      // Rollback to previous state
+      if (context?.previousAttendance !== undefined) {
+        queryClient.setQueryData(['attendance', 'today', userId], context.previousAttendance);
+      }
       toast.error(error.message || 'Chyba pri zaznamenaní odchodu');
+    },
+    onSettled: () => {
+      // Always refetch after error or success to sync with server
+      queryClient.invalidateQueries({ queryKey: ['attendance'] });
     },
   });
 
