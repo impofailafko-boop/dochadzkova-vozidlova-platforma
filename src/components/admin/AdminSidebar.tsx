@@ -44,7 +44,11 @@ export function AdminSidebar() {
   const isActive = (path: string) => currentPath === path;
 
   return (
-    <Sidebar collapsible="icon" className="border-r">
+    <Sidebar 
+      collapsible="icon" 
+      variant="sidebar"
+      className="border-r"
+    >
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>Správa</SidebarGroupLabel>
@@ -59,7 +63,7 @@ export function AdminSidebar() {
                     <SidebarMenuButton asChild isActive={active}>
                       <NavLink to={item.url}>
                         <Icon className="h-4 w-4" />
-                        {!collapsed && <span>{item.title}</span>}
+                        <span>{item.title}</span>
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -82,7 +86,7 @@ export function AdminSidebar() {
                     <SidebarMenuButton asChild isActive={active}>
                       <NavLink to={item.url}>
                         <Icon className="h-4 w-4" />
-                        {!collapsed && <span>{item.title}</span>}
+                        <span>{item.title}</span>
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
