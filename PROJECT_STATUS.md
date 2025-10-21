@@ -1,6 +1,6 @@
 # PROJECT STATUS - Živý stav aplikácie
 
-*Posledná aktualizácia: 2025-01-21 - Mobilná responzivita sidebaru + navbar upravený pre mobile*
+*Posledná aktualizácia: 2025-01-21 - Pagination a date filtering pre Employee History*
 
 ---
 
@@ -90,7 +90,7 @@
 - [x] **Vehicle current_km tracking** - ✅ OPRAVENÉ: Automatický update cez DB trigger
 - [x] **Employee deletion** - ✅ OPRAVENÉ: Admin môže mazať zamestnancov (DELETE policy pridaná)
 - [ ] **Delete functionality** - Vehicles a Projects nemajú delete (len toggle status)
-- [ ] **Pagination for History** - Employee history page nemá filtrovanie podľa dátumu
+- [x] **Pagination for History** - ✅ IMPLEMENTOVANÉ (2025-01-21): 20 záznamov na stránku + date filtering pre všetky tabuľky
 - [ ] **Charts in Reports** - Reports stránka má len číselné štatistiky, chýbajú grafy
 
 ### Security & Error Handling
@@ -205,6 +205,12 @@ Všetky bugy opravené! ✅
 13. ✅ **Sidebar mobile drawer** - Sidebar na mobile funguje ako overlay drawer, na desktope collapsible
 14. ✅ **Navbar responsive** - Logo menšie na mobile, názov aplikácie skrytý na malých obrazovkách
 15. ✅ **Sidebar variant správne** - Použitý správny `variant="sidebar"` pre correct mobile behavior
+
+### ✅ FÁZA 5 - Pagination a filtrovanie (2025-01-21)
+16. ✅ **Employee History pagination** - 20 záznamov na stránku pre všetky tri tabuľky (Dochádzka, Jazdy, Tankovania)
+17. ✅ **Date filtering** - Od/Do date picker pre filtrovanie záznamov podľa dátumu
+18. ✅ **Hook refactoring** - useAttendance, useVehicleLogs, useFuelLogs podporujú pagination + filtering
+19. ✅ **Count tracking** - Zobrazenie "Zobrazených X z Y záznamov" pre každú tabuľku
 
 ### MEDIUM PRIORITY (Fáza 4)
 12. **Dodatočný príchod (bod 4)** - Tlačidlo v `/attendance` s povinnou poznámkou prečo zabudol prísť včas
