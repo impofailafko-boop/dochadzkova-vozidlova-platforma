@@ -1,6 +1,6 @@
 # PROJECT STATUS - Živý stav aplikácie
 
-*Posledná aktualizácia: 2025-01-20 21:45 - Dokončený dizajn update (bod 2) - zelené farby namiesto sivých*
+*Posledná aktualizácia: 2025-01-21 - Mobilná responzivita sidebaru + navbar upravený pre mobile*
 
 ---
 
@@ -60,8 +60,9 @@
 
 ### UI/UX
 - [x] **Sidebar navigácia** - AdminSidebar + EmployeeSidebar (shadcn/ui sidebar)
-- [x] **Navbar** - Top navigation s logout tlačidlom + PIKOLO logo
-- [x] **Responsive design** - Základná responsivita implementovaná
+- [x] **Navbar** - Top navigation s logout tlačidlom + PIKOLO logo, responsive (logo menší na mobile, text skrytý na malých obrazovkách)
+- [x] **Responsive design** - Plná mobilná responzivita implementovaná
+- [x] **Sidebar mobile** - Na mobile sa sidebar zobrazuje ako drawer (overlay), na desktope collapsible s ikonami
 - [x] **Toast notifikácie** - Sonner pre user feedback
 - [x] **Branding** - PIKOLO logo (transparent background) v navbar + zelená firemná farba
 - [x] **Design system** - Primárna biela, sekundárna zelená (#2d4a2d), sidebar zelený motív
@@ -100,7 +101,7 @@
 
 ### UI/UX
 - [ ] **Dark/Light mode toggle** - CHÝBA prepínač témy
-- [ ] **Sidebar collapse** - Sidebar sa nedá zminimalizovať na mobile
+- [x] **Sidebar collapse** - ✅ IMPLEMENTOVANÉ (2025-01-21): Na mobile drawer, na desktope collapsible sidebar
 - [ ] **Empty states** - Niektoré stránky nemajú pekné empty states
 - [x] **Confirmation dialogs** - ✅ IMPLEMENTOVANÉ: Pri delete akciách (employees)
 - [x] **Form reset** - ✅ IMPLEMENTOVANÉ (2025-01-20): Formuláre sa resetujú po úspešnom submite
@@ -198,6 +199,12 @@ Všetky bugy opravené! ✅
    - Light mode: zelené cards, borders, muted, sidebar backgrounds
    - Dark mode: tmavo-zelené pozadie a komponenty
    - Konzistentná zelená farebná schéma naprieč celou aplikáciou
+12. ✅ **Foto účtenky pri tankovaní (bod 5)** - Pridané pole `photo_receipt` do `fuel_logs` tabuľky + upload v Employee Fueling formulári (voliteľné)
+
+### ✅ FÁZA 4 - Mobilná responzivita (2025-01-21)
+13. ✅ **Sidebar mobile drawer** - Sidebar na mobile funguje ako overlay drawer, na desktope collapsible
+14. ✅ **Navbar responsive** - Logo menšie na mobile, názov aplikácie skrytý na malých obrazovkách
+15. ✅ **Sidebar variant správne** - Použitý správny `variant="sidebar"` pre correct mobile behavior
 
 ### MEDIUM PRIORITY (Fáza 4)
 12. **Dodatočný príchod (bod 4)** - Tlačidlo v `/attendance` s povinnou poznámkou prečo zabudol prísť včas
