@@ -18,7 +18,10 @@ const Attendance = () => {
   const { user } = useAuth();
   const [limit, setLimit] = useState(30);
   const { getHistory } = useAttendance(user?.id);
-  const { data: history, isLoading } = getHistory(limit);
+  const { data, isLoading } = getHistory({ limit });
+  
+  const history = data?.data || [];
+  const totalCount = data?.count || 0;
 
   const loadMore = () => {
     setLimit((prev) => prev + 30);
@@ -39,9 +42,9 @@ const Attendance = () => {
         <CardHeader>
           <CardTitle>História dochádzky</CardTitle>
           <CardDescription>
-            {history && history.length > 0 
-              ? `Zobrazených ${history.length} záznamov` 
-              : 'Posledných 30 dní'}
+            {totalCount > 0 
+              ? `Zobrazených ${history.length} z ${totalCount} záznamov` 
+              : 'Žiadne záznamy'}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -86,7 +89,7 @@ const Attendance = () => {
                 </TableBody>
               </Table>
               
-              {history && history.length >= limit && (
+              {totalCount > limit && (
                 <div className="mt-4 flex justify-center">
                   <Button 
                     variant="outline" 

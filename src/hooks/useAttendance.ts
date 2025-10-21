@@ -93,22 +93,34 @@ export function useAttendance(userId: string | undefined) {
     },
   });
 
-  // Get user's attendance history with pagination
-  const getHistory = (limit: number = 30) => {
+  // Get user's attendance history with pagination and date filtering
+  const getHistory = (params?: { limit?: number; offset?: number; startDate?: string; endDate?: string }) => {
+    const { limit = 30, offset = 0, startDate, endDate } = params || {};
+    
     return useQuery({
-      queryKey: ['attendance', 'history', userId, limit],
+      queryKey: ['attendance', 'history', userId, limit, offset, startDate, endDate],
       queryFn: async () => {
-        if (!userId) return [];
+        if (!userId) return { data: [], count: 0 };
         
-        const { data, error } = await supabase
+        let query = supabase
           .from('attendance')
-          .select('*')
+          .select('*', { count: 'exact' })
           .eq('user_id', userId)
-          .order('date', { ascending: false })
-          .limit(limit);
+          .order('date', { ascending: false });
+
+        if (startDate) {
+          query = query.gte('date', startDate);
+        }
+        if (endDate) {
+          query = query.lte('date', endDate);
+        }
+
+        query = query.range(offset, offset + limit - 1);
+
+        const { data, error, count } = await query;
 
         if (error) throw error;
-        return data;
+        return { data: data || [], count: count || 0 };
       },
       enabled: !!userId,
     });

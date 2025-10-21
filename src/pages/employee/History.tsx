@@ -16,16 +16,91 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Clock, Car, Fuel, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Clock, Car, Fuel, CheckCircle2, AlertCircle, CalendarIcon, X } from 'lucide-react';
 import { CompleteDriveDialog } from '@/components/employee/CompleteDriveDialog';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
 
 const History = () => {
   const { user } = useAuth();
-  const { getHistory } = useAttendance(user?.id);
-  const { data: attendanceHistory, isLoading: loadingAttendance } = getHistory(30);
-  const { logs: vehicleLogs, isLoading: loadingVehicle } = useVehicleLogs(user?.id);
-  const { logs: fuelLogs, isLoading: loadingFuel } = useFuelLogs(user?.id);
   const [selectedLog, setSelectedLog] = useState<any>(null);
+  
+  // Date filtering state
+  const [startDate, setStartDate] = useState<Date | undefined>();
+  const [endDate, setEndDate] = useState<Date | undefined>();
+  
+  // Pagination state
+  const [attendancePage, setAttendancePage] = useState(1);
+  const [vehiclePage, setVehiclePage] = useState(1);
+  const [fuelPage, setFuelPage] = useState(1);
+  const itemsPerPage = 20;
+
+  // Format dates for query
+  const startDateStr = startDate ? format(startDate, 'yyyy-MM-dd') : undefined;
+  const endDateStr = endDate ? format(endDate, 'yyyy-MM-dd') : undefined;
+
+  // Fetch data with pagination and filtering
+  const { getHistory } = useAttendance(user?.id);
+  const attendanceQuery = getHistory({ 
+    limit: itemsPerPage, 
+    offset: (attendancePage - 1) * itemsPerPage,
+    startDate: startDateStr,
+    endDate: endDateStr
+  });
+  
+  const vehicleQuery = useVehicleLogs(user?.id, {
+    limit: itemsPerPage,
+    offset: (vehiclePage - 1) * itemsPerPage,
+    startDate: startDateStr,
+    endDate: endDateStr
+  });
+  
+  const fuelQuery = useFuelLogs(user?.id, {
+    limit: itemsPerPage,
+    offset: (fuelPage - 1) * itemsPerPage,
+    startDate: startDateStr,
+    endDate: endDateStr
+  });
+
+  const attendanceHistory = attendanceQuery.data?.data || [];
+  const attendanceCount = attendanceQuery.data?.count || 0;
+  const loadingAttendance = attendanceQuery.isLoading;
+
+  const vehicleLogs = vehicleQuery.logs || [];
+  const vehicleCount = vehicleQuery.count || 0;
+  const loadingVehicle = vehicleQuery.isLoading;
+
+  const fuelLogs = fuelQuery.logs || [];
+  const fuelCount = fuelQuery.count || 0;
+  const loadingFuel = fuelQuery.isLoading;
+
+  // Calculate total pages
+  const attendanceTotalPages = Math.ceil(attendanceCount / itemsPerPage);
+  const vehicleTotalPages = Math.ceil(vehicleCount / itemsPerPage);
+  const fuelTotalPages = Math.ceil(fuelCount / itemsPerPage);
+
+  // Reset pagination when filters change
+  const handleDateChange = () => {
+    setAttendancePage(1);
+    setVehiclePage(1);
+    setFuelPage(1);
+  };
+
+  const clearFilters = () => {
+    setStartDate(undefined);
+    setEndDate(undefined);
+    handleDateChange();
+  };
 
   return (
     <div className="p-6 space-y-6">
@@ -35,6 +110,84 @@ const History = () => {
           Prehľad všetkých vašich záznamov
         </p>
       </div>
+
+      {/* Date Filter */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Filtrovanie podľa dátumu</CardTitle>
+          <CardDescription>Vyberte časové obdobie pre zobrazenie záznamov</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-4 items-end">
+            <div className="flex-1 min-w-[200px]">
+              <label className="text-sm font-medium mb-2 block">Od</label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !startDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {startDate ? format(startDate, "dd.MM.yyyy") : <span>Vyberte dátum</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={startDate}
+                    onSelect={(date) => {
+                      setStartDate(date);
+                      handleDateChange();
+                    }}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            <div className="flex-1 min-w-[200px]">
+              <label className="text-sm font-medium mb-2 block">Do</label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !endDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {endDate ? format(endDate, "dd.MM.yyyy") : <span>Vyberte dátum</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={endDate}
+                    onSelect={(date) => {
+                      setEndDate(date);
+                      handleDateChange();
+                    }}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            {(startDate || endDate) && (
+              <Button variant="outline" onClick={clearFilters} className="gap-2">
+                <X className="h-4 w-4" />
+                Zrušiť filter
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
       <Tabs defaultValue="attendance" className="space-y-4">
         <TabsList className="grid w-full grid-cols-3">
@@ -56,9 +209,13 @@ const History = () => {
           <Card>
             <CardHeader>
               <CardTitle>História dochádzky</CardTitle>
-              <CardDescription>Posledných 30 dní</CardDescription>
+              <CardDescription>
+                {attendanceCount > 0 
+                  ? `Zobrazených ${attendanceHistory.length} z ${attendanceCount} záznamov`
+                  : 'Žiadne záznamy'}
+              </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
               {loadingAttendance ? (
                 <div className="space-y-2">
                   <Skeleton className="h-10 w-full" />
@@ -99,6 +256,64 @@ const History = () => {
                   </TableBody>
                 </Table>
               )}
+
+              {/* Pagination */}
+              {attendanceTotalPages > 1 && (
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious
+                        onClick={() => setAttendancePage(Math.max(1, attendancePage - 1))}
+                        className={attendancePage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                      />
+                    </PaginationItem>
+                    
+                    {Array.from({ length: attendanceTotalPages }, (_, i) => i + 1)
+                      .filter(page => {
+                        if (attendanceTotalPages <= 5) return true;
+                        if (page === 1 || page === attendanceTotalPages) return true;
+                        if (Math.abs(page - attendancePage) <= 1) return true;
+                        return false;
+                      })
+                      .map((page, idx, arr) => {
+                        if (idx > 0 && page - arr[idx - 1] > 1) {
+                          return [
+                            <PaginationItem key={`ellipsis-${page}`}>
+                              <span className="px-4">...</span>
+                            </PaginationItem>,
+                            <PaginationItem key={page}>
+                              <PaginationLink
+                                onClick={() => setAttendancePage(page)}
+                                isActive={attendancePage === page}
+                                className="cursor-pointer"
+                              >
+                                {page}
+                              </PaginationLink>
+                            </PaginationItem>
+                          ];
+                        }
+                        return (
+                          <PaginationItem key={page}>
+                            <PaginationLink
+                              onClick={() => setAttendancePage(page)}
+                              isActive={attendancePage === page}
+                              className="cursor-pointer"
+                            >
+                              {page}
+                            </PaginationLink>
+                          </PaginationItem>
+                        );
+                      })}
+                    
+                    <PaginationItem>
+                      <PaginationNext
+                        onClick={() => setAttendancePage(Math.min(attendanceTotalPages, attendancePage + 1))}
+                        className={attendancePage === attendanceTotalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -107,9 +322,13 @@ const History = () => {
           <Card>
             <CardHeader>
               <CardTitle>História jázd</CardTitle>
-              <CardDescription>Posledných 30 záznamov</CardDescription>
+              <CardDescription>
+                {vehicleCount > 0 
+                  ? `Zobrazených ${vehicleLogs.length} z ${vehicleCount} záznamov`
+                  : 'Žiadne záznamy'}
+              </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
               {loadingVehicle ? (
                 <div className="space-y-2">
                   <Skeleton className="h-10 w-full" />
@@ -175,6 +394,64 @@ const History = () => {
                   </TableBody>
                 </Table>
               )}
+
+              {/* Pagination */}
+              {vehicleTotalPages > 1 && (
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious
+                        onClick={() => setVehiclePage(Math.max(1, vehiclePage - 1))}
+                        className={vehiclePage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                      />
+                    </PaginationItem>
+                    
+                    {Array.from({ length: vehicleTotalPages }, (_, i) => i + 1)
+                      .filter(page => {
+                        if (vehicleTotalPages <= 5) return true;
+                        if (page === 1 || page === vehicleTotalPages) return true;
+                        if (Math.abs(page - vehiclePage) <= 1) return true;
+                        return false;
+                      })
+                      .map((page, idx, arr) => {
+                        if (idx > 0 && page - arr[idx - 1] > 1) {
+                          return [
+                            <PaginationItem key={`ellipsis-${page}`}>
+                              <span className="px-4">...</span>
+                            </PaginationItem>,
+                            <PaginationItem key={page}>
+                              <PaginationLink
+                                onClick={() => setVehiclePage(page)}
+                                isActive={vehiclePage === page}
+                                className="cursor-pointer"
+                              >
+                                {page}
+                              </PaginationLink>
+                            </PaginationItem>
+                          ];
+                        }
+                        return (
+                          <PaginationItem key={page}>
+                            <PaginationLink
+                              onClick={() => setVehiclePage(page)}
+                              isActive={vehiclePage === page}
+                              className="cursor-pointer"
+                            >
+                              {page}
+                            </PaginationLink>
+                          </PaginationItem>
+                        );
+                      })}
+                    
+                    <PaginationItem>
+                      <PaginationNext
+                        onClick={() => setVehiclePage(Math.min(vehicleTotalPages, vehiclePage + 1))}
+                        className={vehiclePage === vehicleTotalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -183,9 +460,13 @@ const History = () => {
           <Card>
             <CardHeader>
               <CardTitle>História tankovaní</CardTitle>
-              <CardDescription>Posledných 30 záznamov</CardDescription>
+              <CardDescription>
+                {fuelCount > 0 
+                  ? `Zobrazených ${fuelLogs.length} z ${fuelCount} záznamov`
+                  : 'Žiadne záznamy'}
+              </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
               {loadingFuel ? (
                 <div className="space-y-2">
                   <Skeleton className="h-10 w-full" />
@@ -229,6 +510,64 @@ const History = () => {
                     )}
                   </TableBody>
                 </Table>
+              )}
+
+              {/* Pagination */}
+              {fuelTotalPages > 1 && (
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious
+                        onClick={() => setFuelPage(Math.max(1, fuelPage - 1))}
+                        className={fuelPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                      />
+                    </PaginationItem>
+                    
+                    {Array.from({ length: fuelTotalPages }, (_, i) => i + 1)
+                      .filter(page => {
+                        if (fuelTotalPages <= 5) return true;
+                        if (page === 1 || page === fuelTotalPages) return true;
+                        if (Math.abs(page - fuelPage) <= 1) return true;
+                        return false;
+                      })
+                      .map((page, idx, arr) => {
+                        if (idx > 0 && page - arr[idx - 1] > 1) {
+                          return [
+                            <PaginationItem key={`ellipsis-${page}`}>
+                              <span className="px-4">...</span>
+                            </PaginationItem>,
+                            <PaginationItem key={page}>
+                              <PaginationLink
+                                onClick={() => setFuelPage(page)}
+                                isActive={fuelPage === page}
+                                className="cursor-pointer"
+                              >
+                                {page}
+                              </PaginationLink>
+                            </PaginationItem>
+                          ];
+                        }
+                        return (
+                          <PaginationItem key={page}>
+                            <PaginationLink
+                              onClick={() => setFuelPage(page)}
+                              isActive={fuelPage === page}
+                              className="cursor-pointer"
+                            >
+                              {page}
+                            </PaginationLink>
+                          </PaginationItem>
+                        );
+                      })}
+                    
+                    <PaginationItem>
+                      <PaginationNext
+                        onClick={() => setFuelPage(Math.min(fuelTotalPages, fuelPage + 1))}
+                        className={fuelPage === fuelTotalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
               )}
             </CardContent>
           </Card>

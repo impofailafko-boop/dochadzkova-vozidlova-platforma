@@ -16,30 +16,44 @@ interface CompleteLogInput {
   photo_km_end?: File;
 }
 
-export function useVehicleLogs(userId: string | undefined) {
+export function useVehicleLogs(userId: string | undefined, params?: { limit?: number; offset?: number; startDate?: string; endDate?: string }) {
   const queryClient = useQueryClient();
+  const { limit = 30, offset = 0, startDate, endDate } = params || {};
 
-  const { data: logs, isLoading } = useQuery({
-    queryKey: ['vehicle-logs', userId],
+  const { data, isLoading } = useQuery({
+    queryKey: ['vehicle-logs', userId, limit, offset, startDate, endDate],
     queryFn: async () => {
-      if (!userId) return [];
+      if (!userId) return { data: [], count: 0 };
       
-      const { data, error } = await supabase
+      let query = supabase
         .from('vehicle_logs')
         .select(`
           *,
           vehicles (spz, brand, type),
           projects (name)
-        `)
+        `, { count: 'exact' })
         .eq('user_id', userId)
-        .order('date', { ascending: false })
-        .limit(30);
+        .order('date', { ascending: false });
+
+      if (startDate) {
+        query = query.gte('date', startDate);
+      }
+      if (endDate) {
+        query = query.lte('date', endDate);
+      }
+
+      query = query.range(offset, offset + limit - 1);
+
+      const { data: logs, error, count } = await query;
 
       if (error) throw error;
-      return data;
+      return { data: logs || [], count: count || 0 };
     },
     enabled: !!userId,
   });
+
+  const logs = data?.data || [];
+  const count = data?.count || 0;
 
   const createLog = useMutation({
     mutationFn: async (input: VehicleLogInput) => {
@@ -136,6 +150,7 @@ export function useVehicleLogs(userId: string | undefined) {
 
   return {
     logs,
+    count,
     isLoading,
     createLog: createLog.mutate,
     isCreating: createLog.isPending,
