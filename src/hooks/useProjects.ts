@@ -8,10 +8,15 @@ export function useProjects() {
       const { data, error } = await supabase
         .from('projects')
         .select('*')
-        .eq('is_active', true)
+        .or('is_active.eq.true,status.eq.active')
         .order('name');
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error loading projects:', error);
+        throw error;
+      }
+      
+      console.log('Loaded projects:', data);
       return data;
     },
   });
