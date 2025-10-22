@@ -44,11 +44,11 @@ const AttendanceButton = () => {
           })}
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-6">
         {/* Arrival */}
-        <div className="flex items-center justify-between">
-          <div className="flex-1">
-            <p className="text-sm font-medium">Príchod</p>
+        <div className="space-y-3">
+          <div>
+            <p className="text-sm font-medium mb-2">Príchod</p>
             {hasArrived && (
               <>
                 <p className="text-2xl font-bold text-primary">
@@ -76,7 +76,8 @@ const AttendanceButton = () => {
             }}
             disabled={isRecordingArrival || (hasArrived && !hasDeparted)}
             variant={(!hasArrived || hasDeparted) ? "success" : "destructive"}
-            className="gap-2"
+            className="w-full gap-2"
+            size="lg"
           >
             {isRecordingArrival ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -89,9 +90,9 @@ const AttendanceButton = () => {
 
         {/* Departure */}
         {hasArrived && (
-          <div className="flex items-center justify-between">
+          <div className="space-y-3">
             <div>
-              <p className="text-sm font-medium">Odchod</p>
+              <p className="text-sm font-medium mb-2">Odchod</p>
               {hasDeparted && (
                 <p className="text-2xl font-bold text-secondary">
                   {todayAttendance.departure_time}
@@ -103,7 +104,8 @@ const AttendanceButton = () => {
                 onClick={() => recordDeparture()}
                 disabled={isRecordingDeparture}
                 variant="secondary"
-                className="gap-2"
+                className="w-full gap-2"
+                size="lg"
               >
                 {isRecordingDeparture ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
