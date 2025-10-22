@@ -24,6 +24,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Download, CheckCircle2, AlertCircle, MapPin } from 'lucide-react';
 
 const DrivesOverview = () => {
@@ -223,16 +224,16 @@ const DrivesOverview = () => {
               <Skeleton className="h-10 w-full" />
             </div>
           ) : (
-            <div className="overflow-x-auto">
+            <ScrollArea className="w-full">
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Dátum</TableHead>
                     <TableHead>Zamestnanec</TableHead>
-                    <TableHead className="hidden md:table-cell">Vozidlo</TableHead>
-                    <TableHead className="hidden lg:table-cell">Projekt</TableHead>
+                    <TableHead>Vozidlo</TableHead>
+                    <TableHead>Projekt</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead className="hidden md:table-cell">GPS</TableHead>
+                    <TableHead>GPS</TableHead>
                     <TableHead className="text-right">Km</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -244,24 +245,22 @@ const DrivesOverview = () => {
                           {new Date(record.date).toLocaleDateString('sk-SK')}
                         </TableCell>
                         <TableCell className="whitespace-nowrap">{record.profiles?.full_name || '-'}</TableCell>
-                        <TableCell className="hidden md:table-cell">{record.vehicles?.spz || '-'}</TableCell>
-                        <TableCell className="hidden lg:table-cell">{record.projects?.name || '-'}</TableCell>
+                        <TableCell className="whitespace-nowrap">{record.vehicles?.spz || '-'}</TableCell>
+                        <TableCell className="whitespace-nowrap">{record.projects?.name || '-'}</TableCell>
                         <TableCell>
                           {record.is_completed ? (
                             <Badge variant="default" className="gap-1 whitespace-nowrap">
                               <CheckCircle2 className="h-3 w-3" />
-                              <span className="hidden sm:inline">Ukončená</span>
-                              <span className="sm:hidden">✓</span>
+                              Ukončená
                             </Badge>
                           ) : (
                             <Badge variant="secondary" className="gap-1 whitespace-nowrap">
                               <AlertCircle className="h-3 w-3" />
-                              <span className="hidden sm:inline">Prebieha</span>
-                              <span className="sm:hidden">⏱</span>
+                              Prebieha
                             </Badge>
                           )}
                         </TableCell>
-                        <TableCell className="hidden md:table-cell">
+                        <TableCell>
                           <div className="flex gap-1">
                             {record.start_latitude && record.start_longitude ? (
                               <a
@@ -308,7 +307,8 @@ const DrivesOverview = () => {
                   )}
                 </TableBody>
               </Table>
-            </div>
+              <ScrollBar orientation="horizontal" />
+            </ScrollArea>
           )}
         </CardContent>
       </Card>
