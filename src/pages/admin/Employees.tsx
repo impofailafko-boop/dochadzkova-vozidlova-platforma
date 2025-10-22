@@ -29,6 +29,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Plus, Trash2 } from 'lucide-react';
 import {
   AlertDialog,
@@ -150,76 +151,79 @@ const Employees = () => {
               <Skeleton className="h-10 w-full" />
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Meno</TableHead>
-                  <TableHead>Telefón</TableHead>
-                  <TableHead>Aktuálny projekt</TableHead>
-                  <TableHead className="text-right">Akcie</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {employees && employees.length > 0 ? (
-                  employees.map((employee: any) => (
-                    <TableRow key={employee.id}>
-                      <TableCell className="font-medium">{employee.full_name}</TableCell>
-                      <TableCell>{employee.phone || '-'}</TableCell>
-                      <TableCell>
-                        <Select 
-                          value={employee.current_project_id || 'none'} 
-                          onValueChange={(value) => handleProjectChange(employee.user_id, value)}
-                        >
-                          <SelectTrigger className="w-[200px]">
-                            <SelectValue placeholder="Žiadny projekt" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="none">Žiadny projekt</SelectItem>
-                            {projects?.map((project: any) => (
-                              <SelectItem key={project.id} value={project.id}>
-                                {project.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="sm">
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Odstrániť zamestnanca?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Táto akcia sa nedá vrátiť späť. Účet zamestnanca bude permanentne odstránený.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Zrušiť</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => deleteEmployee(employee.user_id)}
-                                className="bg-destructive text-destructive-foreground"
-                              >
-                                Odstrániť
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
+            <ScrollArea className="w-full">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="whitespace-nowrap">Meno</TableHead>
+                    <TableHead className="whitespace-nowrap">Telefón</TableHead>
+                    <TableHead className="whitespace-nowrap">Aktuálny projekt</TableHead>
+                    <TableHead className="text-right whitespace-nowrap">Akcie</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {employees && employees.length > 0 ? (
+                    employees.map((employee: any) => (
+                      <TableRow key={employee.id}>
+                        <TableCell className="font-medium whitespace-nowrap">{employee.full_name}</TableCell>
+                        <TableCell className="whitespace-nowrap">{employee.phone || '-'}</TableCell>
+                        <TableCell className="whitespace-nowrap">
+                          <Select 
+                            value={employee.current_project_id || 'none'} 
+                            onValueChange={(value) => handleProjectChange(employee.user_id, value)}
+                          >
+                            <SelectTrigger className="w-[200px]">
+                              <SelectValue placeholder="Žiadny projekt" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="none">Žiadny projekt</SelectItem>
+                              {projects?.map((project: any) => (
+                                <SelectItem key={project.id} value={project.id}>
+                                  {project.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </TableCell>
+                        <TableCell className="text-right whitespace-nowrap">
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="ghost" size="sm">
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Odstrániť zamestnanca?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Táto akcia sa nedá vrátiť späť. Účet zamestnanca bude permanentne odstránený.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Zrušiť</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => deleteEmployee(employee.user_id)}
+                                  className="bg-destructive text-destructive-foreground"
+                                >
+                                  Odstrániť
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center text-muted-foreground">
+                        Žiadni zamestnanci
                       </TableCell>
                     </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={4} className="text-center text-muted-foreground">
-                      Žiadni zamestnanci
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
+                  )}
+                </TableBody>
+              </Table>
+              <ScrollBar orientation="horizontal" />
+            </ScrollArea>
           )}
         </CardContent>
       </Card>

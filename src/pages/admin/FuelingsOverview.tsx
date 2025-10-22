@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Download } from 'lucide-react';
 
 const FuelingsOverview = () => {
@@ -208,44 +209,47 @@ const FuelingsOverview = () => {
               <Skeleton className="h-10 w-full" />
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Dátum</TableHead>
-                  <TableHead>Zamestnanec</TableHead>
-                  <TableHead>Vozidlo</TableHead>
-                  <TableHead>Projekt</TableHead>
-                  <TableHead className="text-right">Litre</TableHead>
-                  <TableHead className="text-right">Cena</TableHead>
-                  <TableHead>Poznámka</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {fuelings && fuelings.length > 0 ? (
-                  fuelings.map((record: any) => (
-                    <TableRow key={record.id}>
-                      <TableCell className="font-medium">
-                        {new Date(record.date).toLocaleDateString('sk-SK')}
-                      </TableCell>
-                      <TableCell>{record.profiles?.full_name || '-'}</TableCell>
-                      <TableCell>{record.vehicles?.spz || '-'}</TableCell>
-                      <TableCell>{record.projects?.name || '-'}</TableCell>
-                      <TableCell className="text-right">{record.liters} L</TableCell>
-                      <TableCell className="text-right">
-                        {record.price ? `${record.price}€` : '-'}
-                      </TableCell>
-                      <TableCell className="max-w-xs truncate">{record.note || '-'}</TableCell>
-                    </TableRow>
-                  ))
-                ) : (
+            <ScrollArea className="w-full">
+              <Table>
+                <TableHeader>
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center text-muted-foreground">
-                      Žiadne záznamy
-                    </TableCell>
+                    <TableHead className="whitespace-nowrap">Dátum</TableHead>
+                    <TableHead className="whitespace-nowrap">Zamestnanec</TableHead>
+                    <TableHead className="whitespace-nowrap">Vozidlo</TableHead>
+                    <TableHead className="whitespace-nowrap">Projekt</TableHead>
+                    <TableHead className="text-right whitespace-nowrap">Litre</TableHead>
+                    <TableHead className="text-right whitespace-nowrap">Cena</TableHead>
+                    <TableHead className="whitespace-nowrap">Poznámka</TableHead>
                   </TableRow>
-                )}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {fuelings && fuelings.length > 0 ? (
+                    fuelings.map((record: any) => (
+                      <TableRow key={record.id}>
+                        <TableCell className="font-medium whitespace-nowrap">
+                          {new Date(record.date).toLocaleDateString('sk-SK')}
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap">{record.profiles?.full_name || '-'}</TableCell>
+                        <TableCell className="whitespace-nowrap">{record.vehicles?.spz || '-'}</TableCell>
+                        <TableCell className="whitespace-nowrap">{record.projects?.name || '-'}</TableCell>
+                        <TableCell className="text-right whitespace-nowrap">{record.liters} L</TableCell>
+                        <TableCell className="text-right whitespace-nowrap">
+                          {record.price ? `${record.price}€` : '-'}
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap max-w-xs truncate">{record.note || '-'}</TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center text-muted-foreground">
+                        Žiadne záznamy
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+              <ScrollBar orientation="horizontal" />
+            </ScrollArea>
           )}
         </CardContent>
       </Card>

@@ -30,6 +30,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Plus, Edit, Power } from 'lucide-react';
 
 const Projects = () => {
@@ -164,61 +165,64 @@ const Projects = () => {
               <Skeleton className="h-10 w-full" />
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Názov</TableHead>
-                  <TableHead>Popis</TableHead>
-                  <TableHead>Stav</TableHead>
-                  <TableHead className="text-right">Akcie</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {projects && projects.length > 0 ? (
-                  projects.map((project) => {
-                    const statusInfo = getStatusBadge(project.status);
-                    return (
-                      <TableRow key={project.id}>
-                        <TableCell className="font-medium">{project.name}</TableCell>
-                        <TableCell className="max-w-md truncate">
-                          {project.description || '-'}
-                        </TableCell>
-                        <TableCell>
-                          <Select 
-                            value={project.status} 
-                            onValueChange={(value: any) => handleStatusChange(project.id, value)}
-                          >
-                            <SelectTrigger className="w-[140px]">
-                              <SelectValue>
-                                <Badge variant={statusInfo.variant}>
-                                  {statusInfo.label}
-                                </Badge>
-                              </SelectValue>
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="planned">Naplánované</SelectItem>
-                              <SelectItem value="active">Aktívne</SelectItem>
-                              <SelectItem value="completed">Hotové</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button variant="ghost" size="sm" onClick={() => handleEdit(project)}>
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })
-                ) : (
+            <ScrollArea className="w-full">
+              <Table>
+                <TableHeader>
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center text-muted-foreground">
-                      Žiadne projekty
-                    </TableCell>
+                    <TableHead className="whitespace-nowrap">Názov</TableHead>
+                    <TableHead className="whitespace-nowrap">Popis</TableHead>
+                    <TableHead className="whitespace-nowrap">Stav</TableHead>
+                    <TableHead className="text-right whitespace-nowrap">Akcie</TableHead>
                   </TableRow>
-                )}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {projects && projects.length > 0 ? (
+                    projects.map((project) => {
+                      const statusInfo = getStatusBadge(project.status);
+                      return (
+                        <TableRow key={project.id}>
+                          <TableCell className="font-medium whitespace-nowrap">{project.name}</TableCell>
+                          <TableCell className="max-w-md truncate whitespace-nowrap">
+                            {project.description || '-'}
+                          </TableCell>
+                          <TableCell className="whitespace-nowrap">
+                            <Select 
+                              value={project.status} 
+                              onValueChange={(value: any) => handleStatusChange(project.id, value)}
+                            >
+                              <SelectTrigger className="w-[140px]">
+                                <SelectValue>
+                                  <Badge variant={statusInfo.variant}>
+                                    {statusInfo.label}
+                                  </Badge>
+                                </SelectValue>
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="planned">Naplánované</SelectItem>
+                                <SelectItem value="active">Aktívne</SelectItem>
+                                <SelectItem value="completed">Hotové</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
+                          <TableCell className="text-right whitespace-nowrap">
+                            <Button variant="ghost" size="sm" onClick={() => handleEdit(project)}>
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center text-muted-foreground">
+                        Žiadne projekty
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+              <ScrollBar orientation="horizontal" />
+            </ScrollArea>
           )}
         </CardContent>
       </Card>

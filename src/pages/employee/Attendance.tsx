@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
 const Attendance = () => {
   const { user } = useAuth();
@@ -56,38 +57,41 @@ const Attendance = () => {
             </div>
           ) : (
             <>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Dátum</TableHead>
-                    <TableHead>Príchod</TableHead>
-                    <TableHead>Odchod</TableHead>
-                    <TableHead className="text-right">Hodiny</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {history && history.length > 0 ? (
-                    history.map((record) => (
-                      <TableRow key={record.id}>
-                        <TableCell className="font-medium">
-                          {new Date(record.date).toLocaleDateString('sk-SK')}
-                        </TableCell>
-                        <TableCell>{record.arrival_time || '-'}</TableCell>
-                        <TableCell>{record.departure_time || '-'}</TableCell>
-                        <TableCell className="text-right">
-                          {record.total_hours ? `${record.total_hours}h` : '-'}
+              <ScrollArea className="w-full">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="whitespace-nowrap">Dátum</TableHead>
+                      <TableHead className="whitespace-nowrap">Príchod</TableHead>
+                      <TableHead className="whitespace-nowrap">Odchod</TableHead>
+                      <TableHead className="text-right whitespace-nowrap">Hodiny</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {history && history.length > 0 ? (
+                      history.map((record) => (
+                        <TableRow key={record.id}>
+                          <TableCell className="font-medium whitespace-nowrap">
+                            {new Date(record.date).toLocaleDateString('sk-SK')}
+                          </TableCell>
+                          <TableCell className="whitespace-nowrap">{record.arrival_time || '-'}</TableCell>
+                          <TableCell className="whitespace-nowrap">{record.departure_time || '-'}</TableCell>
+                          <TableCell className="text-right whitespace-nowrap">
+                            {record.total_hours ? `${record.total_hours}h` : '-'}
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={4} className="text-center text-muted-foreground">
+                          Žiadne záznamy
                         </TableCell>
                       </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={4} className="text-center text-muted-foreground">
-                        Žiadne záznamy
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
+                    )}
+                  </TableBody>
+                </Table>
+                <ScrollBar orientation="horizontal" />
+              </ScrollArea>
               
               {totalCount > limit && (
                 <div className="mt-4 flex justify-center">

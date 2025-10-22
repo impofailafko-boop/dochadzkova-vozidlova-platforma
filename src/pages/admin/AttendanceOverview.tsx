@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Download, MapPin } from 'lucide-react';
 
 const AttendanceOverview = () => {
@@ -137,56 +138,59 @@ const AttendanceOverview = () => {
               <Skeleton className="h-10 w-full" />
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Dátum</TableHead>
-                  <TableHead>Zamestnanec</TableHead>
-                  <TableHead>Príchod</TableHead>
-                  <TableHead>Odchod</TableHead>
-                  <TableHead>Poloha</TableHead>
-                  <TableHead className="text-right">Hodiny</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {attendance && attendance.length > 0 ? (
-                  attendance.map((record: any) => (
-                    <TableRow key={record.id}>
-                      <TableCell className="font-medium">
-                        {new Date(record.date).toLocaleDateString('sk-SK')}
-                      </TableCell>
-                      <TableCell>{record.profiles?.full_name || '-'}</TableCell>
-                      <TableCell>{record.arrival_time || '-'}</TableCell>
-                      <TableCell>{record.departure_time || '-'}</TableCell>
-                      <TableCell>
-                        {record.arrival_latitude && record.arrival_longitude ? (
-                          <a
-                            href={`https://www.google.com/maps?q=${record.arrival_latitude},${record.arrival_longitude}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-primary hover:underline"
-                          >
-                            <MapPin className="h-4 w-4" />
-                            Mapa
-                          </a>
-                        ) : (
-                          <span className="text-muted-foreground text-sm">-</span>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {record.total_hours ? `${record.total_hours}h` : '-'}
+            <ScrollArea className="w-full">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="whitespace-nowrap">Dátum</TableHead>
+                    <TableHead className="whitespace-nowrap">Zamestnanec</TableHead>
+                    <TableHead className="whitespace-nowrap">Príchod</TableHead>
+                    <TableHead className="whitespace-nowrap">Odchod</TableHead>
+                    <TableHead className="whitespace-nowrap">Poloha</TableHead>
+                    <TableHead className="text-right whitespace-nowrap">Hodiny</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {attendance && attendance.length > 0 ? (
+                    attendance.map((record: any) => (
+                      <TableRow key={record.id}>
+                        <TableCell className="font-medium whitespace-nowrap">
+                          {new Date(record.date).toLocaleDateString('sk-SK')}
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap">{record.profiles?.full_name || '-'}</TableCell>
+                        <TableCell className="whitespace-nowrap">{record.arrival_time || '-'}</TableCell>
+                        <TableCell className="whitespace-nowrap">{record.departure_time || '-'}</TableCell>
+                        <TableCell className="whitespace-nowrap">
+                          {record.arrival_latitude && record.arrival_longitude ? (
+                            <a
+                              href={`https://www.google.com/maps?q=${record.arrival_latitude},${record.arrival_longitude}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-primary hover:underline"
+                            >
+                              <MapPin className="h-4 w-4" />
+                              Mapa
+                            </a>
+                          ) : (
+                            <span className="text-muted-foreground text-sm">-</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-right whitespace-nowrap">
+                          {record.total_hours ? `${record.total_hours}h` : '-'}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center text-muted-foreground">
+                        Žiadne záznamy
                       </TableCell>
                     </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center text-muted-foreground">
-                      Žiadne záznamy
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
+                  )}
+                </TableBody>
+              </Table>
+              <ScrollBar orientation="horizontal" />
+            </ScrollArea>
           )}
         </CardContent>
       </Card>

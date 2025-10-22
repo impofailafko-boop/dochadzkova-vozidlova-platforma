@@ -16,6 +16,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Clock, Car, Fuel, CheckCircle2, AlertCircle, CalendarIcon, X } from 'lucide-react';
 import { CompleteDriveDialog } from '@/components/employee/CompleteDriveDialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -223,38 +224,41 @@ const History = () => {
                   <Skeleton className="h-10 w-full" />
                 </div>
               ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Dátum</TableHead>
-                      <TableHead>Príchod</TableHead>
-                      <TableHead>Odchod</TableHead>
-                      <TableHead className="text-right">Hodiny</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {attendanceHistory && attendanceHistory.length > 0 ? (
-                      attendanceHistory.map((record) => (
-                        <TableRow key={record.id}>
-                          <TableCell className="font-medium">
-                            {new Date(record.date).toLocaleDateString('sk-SK')}
-                          </TableCell>
-                          <TableCell>{record.arrival_time || '-'}</TableCell>
-                          <TableCell>{record.departure_time || '-'}</TableCell>
-                          <TableCell className="text-right">
-                            {record.total_hours ? `${record.total_hours}h` : '-'}
+                <ScrollArea className="w-full">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="whitespace-nowrap">Dátum</TableHead>
+                        <TableHead className="whitespace-nowrap">Príchod</TableHead>
+                        <TableHead className="whitespace-nowrap">Odchod</TableHead>
+                        <TableHead className="text-right whitespace-nowrap">Hodiny</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {attendanceHistory && attendanceHistory.length > 0 ? (
+                        attendanceHistory.map((record) => (
+                          <TableRow key={record.id}>
+                            <TableCell className="font-medium whitespace-nowrap">
+                              {new Date(record.date).toLocaleDateString('sk-SK')}
+                            </TableCell>
+                            <TableCell className="whitespace-nowrap">{record.arrival_time || '-'}</TableCell>
+                            <TableCell className="whitespace-nowrap">{record.departure_time || '-'}</TableCell>
+                            <TableCell className="text-right whitespace-nowrap">
+                              {record.total_hours ? `${record.total_hours}h` : '-'}
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={4} className="text-center text-muted-foreground">
+                            Žiadne záznamy
                           </TableCell>
                         </TableRow>
-                      ))
-                    ) : (
-                      <TableRow>
-                        <TableCell colSpan={4} className="text-center text-muted-foreground">
-                          Žiadne záznamy
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
+                      )}
+                    </TableBody>
+                  </Table>
+                  <ScrollBar orientation="horizontal" />
+                </ScrollArea>
               )}
 
               {/* Pagination */}
@@ -336,63 +340,66 @@ const History = () => {
                   <Skeleton className="h-10 w-full" />
                 </div>
               ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Dátum</TableHead>
-                      <TableHead>Vozidlo</TableHead>
-                      <TableHead>Projekt</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="text-right">Kilometre</TableHead>
-                      <TableHead></TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {vehicleLogs && vehicleLogs.length > 0 ? (
-                      vehicleLogs.map((log: any) => (
-                        <TableRow key={log.id}>
-                          <TableCell className="font-medium">
-                            {new Date(log.date).toLocaleDateString('sk-SK')}
-                          </TableCell>
-                          <TableCell>{log.vehicles?.spz}</TableCell>
-                          <TableCell>{log.projects?.name}</TableCell>
-                          <TableCell>
-                            {log.is_completed ? (
-                              <Badge variant="default" className="gap-1">
-                                <CheckCircle2 className="h-3 w-3" />
-                                Ukončená
-                              </Badge>
-                            ) : (
-                              <Badge variant="secondary" className="gap-1">
-                                <AlertCircle className="h-3 w-3" />
-                                Prebieha
-                              </Badge>
-                            )}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            {log.is_completed ? `${log.km_driven} km` : `${log.km_start} km →`}
-                          </TableCell>
-                          <TableCell>
-                            {!log.is_completed && (
-                              <Button
-                                size="sm"
-                                onClick={() => setSelectedLog(log)}
-                              >
-                                Ukončiť
-                              </Button>
-                            )}
+                <ScrollArea className="w-full">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="whitespace-nowrap">Dátum</TableHead>
+                        <TableHead className="whitespace-nowrap">Vozidlo</TableHead>
+                        <TableHead className="whitespace-nowrap">Projekt</TableHead>
+                        <TableHead className="whitespace-nowrap">Status</TableHead>
+                        <TableHead className="text-right whitespace-nowrap">Kilometre</TableHead>
+                        <TableHead className="whitespace-nowrap"></TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {vehicleLogs && vehicleLogs.length > 0 ? (
+                        vehicleLogs.map((log: any) => (
+                          <TableRow key={log.id}>
+                            <TableCell className="font-medium whitespace-nowrap">
+                              {new Date(log.date).toLocaleDateString('sk-SK')}
+                            </TableCell>
+                            <TableCell className="whitespace-nowrap">{log.vehicles?.spz}</TableCell>
+                            <TableCell className="whitespace-nowrap">{log.projects?.name}</TableCell>
+                            <TableCell className="whitespace-nowrap">
+                              {log.is_completed ? (
+                                <Badge variant="default" className="gap-1">
+                                  <CheckCircle2 className="h-3 w-3" />
+                                  Ukončená
+                                </Badge>
+                              ) : (
+                                <Badge variant="secondary" className="gap-1">
+                                  <AlertCircle className="h-3 w-3" />
+                                  Prebieha
+                                </Badge>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-right whitespace-nowrap">
+                              {log.is_completed ? `${log.km_driven} km` : `${log.km_start} km →`}
+                            </TableCell>
+                            <TableCell className="whitespace-nowrap">
+                              {!log.is_completed && (
+                                <Button
+                                  size="sm"
+                                  onClick={() => setSelectedLog(log)}
+                                >
+                                  Ukončiť
+                                </Button>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={6} className="text-center text-muted-foreground">
+                            Žiadne záznamy
                           </TableCell>
                         </TableRow>
-                      ))
-                    ) : (
-                      <TableRow>
-                        <TableCell colSpan={6} className="text-center text-muted-foreground">
-                          Žiadne záznamy
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
+                      )}
+                    </TableBody>
+                  </Table>
+                  <ScrollBar orientation="horizontal" />
+                </ScrollArea>
               )}
 
               {/* Pagination */}
@@ -474,42 +481,45 @@ const History = () => {
                   <Skeleton className="h-10 w-full" />
                 </div>
               ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Dátum</TableHead>
-                      <TableHead>Vozidlo</TableHead>
-                      <TableHead>Projekt</TableHead>
-                      <TableHead className="text-right">Litre</TableHead>
-                      <TableHead className="text-right">Cena</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {fuelLogs && fuelLogs.length > 0 ? (
-                      fuelLogs.map((log: any) => (
-                        <TableRow key={log.id}>
-                          <TableCell className="font-medium">
-                            {new Date(log.date).toLocaleDateString('sk-SK')}
-                          </TableCell>
-                          <TableCell>{log.vehicles?.spz}</TableCell>
-                          <TableCell>{log.projects?.name || '-'}</TableCell>
-                          <TableCell className="text-right">
-                            {log.liters} L
-                          </TableCell>
-                          <TableCell className="text-right">
-                            {log.price ? `${log.price}€` : '-'}
+                <ScrollArea className="w-full">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="whitespace-nowrap">Dátum</TableHead>
+                        <TableHead className="whitespace-nowrap">Vozidlo</TableHead>
+                        <TableHead className="whitespace-nowrap">Projekt</TableHead>
+                        <TableHead className="text-right whitespace-nowrap">Litre</TableHead>
+                        <TableHead className="text-right whitespace-nowrap">Cena</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {fuelLogs && fuelLogs.length > 0 ? (
+                        fuelLogs.map((log: any) => (
+                          <TableRow key={log.id}>
+                            <TableCell className="font-medium whitespace-nowrap">
+                              {new Date(log.date).toLocaleDateString('sk-SK')}
+                            </TableCell>
+                            <TableCell className="whitespace-nowrap">{log.vehicles?.spz}</TableCell>
+                            <TableCell className="whitespace-nowrap">{log.projects?.name || '-'}</TableCell>
+                            <TableCell className="text-right whitespace-nowrap">
+                              {log.liters} L
+                            </TableCell>
+                            <TableCell className="text-right whitespace-nowrap">
+                              {log.price ? `${log.price}€` : '-'}
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={5} className="text-center text-muted-foreground">
+                            Žiadne záznamy
                           </TableCell>
                         </TableRow>
-                      ))
-                    ) : (
-                      <TableRow>
-                        <TableCell colSpan={5} className="text-center text-muted-foreground">
-                          Žiadne záznamy
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
+                      )}
+                    </TableBody>
+                  </Table>
+                  <ScrollBar orientation="horizontal" />
+                </ScrollArea>
               )}
 
               {/* Pagination */}

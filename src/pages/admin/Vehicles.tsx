@@ -22,6 +22,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Plus, Edit, Power } from 'lucide-react';
 
 const Vehicles = () => {
@@ -164,55 +165,58 @@ const Vehicles = () => {
               <Skeleton className="h-10 w-full" />
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>SPZ</TableHead>
-                  <TableHead>Značka</TableHead>
-                  <TableHead>Model</TableHead>
-                  <TableHead className="text-right">Km</TableHead>
-                  <TableHead>Stav</TableHead>
-                  <TableHead className="text-right">Akcie</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {vehicles && vehicles.length > 0 ? (
-                  vehicles.map((vehicle) => (
-                    <TableRow key={vehicle.id}>
-                      <TableCell className="font-medium">{vehicle.spz}</TableCell>
-                      <TableCell>{vehicle.brand}</TableCell>
-                      <TableCell>{vehicle.type}</TableCell>
-                      <TableCell className="text-right">{vehicle.current_km.toLocaleString()}</TableCell>
-                      <TableCell>
-                        <Badge variant={vehicle.is_active ? 'default' : 'secondary'}>
-                          {vehicle.is_active ? 'Aktívne' : 'Neaktívne'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          <Button variant="ghost" size="sm" onClick={() => handleEdit(vehicle)}>
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleToggleStatus(vehicle.id, vehicle.is_active)}
-                          >
-                            <Power className={`h-4 w-4 ${vehicle.is_active ? 'text-green-600' : 'text-gray-400'}`} />
-                          </Button>
-                        </div>
+            <ScrollArea className="w-full">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="whitespace-nowrap">SPZ</TableHead>
+                    <TableHead className="whitespace-nowrap">Značka</TableHead>
+                    <TableHead className="whitespace-nowrap">Model</TableHead>
+                    <TableHead className="text-right whitespace-nowrap">Km</TableHead>
+                    <TableHead className="whitespace-nowrap">Stav</TableHead>
+                    <TableHead className="text-right whitespace-nowrap">Akcie</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {vehicles && vehicles.length > 0 ? (
+                    vehicles.map((vehicle) => (
+                      <TableRow key={vehicle.id}>
+                        <TableCell className="font-medium whitespace-nowrap">{vehicle.spz}</TableCell>
+                        <TableCell className="whitespace-nowrap">{vehicle.brand}</TableCell>
+                        <TableCell className="whitespace-nowrap">{vehicle.type}</TableCell>
+                        <TableCell className="text-right whitespace-nowrap">{vehicle.current_km.toLocaleString()}</TableCell>
+                        <TableCell className="whitespace-nowrap">
+                          <Badge variant={vehicle.is_active ? 'default' : 'secondary'}>
+                            {vehicle.is_active ? 'Aktívne' : 'Neaktívne'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right whitespace-nowrap">
+                          <div className="flex justify-end gap-2">
+                            <Button variant="ghost" size="sm" onClick={() => handleEdit(vehicle)}>
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleToggleStatus(vehicle.id, vehicle.is_active)}
+                            >
+                              <Power className={`h-4 w-4 ${vehicle.is_active ? 'text-green-600' : 'text-gray-400'}`} />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center text-muted-foreground">
+                        Žiadne vozidlá
                       </TableCell>
                     </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center text-muted-foreground">
-                      Žiadne vozidlá
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
+                  )}
+                </TableBody>
+              </Table>
+              <ScrollBar orientation="horizontal" />
+            </ScrollArea>
           )}
         </CardContent>
       </Card>
