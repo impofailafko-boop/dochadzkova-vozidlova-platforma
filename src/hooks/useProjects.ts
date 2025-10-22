@@ -8,7 +8,7 @@ export function useProjects() {
       const { data, error } = await supabase
         .from('projects')
         .select('*')
-        .or('is_active.eq.true,status.eq.active')
+        .eq('status', 'active')
         .order('name');
 
       if (error) {

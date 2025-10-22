@@ -31,7 +31,7 @@ const AdminDashboard = () => {
       const [employeesRes, vehiclesRes, projectsRes, todayAttendanceRes] = await Promise.all([
         supabase.from('profiles').select('id', { count: 'exact', head: true }),
         supabase.from('vehicles').select('id', { count: 'exact', head: true }).eq('is_active', true),
-        supabase.from('projects').select('id', { count: 'exact', head: true }).eq('is_active', true),
+        supabase.from('projects').select('id', { count: 'exact', head: true }).eq('status', 'active'),
         supabase.from('attendance').select('id', { count: 'exact', head: true }).eq('date', new Date().toISOString().split('T')[0]),
       ]);
 

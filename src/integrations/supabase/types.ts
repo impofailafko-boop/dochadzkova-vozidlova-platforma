@@ -162,7 +162,6 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
-          is_active: boolean
           name: string
           status: Database["public"]["Enums"]["project_status"] | null
         }
@@ -170,7 +169,6 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
-          is_active?: boolean
           name: string
           status?: Database["public"]["Enums"]["project_status"] | null
         }
@@ -178,7 +176,6 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
-          is_active?: boolean
           name?: string
           status?: Database["public"]["Enums"]["project_status"] | null
         }
