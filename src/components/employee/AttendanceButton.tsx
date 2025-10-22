@@ -68,20 +68,23 @@ const AttendanceButton = () => {
               </>
             )}
           </div>
-          {!hasArrived && (
-            <Button
-              onClick={() => recordArrival()}
-              disabled={isRecordingArrival}
-              className="gap-2"
-            >
-              {isRecordingArrival ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <LogIn className="h-4 w-4" />
-              )}
-              Príchod do práce
-            </Button>
-          )}
+          <Button
+            onClick={() => {
+              if (!hasArrived || hasDeparted) {
+                recordArrival();
+              }
+            }}
+            disabled={isRecordingArrival || (hasArrived && !hasDeparted)}
+            variant={(!hasArrived || hasDeparted) ? "success" : "destructive"}
+            className="gap-2"
+          >
+            {isRecordingArrival ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <LogIn className="h-4 w-4" />
+            )}
+            Príchod do práce
+          </Button>
         </div>
 
         {/* Departure */}
