@@ -216,7 +216,17 @@ Všetky bugy opravené! ✅
 18. ✅ **Hook refactoring** - useAttendance, useVehicleLogs, useFuelLogs podporujú pagination + filtering
 19. ✅ **Count tracking** - Zobrazenie "Zobrazených X z Y záznamov" pre každú tabuľku
 
-### MEDIUM PRIORITY (Fáza 4)
+### ✅ FÁZA 6 - GPS Tracking (2025-01-22)
+20. ✅ **GPS tracking pre dochádzku** - Pri príchode do práce sa automaticky zachytáva GPS poloha (arrival_latitude, arrival_longitude)
+21. ✅ **GPS tracking pre jazdy** - Pri začatí a ukončení jazdy sa zachytáva GPS poloha (start/end latitude/longitude)
+22. ✅ **Admin zobrazenie GPS** - AttendanceOverview a DrivesOverview zobrazujú GPS linky na Google Maps
+23. ✅ **GPS v CSV exporte** - GPS súradnice sú súčasťou CSV exportov
+24. ✅ **Dokumentácia** - Kompletná dokumentácia v DATABASE_SCHEMA.md a GPS_TRACKING.md
+25. ✅ **Automatické povolenia** - Prvý krát sa prehliadač spýta, potom už automaticky
+
+---
+
+## MEDIUM PRIORITY (Fáza 7)
 12. **Dodatočný príchod (bod 4)** - Tlačidlo v `/attendance` s povinnou poznámkou prečo zabudol prísť včas
 13. **Notifikácie (bod 3)** - Upozornenie ak zamestnanec nezaznamenal odchod (napr. o 18:00)
 14. **CSV/Excel Export (bod 9)** - Jedno tlačidlo na export všetkých dát (dochádzka + jazdy + tankovania) s filtrami (dátumy, projekt, zamestnanec)

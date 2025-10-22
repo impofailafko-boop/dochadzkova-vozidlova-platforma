@@ -30,6 +30,8 @@
 | `arrival_time` | time | Yes | - | Čas príchodu (HH:MM:SS) |
 | `departure_time` | time | Yes | - | Čas odchodu (HH:MM:SS) |
 | `total_hours` | numeric | Yes | - | Odpracované hodiny (decimal) |
+| `arrival_latitude` | numeric | Yes | - | GPS latitude polohy pri príchode |
+| `arrival_longitude` | numeric | Yes | - | GPS longitude polohy pri príchode |
 | `created_at` | timestamptz | No | `now()` | Timestamp vytvorenia |
 
 ### Indexes
@@ -53,6 +55,9 @@
 - ✅ **CONSTRAINT:** `attendance_user_date_unique` - user môže mať len 1 záznam za deň
 - ⚠️ **CHÝBA:** Check constraint `departure_time > arrival_time` (ak oba vyplnené)
 - ✅ `total_hours` sa počíta v aplikačnom kóde (nie DB trigger)
+- ✅ **GPS TRACKING:** Pri príchode sa automaticky zachytáva GPS poloha cez Geolocation API (arrival_latitude, arrival_longitude)
+- ✅ GPS poloha je voliteľná - ak nie je dostupná, záznam sa uloží aj bez nej
+- ✅ Admin vidí GPS polohy v "Prehľad dochádzky" s linkom na Google Maps
 
 ### Vzťahy
 - `user_id` → (implicitne) `auth.users.id` (nie je foreign key kvôli Supabase odporúčaniu)
@@ -245,6 +250,10 @@ CREATE TYPE app_role AS ENUM ('admin', 'employee');
 | `km_driven` | integer | Yes | - | Ujazdené km (vypočítané) |
 | `photo_km_start` | text | Yes | - | Cesta k fotke začiatočného stavu km |
 | `photo_km_end` | text | Yes | - | Cesta k fotke konečného stavu km |
+| `start_latitude` | numeric | Yes | - | GPS latitude polohy pri začatí jazdy |
+| `start_longitude` | numeric | Yes | - | GPS longitude polohy pri začatí jazdy |
+| `end_latitude` | numeric | Yes | - | GPS latitude polohy pri ukončení jazdy |
+| `end_longitude` | numeric | Yes | - | GPS longitude polohy pri ukončení jazdy |
 | `is_completed` | boolean | No | `false` | Či je jazda ukončená |
 | `created_at` | timestamptz | No | `now()` | Timestamp vytvorenia |
 
@@ -271,6 +280,10 @@ CREATE TYPE app_role AS ENUM ('admin', 'employee');
 - ✅ **TRIGGER:** `trigger_update_vehicle_km` automaticky aktualizuje `vehicles.current_km`
 - ✅ **IMPLEMENTOVANÉ (2025-01-20):** Workflow s fotkami - užívateľ začne jazdu s km_start a foto, neskôr ukončí s km_end a foto
 - ✅ **STORAGE:** `vehicle-photos` bucket pre fotky km stavov (RLS: vlastník môže upload/view, admin view all)
+- ✅ **GPS TRACKING:** Pri začatí jazdy sa automaticky zachytáva GPS poloha začiatku (start_latitude, start_longitude)
+- ✅ **GPS TRACKING:** Pri ukončení jazdy sa automaticky zachytáva GPS poloha konca (end_latitude, end_longitude)
+- ✅ GPS poloha je voliteľná - ak nie je dostupná, záznam sa uloží aj bez nej
+- ✅ Admin vidí GPS polohy v "Prehľad jázd" s linkami na Google Maps (Start / Koniec)
 - `km_driven` je nullable (počíta sa až po ukončení jazdy)
 - `km_end` je nullable (vyplní sa až pri ukončení jazdy)
 
