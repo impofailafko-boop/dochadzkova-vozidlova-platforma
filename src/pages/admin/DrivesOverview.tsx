@@ -223,88 +223,92 @@ const DrivesOverview = () => {
               <Skeleton className="h-10 w-full" />
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Dátum</TableHead>
-                  <TableHead>Zamestnanec</TableHead>
-                  <TableHead>Vozidlo</TableHead>
-                  <TableHead>Projekt</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>GPS</TableHead>
-                  <TableHead className="text-right">Km</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {drives && drives.length > 0 ? (
-                  drives.map((record: any) => (
-                    <TableRow key={record.id}>
-                      <TableCell className="font-medium">
-                        {new Date(record.date).toLocaleDateString('sk-SK')}
-                      </TableCell>
-                      <TableCell>{record.profiles?.full_name || '-'}</TableCell>
-                      <TableCell>{record.vehicles?.spz || '-'}</TableCell>
-                      <TableCell>{record.projects?.name || '-'}</TableCell>
-                      <TableCell>
-                        {record.is_completed ? (
-                          <Badge variant="default" className="gap-1">
-                            <CheckCircle2 className="h-3 w-3" />
-                            Ukončená
-                          </Badge>
-                        ) : (
-                          <Badge variant="secondary" className="gap-1">
-                            <AlertCircle className="h-3 w-3" />
-                            Prebieha
-                          </Badge>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-1">
-                          {record.start_latitude && record.start_longitude ? (
-                            <a
-                              href={`https://www.google.com/maps?q=${record.start_latitude},${record.start_longitude}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
-                              title="Poloha začiatku"
-                            >
-                              <MapPin className="h-3 w-3" />
-                              Start
-                            </a>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Dátum</TableHead>
+                    <TableHead>Zamestnanec</TableHead>
+                    <TableHead className="hidden md:table-cell">Vozidlo</TableHead>
+                    <TableHead className="hidden lg:table-cell">Projekt</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="hidden md:table-cell">GPS</TableHead>
+                    <TableHead className="text-right">Km</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {drives && drives.length > 0 ? (
+                    drives.map((record: any) => (
+                      <TableRow key={record.id}>
+                        <TableCell className="font-medium whitespace-nowrap">
+                          {new Date(record.date).toLocaleDateString('sk-SK')}
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap">{record.profiles?.full_name || '-'}</TableCell>
+                        <TableCell className="hidden md:table-cell">{record.vehicles?.spz || '-'}</TableCell>
+                        <TableCell className="hidden lg:table-cell">{record.projects?.name || '-'}</TableCell>
+                        <TableCell>
+                          {record.is_completed ? (
+                            <Badge variant="default" className="gap-1 whitespace-nowrap">
+                              <CheckCircle2 className="h-3 w-3" />
+                              <span className="hidden sm:inline">Ukončená</span>
+                              <span className="sm:hidden">✓</span>
+                            </Badge>
                           ) : (
-                            <span className="text-xs text-muted-foreground">-</span>
+                            <Badge variant="secondary" className="gap-1 whitespace-nowrap">
+                              <AlertCircle className="h-3 w-3" />
+                              <span className="hidden sm:inline">Prebieha</span>
+                              <span className="sm:hidden">⏱</span>
+                            </Badge>
                           )}
-                          {record.is_completed && record.end_latitude && record.end_longitude && (
-                            <>
-                              <span className="text-muted-foreground">|</span>
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell">
+                          <div className="flex gap-1">
+                            {record.start_latitude && record.start_longitude ? (
                               <a
-                                href={`https://www.google.com/maps?q=${record.end_latitude},${record.end_longitude}`}
+                                href={`https://www.google.com/maps?q=${record.start_latitude},${record.start_longitude}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
-                                title="Poloha konca"
+                                title="Poloha začiatku"
                               >
                                 <MapPin className="h-3 w-3" />
-                                Koniec
+                                Start
                               </a>
-                            </>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {record.is_completed ? `${record.km_driven} km` : `${record.km_start} km →`}
+                            ) : (
+                              <span className="text-xs text-muted-foreground">-</span>
+                            )}
+                            {record.is_completed && record.end_latitude && record.end_longitude && (
+                              <>
+                                <span className="text-muted-foreground">|</span>
+                                <a
+                                  href={`https://www.google.com/maps?q=${record.end_latitude},${record.end_longitude}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                                  title="Poloha konca"
+                                >
+                                  <MapPin className="h-3 w-3" />
+                                  Koniec
+                                </a>
+                              </>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right whitespace-nowrap">
+                          {record.is_completed ? `${record.km_driven} km` : `${record.km_start} km →`}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center text-muted-foreground">
+                        Žiadne záznamy
                       </TableCell>
                     </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center text-muted-foreground">
-                      Žiadne záznamy
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
           )}
         </CardContent>
       </Card>
