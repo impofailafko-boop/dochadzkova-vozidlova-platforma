@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { Download } from 'lucide-react';
+import { Download, MapPin } from 'lucide-react';
 
 const AttendanceOverview = () => {
   const [filters, setFilters] = useState({
@@ -41,13 +41,15 @@ const AttendanceOverview = () => {
     if (!attendance || attendance.length === 0) return;
 
     const csv = [
-      ['Dátum', 'Zamestnanec', 'Príchod', 'Odchod', 'Hodiny'].join(','),
+      ['Dátum', 'Zamestnanec', 'Príchod', 'Odchod', 'Hodiny', 'GPS Latitude', 'GPS Longitude'].join(','),
       ...attendance.map((record: any) => [
         record.date,
         record.profiles?.full_name || '-',
         record.arrival_time || '-',
         record.departure_time || '-',
         record.total_hours || '-',
+        record.arrival_latitude || '-',
+        record.arrival_longitude || '-',
       ].join(',')),
     ].join('\n');
 
@@ -142,6 +144,7 @@ const AttendanceOverview = () => {
                   <TableHead>Zamestnanec</TableHead>
                   <TableHead>Príchod</TableHead>
                   <TableHead>Odchod</TableHead>
+                  <TableHead>Poloha</TableHead>
                   <TableHead className="text-right">Hodiny</TableHead>
                 </TableRow>
               </TableHeader>
@@ -155,6 +158,21 @@ const AttendanceOverview = () => {
                       <TableCell>{record.profiles?.full_name || '-'}</TableCell>
                       <TableCell>{record.arrival_time || '-'}</TableCell>
                       <TableCell>{record.departure_time || '-'}</TableCell>
+                      <TableCell>
+                        {record.arrival_latitude && record.arrival_longitude ? (
+                          <a
+                            href={`https://www.google.com/maps?q=${record.arrival_latitude},${record.arrival_longitude}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-primary hover:underline"
+                          >
+                            <MapPin className="h-4 w-4" />
+                            Mapa
+                          </a>
+                        ) : (
+                          <span className="text-muted-foreground text-sm">-</span>
+                        )}
+                      </TableCell>
                       <TableCell className="text-right">
                         {record.total_hours ? `${record.total_hours}h` : '-'}
                       </TableCell>
@@ -162,7 +180,7 @@ const AttendanceOverview = () => {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center text-muted-foreground">
+                    <TableCell colSpan={6} className="text-center text-muted-foreground">
                       Žiadne záznamy
                     </TableCell>
                   </TableRow>

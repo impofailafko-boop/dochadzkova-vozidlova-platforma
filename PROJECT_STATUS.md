@@ -27,7 +27,8 @@
 
 ### Employee Funkcie (Fáza 1)
 - [x] **Employee Dashboard** - AttendanceButton widget + rýchle linky na všetky funkcie
-- [x] **Attendance check-in/check-out** - Zaznamenávanie príchodu a odchodu s výpočtom hodín
+- [x] **Attendance check-in/check-out** - Zaznamenávanie príchodu a odchodu s výpočtom hodín + GPS poloha pri príchode
+- [x] **GPS tracking** - Pri príchode do práce sa automaticky zaznamená GPS poloha (latitude/longitude) pomocou Geolocation API
 - [x] **Attendance history** - Posledných 30 dní v `/attendance` stránke + v `/history` tabe
 - [x] **Fueling** - Plný formulár: výber vozidla, dátum, litre, cena (voliteľná), projekt (voliteľný), poznámka (voliteľná)
 
@@ -48,6 +49,7 @@
 - [x] **Current project tracking** - profiles.current_project_id foreign key
 - [x] **Indexy pre performance** - user_id, vehicle_id, date indexy na všetky relevantné tabuľky
 - [x] **Automatic current_km update** - Trigger `trigger_update_vehicle_km` po update vehicle_logs
+- [x] **GPS tracking fields** - attendance.arrival_latitude a arrival_longitude pre sledovanie polohy pri príchode
 
 ### Databáza (Fáza 2 - Storage & Workflow)
 - [x] **Storage bucket** - `vehicle-photos` bucket pre fotky kilometrov
@@ -122,7 +124,7 @@ Všetky bugy opravené! ✅
 ## 📊 DATABÁZA - AKTUÁLNY STAV
 
 ### Tabuľky
-- ✅ `attendance` (7 stĺpcov, RLS ✅)
+- ✅ `attendance` (9 stĺpcov, RLS ✅) - ✅ PRIDANÉ: arrival_latitude, arrival_longitude (GPS tracking)
 - ✅ `fuel_logs` (9 stĺpcov, RLS ✅) - ✅ PRIDANÉ: project_id (voliteľný)
 - ✅ `profiles` (6 stĺpcov, RLS ✅) - ✅ PRIDANÉ: current_project_id
 - ✅ `projects` (6 stĺpcov, RLS ✅) - ✅ PRIDANÉ: status enum (planned/active/completed)
