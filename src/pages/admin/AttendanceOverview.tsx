@@ -4,6 +4,7 @@ import { useEmployees } from '@/hooks/useEmployees';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { DatePicker } from '@/components/ui/date-picker';
 import {
   Select,
   SelectContent,
@@ -83,21 +84,23 @@ const AttendanceOverview = () => {
         <CardContent>
           <div className="grid gap-4 md:grid-cols-3">
             <div className="space-y-2">
-              <Label htmlFor="startDate">Od dátumu</Label>
-              <Input
-                id="startDate"
-                type="date"
-                value={filters.startDate}
-                onChange={(e) => setFilters({ ...filters, startDate: e.target.value })}
+              <Label>Od dátumu</Label>
+              <DatePicker
+                date={filters.startDate ? new Date(filters.startDate) : undefined}
+                onDateChange={(date) => {
+                  setFilters({ ...filters, startDate: date ? date.toISOString().split('T')[0] : '' });
+                }}
+                placeholder="Od dátumu"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="endDate">Do dátumu</Label>
-              <Input
-                id="endDate"
-                type="date"
-                value={filters.endDate}
-                onChange={(e) => setFilters({ ...filters, endDate: e.target.value })}
+              <Label>Do dátumu</Label>
+              <DatePicker
+                date={filters.endDate ? new Date(filters.endDate) : undefined}
+                onDateChange={(date) => {
+                  setFilters({ ...filters, endDate: date ? date.toISOString().split('T')[0] : '' });
+                }}
+                placeholder="Do dátumu"
               />
             </div>
             <div className="space-y-2">

@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import { DatePicker } from '@/components/ui/date-picker';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Download, FileText, FileSpreadsheet } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -100,21 +101,23 @@ const Reports = () => {
         <CardContent>
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="startDate">Od dátumu</Label>
-              <Input
-                id="startDate"
-                type="date"
-                value={dateRange.startDate}
-                onChange={(e) => setDateRange({ ...dateRange, startDate: e.target.value })}
+              <Label>Od dátumu</Label>
+              <DatePicker
+                date={dateRange.startDate ? new Date(dateRange.startDate) : undefined}
+                onDateChange={(date) => {
+                  setDateRange({ ...dateRange, startDate: date ? date.toISOString().split('T')[0] : '' });
+                }}
+                placeholder="Od dátumu"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="endDate">Do dátumu</Label>
-              <Input
-                id="endDate"
-                type="date"
-                value={dateRange.endDate}
-                onChange={(e) => setDateRange({ ...dateRange, endDate: e.target.value })}
+              <Label>Do dátumu</Label>
+              <DatePicker
+                date={dateRange.endDate ? new Date(dateRange.endDate) : undefined}
+                onDateChange={(date) => {
+                  setDateRange({ ...dateRange, endDate: date ? date.toISOString().split('T')[0] : '' });
+                }}
+                placeholder="Do dátumu"
               />
             </div>
           </div>

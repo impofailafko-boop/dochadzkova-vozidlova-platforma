@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { DatePicker } from '@/components/ui/date-picker';
 import {
   Select,
   SelectContent,
@@ -159,10 +160,13 @@ const VehicleUse = () => {
                       <FormItem>
                         <FormLabel>Dátum</FormLabel>
                         <FormControl>
-                          <Input 
-                            type="date" 
-                            max={new Date().toISOString().split('T')[0]}
-                            {...field} 
+                          <DatePicker
+                            date={field.value ? new Date(field.value) : undefined}
+                            onDateChange={(date) => {
+                              field.onChange(date ? date.toISOString().split('T')[0] : '');
+                            }}
+                            placeholder="Vyberte dátum jazdy"
+                            disableFuture
                           />
                         </FormControl>
                         <FormMessage />

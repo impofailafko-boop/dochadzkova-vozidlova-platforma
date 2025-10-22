@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { DatePicker } from '@/components/ui/date-picker';
 import {
   Select,
   SelectContent,
@@ -165,7 +166,14 @@ const Fueling = () => {
                       <FormItem>
                         <FormLabel>Dátum</FormLabel>
                         <FormControl>
-                          <Input type="date" {...field} />
+                          <DatePicker
+                            date={field.value ? new Date(field.value) : undefined}
+                            onDateChange={(date) => {
+                              field.onChange(date ? date.toISOString().split('T')[0] : '');
+                            }}
+                            placeholder="Vyberte dátum tankovania"
+                            disableFuture
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>

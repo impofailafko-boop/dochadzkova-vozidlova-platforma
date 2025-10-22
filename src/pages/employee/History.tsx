@@ -19,9 +19,9 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Clock, Car, Fuel, CheckCircle2, AlertCircle, CalendarIcon, X } from 'lucide-react';
 import { CompleteDriveDialog } from '@/components/employee/CompleteDriveDialog';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
+import { DatePicker } from '@/components/ui/date-picker';
 import { format } from 'date-fns';
+import { sk } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import {
   Pagination,
@@ -122,62 +122,26 @@ const History = () => {
           <div className="flex flex-wrap gap-4 items-end">
             <div className="flex-1 min-w-[200px]">
               <label className="text-sm font-medium mb-2 block">Od</label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !startDate && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {startDate ? format(startDate, "dd.MM.yyyy") : <span>Vyberte dátum</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={startDate}
-                    onSelect={(date) => {
-                      setStartDate(date);
-                      handleDateChange();
-                    }}
-                    initialFocus
-                    className={cn("p-3 pointer-events-auto")}
-                  />
-                </PopoverContent>
-              </Popover>
+              <DatePicker
+                date={startDate}
+                onDateChange={(date) => {
+                  setStartDate(date);
+                  handleDateChange();
+                }}
+                placeholder="Od dátumu"
+              />
             </div>
 
             <div className="flex-1 min-w-[200px]">
               <label className="text-sm font-medium mb-2 block">Do</label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !endDate && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {endDate ? format(endDate, "dd.MM.yyyy") : <span>Vyberte dátum</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={endDate}
-                    onSelect={(date) => {
-                      setEndDate(date);
-                      handleDateChange();
-                    }}
-                    initialFocus
-                    className={cn("p-3 pointer-events-auto")}
-                  />
-                </PopoverContent>
-              </Popover>
+              <DatePicker
+                date={endDate}
+                onDateChange={(date) => {
+                  setEndDate(date);
+                  handleDateChange();
+                }}
+                placeholder="Do dátumu"
+              />
             </div>
 
             {(startDate || endDate) && (
