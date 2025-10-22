@@ -21,7 +21,6 @@ import { Clock, Car, Fuel, CheckCircle2, AlertCircle, CalendarIcon, X } from 'lu
 import { CompleteDriveDialog } from '@/components/employee/CompleteDriveDialog';
 import { DatePicker } from '@/components/ui/date-picker';
 import { format } from 'date-fns';
-import { sk } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import {
   Pagination,

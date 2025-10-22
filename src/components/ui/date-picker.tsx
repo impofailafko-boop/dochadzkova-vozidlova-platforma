@@ -1,6 +1,6 @@
 import * as React from "react";
 import { format } from "date-fns";
-import { sk } from "date-fns/locale";
+import { sk } from "date-fns/locale/sk";
 import { CalendarIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -47,14 +47,17 @@ export function DatePicker({
           {date ? format(date, "dd.MM.yyyy", { locale: sk }) : <span>{placeholder}</span>}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0" align="start">
+      <PopoverContent className="w-auto p-0 bg-popover z-50" align="start">
         <Calendar
           mode="single"
           selected={date}
           onSelect={onDateChange}
           disabled={(date) => {
-            if (disableFuture && date > new Date()) return true;
-            if (disablePast && date < new Date()) return true;
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            if (disableFuture && date > today) return true;
+            if (disablePast && date < today) return true;
             return false;
           }}
           initialFocus
