@@ -16,6 +16,8 @@ export type Database = {
     Tables: {
       attendance: {
         Row: {
+          arrival_latitude: number | null
+          arrival_longitude: number | null
           arrival_time: string | null
           created_at: string
           date: string
@@ -25,6 +27,8 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          arrival_latitude?: number | null
+          arrival_longitude?: number | null
           arrival_time?: string | null
           created_at?: string
           date: string
@@ -34,6 +38,8 @@ export type Database = {
           user_id: string
         }
         Update: {
+          arrival_latitude?: number | null
+          arrival_longitude?: number | null
           arrival_time?: string | null
           created_at?: string
           date?: string

@@ -25,7 +25,7 @@ export function useAttendance(userId: string | undefined) {
     enabled: !!userId,
   });
 
-  // Record arrival
+  // Record arrival with GPS location
   const recordArrival = useMutation({
     mutationFn: async () => {
       if (!userId) throw new Error('User not authenticated');
@@ -33,15 +33,40 @@ export function useAttendance(userId: string | undefined) {
       const today = new Date().toISOString().split('T')[0];
       const now = new Date().toTimeString().split(' ')[0];
 
+      // Get GPS location
+      let latitude: number | null = null;
+      let longitude: number | null = null;
+
+      if ('geolocation' in navigator) {
+        try {
+          const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, {
+              enableHighAccuracy: true,
+              timeout: 10000,
+              maximumAge: 0
+            });
+          });
+          latitude = position.coords.latitude;
+          longitude = position.coords.longitude;
+        } catch (error) {
+          console.warn('GPS location not available:', error);
+          // Continue without location - it's optional
+        }
+      }
+
       const { error } = await supabase
         .from('attendance')
         .insert({
           user_id: userId,
           date: today,
           arrival_time: now,
+          arrival_latitude: latitude,
+          arrival_longitude: longitude,
         });
 
       if (error) throw error;
+      
+      return { latitude, longitude };
     },
     onMutate: async () => {
       // Dismiss any existing toasts to prevent duplicates
@@ -64,11 +89,13 @@ export function useAttendance(userId: string | undefined) {
         arrival_time: now,
         departure_time: null,
         total_hours: null,
+        arrival_latitude: null,
+        arrival_longitude: null,
         created_at: new Date().toISOString(),
       });
       
       // Show success toast immediately
-      toast.success('Príchod zaznamenaný');
+      toast.success('Príchod zaznamenaný (zisťujem polohu...)');
       
       // Return context for rollback
       return { previousAttendance };

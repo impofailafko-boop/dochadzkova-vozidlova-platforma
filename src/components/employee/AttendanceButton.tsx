@@ -2,7 +2,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useAttendance } from '@/hooks/useAttendance';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Clock, LogIn, LogOut, Loader2 } from 'lucide-react';
+import { Clock, LogIn, LogOut, Loader2, MapPin } from 'lucide-react';
 
 const AttendanceButton = () => {
   const { user } = useAuth();
@@ -47,12 +47,25 @@ const AttendanceButton = () => {
       <CardContent className="space-y-4">
         {/* Arrival */}
         <div className="flex items-center justify-between">
-          <div>
+          <div className="flex-1">
             <p className="text-sm font-medium">Príchod</p>
             {hasArrived && (
-              <p className="text-2xl font-bold text-primary">
-                {todayAttendance.arrival_time}
-              </p>
+              <>
+                <p className="text-2xl font-bold text-primary">
+                  {todayAttendance.arrival_time}
+                </p>
+                {todayAttendance.arrival_latitude && todayAttendance.arrival_longitude && (
+                  <a
+                    href={`https://www.google.com/maps?q=${todayAttendance.arrival_latitude},${todayAttendance.arrival_longitude}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors mt-1"
+                  >
+                    <MapPin className="h-3 w-3" />
+                    Zobraziť polohu na mape
+                  </a>
+                )}
+              </>
             )}
           </div>
           {!hasArrived && (
