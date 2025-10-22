@@ -147,21 +147,6 @@ const Profile = () => {
           </form>
         </CardContent>
       </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Lock className="h-5 w-5" />
-            Zabezpečenie
-          </CardTitle>
-          <CardDescription>Spravujte svoj PIN kód pre odomknutie aplikácie</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button asChild variant="outline" className="w-full">
-            <Link to="/pin-settings">Zmeniť PIN kód</Link>
-          </Button>
-        </CardContent>
-      </Card>
     </div>
   );
 };

@@ -25,7 +25,7 @@ import VehicleUse from '@/pages/employee/VehicleUse';
 import Fueling from '@/pages/employee/Fueling';
 import History from '@/pages/employee/History';
 import Profile from '@/pages/employee/Profile';
-import PinSettings from '@/pages/employee/PinSettings';
+import Settings from '@/pages/employee/Settings';
 
 // Admin Pages
 import AdminDashboard from '@/pages/admin/AdminDashboard';
@@ -36,6 +36,7 @@ import AttendanceOverview from '@/pages/admin/AttendanceOverview';
 import DrivesOverview from '@/pages/admin/DrivesOverview';
 import FuelingsOverview from '@/pages/admin/FuelingsOverview';
 import Reports from '@/pages/admin/Reports';
+import AdminSettings from '@/pages/employee/Settings'; // Reuse the same Settings component
 
 const queryClient = new QueryClient();
 
@@ -63,7 +64,7 @@ const AppContent = () => {
         <Route path="/fueling" element={<Fueling />} />
         <Route path="/history" element={<History />} />
         <Route path="/profile" element={<Profile />} />
-        <Route path="/pin-settings" element={<PinSettings />} />
+        <Route path="/settings" element={<Settings />} />
       </Route>
 
       {/* Admin Routes */}
@@ -76,6 +77,7 @@ const AppContent = () => {
         <Route path="/admin/drives-overview" element={<DrivesOverview />} />
         <Route path="/admin/fuelings-overview" element={<FuelingsOverview />} />
         <Route path="/admin/reports" element={<Reports />} />
+        <Route path="/admin/settings" element={<AdminSettings />} />
       </Route>
 
       <Route path="*" element={<NotFound />} />

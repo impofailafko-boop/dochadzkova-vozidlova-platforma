@@ -6,6 +6,7 @@ import {
   Fuel,
   History,
   User,
+  Settings,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -26,6 +27,7 @@ const items = [
   { title: 'Tankovanie', url: '/fueling', icon: Fuel },
   { title: 'História', url: '/history', icon: History },
   { title: 'Profil', url: '/profile', icon: User },
+  { title: 'Nastavenia', url: '/settings', icon: Settings },
 ];
 
 export function EmployeeSidebar() {
