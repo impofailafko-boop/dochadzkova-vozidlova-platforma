@@ -1,94 +1,104 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider } from "@/contexts/AuthContext";
-import ErrorBoundary from "@/components/common/ErrorBoundary";
-import ProtectedRoute from "@/components/common/ProtectedRoute";
-import RoleGuard from "@/components/common/RoleGuard";
-import EmployeeLayout from "@/components/layouts/EmployeeLayout";
-import AdminLayout from "@/components/layouts/AdminLayout";
-import Auth from "./pages/Auth";
-import Dashboard from "./pages/employee/Dashboard";
-import Attendance from "./pages/employee/Attendance";
-import VehicleUse from "./pages/employee/VehicleUse";
-import Fueling from "./pages/employee/Fueling";
-import History from "./pages/employee/History";
-import Profile from "./pages/employee/Profile";
-import AdminDashboard from "./pages/admin/AdminDashboard";
-import Employees from "./pages/admin/Employees";
-import Vehicles from "./pages/admin/Vehicles";
-import Projects from "./pages/admin/Projects";
-import AttendanceOverview from "./pages/admin/AttendanceOverview";
-import DrivesOverview from "./pages/admin/DrivesOverview";
-import FuelingsOverview from "./pages/admin/FuelingsOverview";
-import Reports from "./pages/admin/Reports";
-import NotFound from "./pages/NotFound";
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Toaster } from '@/components/ui/toaster';
+import { Toaster as Sonner } from '@/components/ui/sonner';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import { AuthProvider, useAuth } from '@/contexts/AuthContext';
+import ProtectedRoute from '@/components/common/ProtectedRoute';
+import RoleGuard from '@/components/common/RoleGuard';
+import ErrorBoundary from '@/components/common/ErrorBoundary';
+import PinSetup from '@/components/auth/PinSetup';
+import PinUnlock from '@/components/auth/PinUnlock';
+
+// Layouts
+import EmployeeLayout from '@/components/layouts/EmployeeLayout';
+import AdminLayout from '@/components/layouts/AdminLayout';
+
+// Auth
+import Auth from '@/pages/Auth';
+import NotFound from '@/pages/NotFound';
+
+// Employee Pages
+import Dashboard from '@/pages/employee/Dashboard';
+import Attendance from '@/pages/employee/Attendance';
+import VehicleUse from '@/pages/employee/VehicleUse';
+import Fueling from '@/pages/employee/Fueling';
+import History from '@/pages/employee/History';
+import Profile from '@/pages/employee/Profile';
+import PinSettings from '@/pages/employee/PinSettings';
+
+// Admin Pages
+import AdminDashboard from '@/pages/admin/AdminDashboard';
+import Employees from '@/pages/admin/Employees';
+import Vehicles from '@/pages/admin/Vehicles';
+import Projects from '@/pages/admin/Projects';
+import AttendanceOverview from '@/pages/admin/AttendanceOverview';
+import DrivesOverview from '@/pages/admin/DrivesOverview';
+import FuelingsOverview from '@/pages/admin/FuelingsOverview';
+import Reports from '@/pages/admin/Reports';
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <ErrorBoundary>
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <AuthProvider>
-            <Routes>
-              {/* Public routes */}
-              <Route path="/" element={<Navigate to="/auth" replace />} />
-              <Route path="/auth" element={<Auth />} />
+const AppContent = () => {
+  const { needsPinSetup, isLocked, unlockApp } = useAuth();
 
-              {/* Protected Employee routes */}
-              <Route
-                path="/"
-                element={
-                  <ProtectedRoute>
-                    <RoleGuard allowedRole="employee">
-                      <EmployeeLayout />
-                    </RoleGuard>
-                  </ProtectedRoute>
-                }
-              >
-                <Route path="dashboard" element={<Dashboard />} />
-                <Route path="attendance" element={<Attendance />} />
-                <Route path="vehicle-use" element={<VehicleUse />} />
-                <Route path="fueling" element={<Fueling />} />
-                <Route path="history" element={<History />} />
-                <Route path="profile" element={<Profile />} />
-              </Route>
+  if (needsPinSetup) {
+    return <PinSetup onComplete={() => window.location.reload()} />;
+  }
 
-              {/* Protected Admin routes */}
-              <Route
-                path="/admin"
-                element={
-                  <ProtectedRoute>
-                    <RoleGuard allowedRole="admin">
-                      <AdminLayout />
-                    </RoleGuard>
-                  </ProtectedRoute>
-                }
-              >
-                <Route index element={<AdminDashboard />} />
-                <Route path="employees" element={<Employees />} />
-                <Route path="vehicles" element={<Vehicles />} />
-                <Route path="projects" element={<Projects />} />
-                <Route path="attendance-overview" element={<AttendanceOverview />} />
-                <Route path="drives-overview" element={<DrivesOverview />} />
-                <Route path="fuelings-overview" element={<FuelingsOverview />} />
-                <Route path="reports" element={<Reports />} />
-              </Route>
+  if (isLocked) {
+    return <PinUnlock onUnlock={unlockApp} />;
+  }
 
-              {/* Catch-all route */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </AuthProvider>
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
-  </ErrorBoundary>
-);
+  return (
+    <Routes>
+      <Route path="/" element={<Navigate to="/auth" replace />} />
+      <Route path="/auth" element={<Auth />} />
+
+      {/* Employee Routes */}
+      <Route element={<ProtectedRoute><RoleGuard allowedRole='employee'><EmployeeLayout /></RoleGuard></ProtectedRoute>}>
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/attendance" element={<Attendance />} />
+        <Route path="/vehicle-use" element={<VehicleUse />} />
+        <Route path="/fueling" element={<Fueling />} />
+        <Route path="/history" element={<History />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/pin-settings" element={<PinSettings />} />
+      </Route>
+
+      {/* Admin Routes */}
+      <Route element={<ProtectedRoute><RoleGuard allowedRole='admin'><AdminLayout /></RoleGuard></ProtectedRoute>}>
+        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/admin/employees" element={<Employees />} />
+        <Route path="/admin/projects" element={<Projects />} />
+        <Route path="/admin/vehicles" element={<Vehicles />} />
+        <Route path="/admin/attendance-overview" element={<AttendanceOverview />} />
+        <Route path="/admin/drives-overview" element={<DrivesOverview />} />
+        <Route path="/admin/fuelings-overview" element={<FuelingsOverview />} />
+        <Route path="/admin/reports" element={<Reports />} />
+      </Route>
+
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  );
+};
+
+function App() {
+  return (
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <BrowserRouter>
+            <AuthProvider>
+              <AppContent />
+              <Toaster />
+              <Sonner />
+            </AuthProvider>
+          </BrowserRouter>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
+  );
+}
 
 export default App;
