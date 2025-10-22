@@ -1,16 +1,49 @@
 import AttendanceButton from '@/components/employee/AttendanceButton';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Car, Fuel, History } from 'lucide-react';
+import { Car, Fuel, History, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 const Dashboard = () => {
+  const { user } = useAuth();
+
+  const { data: profile, isLoading } = useQuery({
+    queryKey: ['profile', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id,
+  });
+
+  // Extract first name from full_name
+  const firstName = profile?.full_name?.split(' ')[0] || 'používateľ';
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 space-y-6">
       <div>
-        <h1 className="text-3xl font-bold mb-2">Dashboard</h1>
+        <h1 className="text-3xl font-bold mb-2">Vitaj {firstName}</h1>
         <p className="text-muted-foreground">
-          Vitajte v systéme evidencie dochádzky a vozidiel
+          Tu nájdeš prehľad svojej dochádzky a rýchly prístup k dôležitým funkciám
         </p>
       </div>
 

@@ -2,9 +2,29 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Users, Car, FolderKanban, Clock } from 'lucide-react';
+import { Users, Car, FolderKanban, Clock, Loader2 } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 const AdminDashboard = () => {
+  const { user } = useAuth();
+
+  const { data: profile, isLoading: profileLoading } = useQuery({
+    queryKey: ['profile', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id,
+  });
+
   const { data: stats, isLoading } = useQuery({
     queryKey: ['admin-stats'],
     queryFn: async () => {
@@ -51,12 +71,23 @@ const AdminDashboard = () => {
     },
   ];
 
+  // Extract first name from full_name
+  const firstName = profile?.full_name?.split(' ')[0] || 'admin';
+
+  if (profileLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 space-y-6">
       <div>
-        <h1 className="text-3xl font-bold mb-2">Admin Dashboard</h1>
+        <h1 className="text-3xl font-bold mb-2">Vitaj {firstName}</h1>
         <p className="text-muted-foreground">
-          Prehľad a správa systému
+          Tu nájdeš prehľad a správu celého systému
         </p>
       </div>
 
