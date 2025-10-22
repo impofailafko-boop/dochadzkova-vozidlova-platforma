@@ -59,6 +59,27 @@ export function useVehicleLogs(userId: string | undefined, params?: { limit?: nu
     mutationFn: async (input: VehicleLogInput) => {
       if (!userId) throw new Error('User not authenticated');
 
+      // Get GPS location for start
+      let startLatitude: number | null = null;
+      let startLongitude: number | null = null;
+
+      if ('geolocation' in navigator) {
+        try {
+          const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, {
+              enableHighAccuracy: true,
+              timeout: 10000,
+              maximumAge: 0
+            });
+          });
+          startLatitude = position.coords.latitude;
+          startLongitude = position.coords.longitude;
+        } catch (error) {
+          console.warn('GPS location not available:', error);
+          // Continue without location - it's optional
+        }
+      }
+
       let photoUrl = null;
       
       // Upload photo if provided
@@ -82,11 +103,15 @@ export function useVehicleLogs(userId: string | undefined, params?: { limit?: nu
           date: input.date,
           km_start: input.km_start,
           photo_km_start: photoUrl,
+          start_latitude: startLatitude,
+          start_longitude: startLongitude,
           user_id: userId,
           is_completed: false,
         });
 
       if (error) throw error;
+      
+      return { startLatitude, startLongitude };
     },
     onMutate: async (input: VehicleLogInput) => {
       // Dismiss any existing toasts
@@ -147,6 +172,27 @@ export function useVehicleLogs(userId: string | undefined, params?: { limit?: nu
     mutationFn: async (input: CompleteLogInput) => {
       if (!userId) throw new Error('User not authenticated');
 
+      // Get GPS location for end
+      let endLatitude: number | null = null;
+      let endLongitude: number | null = null;
+
+      if ('geolocation' in navigator) {
+        try {
+          const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, {
+              enableHighAccuracy: true,
+              timeout: 10000,
+              maximumAge: 0
+            });
+          });
+          endLatitude = position.coords.latitude;
+          endLongitude = position.coords.longitude;
+        } catch (error) {
+          console.warn('GPS location not available:', error);
+          // Continue without location - it's optional
+        }
+      }
+
       // First, get the log to calculate km_driven
       const { data: logData, error: fetchError } = await supabase
         .from('vehicle_logs')
@@ -179,11 +225,15 @@ export function useVehicleLogs(userId: string | undefined, params?: { limit?: nu
           km_end: input.km_end,
           km_driven: km_driven,
           photo_km_end: photoUrl,
+          end_latitude: endLatitude,
+          end_longitude: endLongitude,
           is_completed: true,
         })
         .eq('id', input.logId);
 
       if (error) throw error;
+      
+      return { endLatitude, endLongitude };
     },
     onMutate: async (input: CompleteLogInput) => {
       // Dismiss any existing toasts

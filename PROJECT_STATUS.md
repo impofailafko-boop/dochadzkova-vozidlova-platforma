@@ -33,12 +33,13 @@
 - [x] **Fueling** - Plný formulár: výber vozidla, dátum, litre, cena (voliteľná), projekt (voliteľný), poznámka (voliteľná)
 
 ### Employee Funkcie (Fáza 2 - Workflow Jázd s Fotkami)
-- [x] **VehicleUse - Začať Jazdu** - Formulár: vozidlo, projekt, dátum, km_start + POVINNÁ fotka tachometra
+- [x] **VehicleUse - Začať Jazdu** - Formulár: vozidlo, projekt, dátum, km_start + POVINNÁ fotka tachometra + GPS sledovanie polohy začiatku
 - [x] **Upload Fotky** - Supabase Storage bucket `vehicle-photos` s RLS políciami
 - [x] **History Tab - Prebieha/Ukončená** - Status badge pre každú jazdu, červené "Prebieha" + tlačidlo "Ukončiť"
-- [x] **CompleteDriveDialog** - Dialog na ukončenie: km_end + VOLITEĽNÁ fotka konečného stavu
+- [x] **CompleteDriveDialog** - Dialog na ukončenie: km_end + VOLITEĽNÁ fotka konečného stavu + GPS sledovanie polohy konca
 - [x] **Validácia km_end** - Client-side kontrola `km_end > km_start`
 - [x] **Auto-update vehicle.current_km** - DB trigger pri ukončení jazdy
+- [x] **GPS tracking pre jazdy** - Pri začatí a ukončení jazdy sa zachytáva GPS poloha (start_latitude/longitude, end_latitude/longitude)
 
 ### Databáza (Fáza 1)
 - [x] **Tabuľky vytvorené** - attendance, fuel_logs, profiles, projects, user_roles, vehicle_logs, vehicles
@@ -59,6 +60,7 @@
 - [x] **vehicle_logs.photo_km_end** - Text pole (cesta k fotke konečného stavu, nullable)
 - [x] **vehicle_logs.km_end nullable** - Umožnuje vytvoriť jazdu bez km_end (doplní sa neskôr)
 - [x] **vehicle_logs.km_driven nullable** - Počíta sa až pri ukončení (km_end - km_start)
+- [x] **GPS tracking fields pre jazdy** - vehicle_logs.start_latitude/longitude a end_latitude/longitude pre sledovanie polohy pri začatí a ukončení jazdy
 
 ### UI/UX
 - [x] **Sidebar navigácia** - AdminSidebar + EmployeeSidebar (shadcn/ui sidebar)
@@ -129,7 +131,7 @@ Všetky bugy opravené! ✅
 - ✅ `profiles` (6 stĺpcov, RLS ✅) - ✅ PRIDANÉ: current_project_id
 - ✅ `projects` (6 stĺpcov, RLS ✅) - ✅ PRIDANÉ: status enum (planned/active/completed)
 - ✅ `user_roles` (4 stĺpce, RLS ✅)
-- ✅ `vehicle_logs` (12 stĺpcov, RLS ✅) - ✅ PRIDANÉ: photo_km_start, photo_km_end, is_completed
+- ✅ `vehicle_logs` (16 stĺpcov, RLS ✅) - ✅ PRIDANÉ: photo_km_start, photo_km_end, is_completed, start_latitude, start_longitude, end_latitude, end_longitude (GPS tracking)
 - ✅ `vehicles` (7 stĺpcov, RLS ✅)
 
 ### Storage Buckets

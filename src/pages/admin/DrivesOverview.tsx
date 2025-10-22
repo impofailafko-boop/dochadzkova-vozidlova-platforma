@@ -24,7 +24,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Download, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Download, CheckCircle2, AlertCircle, MapPin } from 'lucide-react';
 
 const DrivesOverview = () => {
   const [filters, setFilters] = useState({
@@ -55,7 +55,7 @@ const DrivesOverview = () => {
     if (!drives || drives.length === 0) return;
 
     const csv = [
-      ['Dátum', 'Zamestnanec', 'Vozidlo', 'Projekt', 'Status', 'Km začiatku', 'Km konca', 'Km celkom'].join(','),
+      ['Dátum', 'Zamestnanec', 'Vozidlo', 'Projekt', 'Status', 'Km začiatku', 'Km konca', 'Km celkom', 'GPS Start Lat', 'GPS Start Lon', 'GPS End Lat', 'GPS End Lon'].join(','),
       ...drives.map((record: any) => [
         record.date,
         record.profiles?.full_name || '-',
@@ -65,6 +65,10 @@ const DrivesOverview = () => {
         record.km_start,
         record.km_end || '-',
         record.km_driven || '-',
+        record.start_latitude || '-',
+        record.start_longitude || '-',
+        record.end_latitude || '-',
+        record.end_longitude || '-',
       ].join(',')),
     ].join('\n');
 
@@ -227,6 +231,7 @@ const DrivesOverview = () => {
                   <TableHead>Vozidlo</TableHead>
                   <TableHead>Projekt</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>GPS</TableHead>
                   <TableHead className="text-right">Km</TableHead>
                 </TableRow>
               </TableHeader>
@@ -253,6 +258,39 @@ const DrivesOverview = () => {
                           </Badge>
                         )}
                       </TableCell>
+                      <TableCell>
+                        <div className="flex gap-1">
+                          {record.start_latitude && record.start_longitude ? (
+                            <a
+                              href={`https://www.google.com/maps?q=${record.start_latitude},${record.start_longitude}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                              title="Poloha začiatku"
+                            >
+                              <MapPin className="h-3 w-3" />
+                              Start
+                            </a>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">-</span>
+                          )}
+                          {record.is_completed && record.end_latitude && record.end_longitude && (
+                            <>
+                              <span className="text-muted-foreground">|</span>
+                              <a
+                                href={`https://www.google.com/maps?q=${record.end_latitude},${record.end_longitude}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                                title="Poloha konca"
+                              >
+                                <MapPin className="h-3 w-3" />
+                                Koniec
+                              </a>
+                            </>
+                          )}
+                        </div>
+                      </TableCell>
                       <TableCell className="text-right">
                         {record.is_completed ? `${record.km_driven} km` : `${record.km_start} km →`}
                       </TableCell>
@@ -260,7 +298,7 @@ const DrivesOverview = () => {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center text-muted-foreground">
+                    <TableCell colSpan={7} className="text-center text-muted-foreground">
                       Žiadne záznamy
                     </TableCell>
                   </TableRow>

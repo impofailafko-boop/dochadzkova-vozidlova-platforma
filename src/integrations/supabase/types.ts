@@ -214,6 +214,8 @@ export type Database = {
         Row: {
           created_at: string
           date: string
+          end_latitude: number | null
+          end_longitude: number | null
           id: string
           is_completed: boolean | null
           km_driven: number | null
@@ -222,12 +224,16 @@ export type Database = {
           photo_km_end: string | null
           photo_km_start: string | null
           project_id: string
+          start_latitude: number | null
+          start_longitude: number | null
           user_id: string
           vehicle_id: string
         }
         Insert: {
           created_at?: string
           date: string
+          end_latitude?: number | null
+          end_longitude?: number | null
           id?: string
           is_completed?: boolean | null
           km_driven?: number | null
@@ -236,12 +242,16 @@ export type Database = {
           photo_km_end?: string | null
           photo_km_start?: string | null
           project_id: string
+          start_latitude?: number | null
+          start_longitude?: number | null
           user_id: string
           vehicle_id: string
         }
         Update: {
           created_at?: string
           date?: string
+          end_latitude?: number | null
+          end_longitude?: number | null
           id?: string
           is_completed?: boolean | null
           km_driven?: number | null
@@ -250,6 +260,8 @@ export type Database = {
           photo_km_end?: string | null
           photo_km_start?: string | null
           project_id?: string
+          start_latitude?: number | null
+          start_longitude?: number | null
           user_id?: string
           vehicle_id?: string
         }
