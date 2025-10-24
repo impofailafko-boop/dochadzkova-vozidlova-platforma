@@ -14,12 +14,20 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { DatePicker } from '@/components/ui/date-picker';
 
 const Attendance = () => {
   const { user } = useAuth();
   const [limit, setLimit] = useState(30);
+  const [startDate, setStartDate] = useState<Date | undefined>();
+  const [endDate, setEndDate] = useState<Date | undefined>();
+  
   const { getHistory } = useAttendance(user?.id);
-  const { data, isLoading } = getHistory({ limit });
+  const { data, isLoading } = getHistory({ 
+    limit,
+    startDate: startDate?.toISOString().split('T')[0],
+    endDate: endDate?.toISOString().split('T')[0]
+  });
   
   const history = data?.data || [];
   const totalCount = data?.count || 0;
@@ -47,6 +55,24 @@ const Attendance = () => {
               ? `Zobrazených ${history.length} z ${totalCount} záznamov` 
               : 'Žiadne záznamy'}
           </CardDescription>
+          <div className="flex flex-wrap gap-4 mt-4">
+            <div className="flex-1 min-w-[200px]">
+              <DatePicker
+                date={startDate}
+                onDateChange={setStartDate}
+                placeholder="Od dátumu"
+                disableFuture
+              />
+            </div>
+            <div className="flex-1 min-w-[200px]">
+              <DatePicker
+                date={endDate}
+                onDateChange={setEndDate}
+                placeholder="Do dátumu"
+                disableFuture
+              />
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           {isLoading ? (
