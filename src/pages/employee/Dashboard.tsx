@@ -51,72 +51,43 @@ const Dashboard = () => {
         </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-2">
         {/* Attendance widget */}
         <AttendanceButton />
 
-        {/* Active vehicles or Quick actions */}
-        {activeVehicles.length > 0 ? (
+        {/* Active vehicles if any */}
+        {activeVehicles.length > 0 && (
           <ActiveVehicleCard activeVehicles={activeVehicles} />
-        ) : (
-          <Card>
-            <CardHeader>
-              <CardTitle>Rýchle akcie</CardTitle>
-              <CardDescription>Často používané funkcie</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Button asChild className="w-full justify-start gap-2" variant="outline">
-                <Link to="/vehicle-use">
-                  <Car className="h-4 w-4" />
-                  Evidovať použitie auta
-                </Link>
-              </Button>
-              <Button asChild className="w-full justify-start gap-2" variant="outline">
-                <Link to="/fueling">
-                  <Fuel className="h-4 w-4" />
-                  Pridať tankovanie
-                </Link>
-              </Button>
-              <Button asChild className="w-full justify-start gap-2" variant="outline">
-                <Link to="/history">
-                  <History className="h-4 w-4" />
-                  Zobraziť históriu
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
         )}
       </div>
 
-      {/* Quick actions always visible below if there are active vehicles */}
-      {activeVehicles.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Rýchle akcie</CardTitle>
-            <CardDescription>Často používané funkcie</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <Button asChild className="w-full justify-start gap-2" variant="outline">
-              <Link to="/vehicle-use">
-                <Car className="h-4 w-4" />
-                Evidovať použitie auta
-              </Link>
-            </Button>
-            <Button asChild className="w-full justify-start gap-2" variant="outline">
-              <Link to="/fueling">
-                <Fuel className="h-4 w-4" />
-                Pridať tankovanie
-              </Link>
-            </Button>
-            <Button asChild className="w-full justify-start gap-2" variant="outline">
-              <Link to="/history">
-                <History className="h-4 w-4" />
-                Zobraziť históriu
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
-      )}
+      {/* Quick actions always visible */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg">Rýchle akcie</CardTitle>
+          <CardDescription className="text-sm">Často používané funkcie</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <Button asChild className="w-full justify-start gap-2 h-9" variant="outline">
+            <Link to="/vehicle-use">
+              <Car className="h-4 w-4" />
+              Evidovať použitie auta
+            </Link>
+          </Button>
+          <Button asChild className="w-full justify-start gap-2 h-9" variant="outline">
+            <Link to="/fueling">
+              <Fuel className="h-4 w-4" />
+              Pridať tankovanie
+            </Link>
+          </Button>
+          <Button asChild className="w-full justify-start gap-2 h-9" variant="outline">
+            <Link to="/history">
+              <History className="h-4 w-4" />
+              Zobraziť históriu
+            </Link>
+          </Button>
+        </CardContent>
+      </Card>
     </div>
   );
 };

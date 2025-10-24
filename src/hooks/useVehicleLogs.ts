@@ -217,17 +217,6 @@ export function useVehicleLogs(userId: string | undefined, params?: { limit?: nu
         }
       }
 
-      // First, get the log to calculate km_driven
-      const { data: logData, error: fetchError } = await supabase
-        .from('vehicle_logs')
-        .select('km_start')
-        .eq('id', input.logId)
-        .single();
-
-      if (fetchError) throw fetchError;
-
-      const km_driven = input.km_end - logData.km_start;
-
       let photoUrl = null;
       
       // Upload photo if provided
@@ -247,7 +236,6 @@ export function useVehicleLogs(userId: string | undefined, params?: { limit?: nu
         .from('vehicle_logs')
         .update({
           km_end: input.km_end,
-          km_driven: km_driven,
           photo_km_end: photoUrl,
           end_latitude: endLatitude,
           end_longitude: endLongitude,
@@ -277,11 +265,9 @@ export function useVehicleLogs(userId: string | undefined, params?: { limit?: nu
           ...old,
           data: old.data.map((log: any) => {
             if (log.id === input.logId) {
-              const km_driven = input.km_end - log.km_start;
               return {
                 ...log,
                 km_end: input.km_end,
-                km_driven: km_driven,
                 is_completed: true,
               };
             }

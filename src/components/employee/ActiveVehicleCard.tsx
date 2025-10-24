@@ -46,28 +46,28 @@ export function ActiveVehicleCard({ activeVehicles }: ActiveVehicleCardProps) {
   return (
     <>
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-lg">
             <Car className="h-5 w-5" />
             Používané {activeVehicles.length === 1 ? 'auto' : 'autá'}
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-sm">
             {activeVehicles.length === 1 
               ? 'Momentálne evidované vozidlo' 
               : `Momentálne evidovaných ${activeVehicles.length} vozidiel`}
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-3">
           {activeVehicles.map((vehicle) => (
-            <div key={vehicle.id} className="p-3 bg-muted/50 rounded-lg space-y-2">
-              <div className="font-semibold text-lg">
+            <div key={vehicle.id} className="p-2.5 bg-muted/50 rounded-lg space-y-1.5">
+              <div className="font-semibold text-base">
                 {vehicle.vehicles?.spz}
               </div>
               <div className="text-sm text-muted-foreground">
                 {vehicle.vehicles?.brand} {vehicle.vehicles?.type}
               </div>
               <div className="text-xs text-muted-foreground">
-                Projekt: {vehicle.projects?.name}
+                Projekt: {vehicle.projects?.name || 'N/A'}
               </div>
               <div className="text-xs text-muted-foreground">
                 Začiatok: {vehicle.km_start} km
@@ -77,7 +77,7 @@ export function ActiveVehicleCard({ activeVehicles }: ActiveVehicleCardProps) {
           
           <Button 
             variant="destructive" 
-            className="w-full"
+            className="w-full h-9"
             onClick={handleCompleteClick}
           >
             Ukončiť {activeVehicles.length === 1 ? 'auto' : 'jazdu auta'}
