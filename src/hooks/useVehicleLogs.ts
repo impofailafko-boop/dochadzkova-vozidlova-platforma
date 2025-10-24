@@ -291,6 +291,7 @@ export function useVehicleLogs(userId: string | undefined, params?: { limit?: nu
     onSettled: () => {
       // Always refetch after error or success to sync with server
       queryClient.invalidateQueries({ queryKey: ['vehicle-logs'] });
+      queryClient.invalidateQueries({ queryKey: ['active-vehicle-logs'] });
     },
   });
 
