@@ -1,6 +1,6 @@
 # DatePicker Komponent - Dôkladná kontrola
 
-**Dátum:** 2025-10-22  
+**Dátum:** 2025-10-24  
 **Status:** ✅ Skontrolované a opravené
 
 ---
@@ -84,6 +84,7 @@ if (disableFuture && date > today) return true;
 #### Employee Pages:
 | Page | Použitie | Props | Status |
 |------|----------|-------|--------|
+| `Attendance.tsx` | Filter Od-Do | `disableFuture={true}` | ✅ |
 | `Fueling.tsx` | Dátum tankovania | `disableFuture={true}` | ✅ |
 | `VehicleUse.tsx` | Dátum jazdy | `disableFuture={true}` | ✅ |
 | `History.tsx` | Od-Do filter | Žiadne | ✅ |

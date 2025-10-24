@@ -1,8 +1,8 @@
 # 🗓️ DatePicker - Kompletný Audit & Dokumentácia
 
-**Dátum:** 2025-10-23  
+**Dátum:** 2025-10-24  
 **Status:** ✅ Plne skontrolované a opravené  
-**Verzia:** 2.0 - Finálna
+**Verzia:** 2.1 - Aktualizované
 
 ---
 
@@ -10,7 +10,7 @@
 
 DatePicker komponent je **plne funkčný, konzistentný a správne implementovaný** v celej aplikácii. Všetky natívne date inputy boli nahradené jednotným DatePicker komponentom so slovenskou lokalizáciou.
 
-**Počet implementácií:** 11 použití v 7 súboroch  
+**Počet implementácií:** 13 použití v 8 súboroch  
 **Žiadne kritické problémy** ✅  
 **Konzistencia:** 100% ✅
 
@@ -197,6 +197,7 @@ new Date("2025-10-23")
 
 | Page | Použitie | Props | Účel |
 |------|----------|-------|------|
+| **Attendance.tsx** | Filter Od-Do | `disableFuture={true}` | História dochádzky (bez budúcnosti) |
 | **Fueling.tsx** | Dátum tankovania | `disableFuture={true}` | Nemôže tankovať v budúcnosti |
 | **VehicleUse.tsx** | Dátum jazdy | `disableFuture={true}` | Nemôže začať jazdu v budúcnosti |
 | **History.tsx** | Filter Od-Do | Žiadne | Historické dáta (ľubovoľný rozsah) |
@@ -213,11 +214,11 @@ new Date("2025-10-23")
 ### Štatistiky Použitia
 
 ```
-Celkový počet použití: 11
-  └─ Employee pages: 4
+Celkový počet použití: 13
+  └─ Employee pages: 6
   └─ Admin pages: 7
 
-disableFuture použité: 2x (Fueling, VehicleUse)
+disableFuture použité: 4x (Attendance x2, Fueling, VehicleUse)
 disablePast použité: 0x
 Bez obmedzení: 9x (filtre a reporty)
 ```
@@ -482,5 +483,5 @@ DatePicker komponent je **production-ready** a spĺňa všetky požiadavky:
 ---
 
 **Dokument vytvoril:** Lovable AI  
-**Posledná aktualizácia:** 2025-10-23  
-**Verzia dokumentu:** 2.0
+**Posledná aktualizácia:** 2025-10-24  
+**Verzia dokumentu:** 2.1
