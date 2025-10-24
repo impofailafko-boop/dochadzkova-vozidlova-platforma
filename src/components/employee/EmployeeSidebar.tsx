@@ -1,9 +1,6 @@
 import { NavLink, useLocation } from 'react-router-dom';
 import {
   Home,
-  Clock,
-  Car,
-  Fuel,
   History,
   User,
   Settings,
@@ -22,9 +19,6 @@ import {
 
 const items = [
   { title: 'Dashboard', url: '/dashboard', icon: Home },
-  { title: 'Dochádzka', url: '/attendance', icon: Clock },
-  { title: 'Použitie auta', url: '/vehicle-use', icon: Car },
-  { title: 'Tankovanie', url: '/fueling', icon: Fuel },
   { title: 'História', url: '/history', icon: History },
   { title: 'Profil', url: '/profile', icon: User },
   { title: 'Nastavenia', url: '/settings', icon: Settings },
