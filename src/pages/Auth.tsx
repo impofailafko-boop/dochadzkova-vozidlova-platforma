@@ -13,6 +13,7 @@ const Auth = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
+  const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
   const { signIn, signUp } = useAuth();
 
@@ -24,14 +25,15 @@ const Auth = () => {
       await signIn(email, password);
       // Navigation will be handled by AuthContext
     } else {
-      if (!fullName.trim()) {
+      if (!fullName.trim() || !phone.trim()) {
         setLoading(false);
         return;
       }
-      const { error } = await signUp(email, password, fullName);
+      const { error } = await signUp(email, password, fullName, phone);
       if (!error) {
         setIsLogin(true);
         setPassword('');
+        setPhone('');
       }
     }
 
@@ -97,6 +99,17 @@ const Auth = () => {
                     placeholder="Ján Novák"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Telefón</Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    placeholder="+421 XXX XXX XXX"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
                     required
                   />
                 </div>

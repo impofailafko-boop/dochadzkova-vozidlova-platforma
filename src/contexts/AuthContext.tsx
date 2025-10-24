@@ -11,7 +11,7 @@ interface AuthContextType {
   session: Session | null;
   role: UserRole;
   loading: boolean;
-  signUp: (email: string, password: string, fullName: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, fullName: string, phone: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   needsPinSetup: boolean;
@@ -147,17 +147,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, [navigate]);
 
-  const signUp = async (email: string, password: string, fullName: string) => {
+  const signUp = async (email: string, password: string, fullName: string, phone: string) => {
     try {
       const redirectUrl = `${window.location.origin}/`;
       
-      const { error } = await supabase.auth.signUp({
+      const { data: authData, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           emailRedirectTo: redirectUrl,
           data: {
             full_name: fullName,
+            phone: phone,
           },
         },
       });
@@ -165,6 +166,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error) {
         toast.error(error.message);
         return { error };
+      }
+
+      // Update profile with phone number
+      if (authData.user) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({ phone: phone })
+          .eq('user_id', authData.user.id);
+
+        if (profileError) {
+          console.error('Error updating profile with phone:', profileError);
+        }
       }
 
       toast.success('Účet vytvorený! Prosím, prihláste sa.');
