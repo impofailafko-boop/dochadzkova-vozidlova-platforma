@@ -20,6 +20,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
 const vehicleLogSchema = z.object({
   vehicle_id: z.string().min(1, 'Vyberte vozidlo'),
@@ -38,6 +39,7 @@ type VehicleLogFormData = z.infer<typeof vehicleLogSchema>;
 
 const VehicleUse = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { data: vehicles, isLoading: loadingVehicles } = useVehicles();
   const { data: projects, isLoading: loadingProjects } = useProjects();
   const { createLog, isCreating } = useVehicleLogs(user?.id);
@@ -63,13 +65,8 @@ const VehicleUse = () => {
       },
       {
         onSuccess: () => {
-          form.reset({
-            vehicle_id: '',
-            project_id: '',
-            date: new Date().toISOString().split('T')[0],
-            km_start: 0,
-          });
-          toast.success('Jazda začatá - nezabudnite ju neskôr ukončiť');
+          toast.success('Jazda začatá');
+          navigate('/dashboard');
         },
         onError: (error) => {
           toast.error('Chyba pri ukladaní záznamu: ' + error.message);

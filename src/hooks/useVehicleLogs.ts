@@ -16,6 +16,30 @@ interface CompleteLogInput {
   photo_km_end?: File;
 }
 
+export function useActiveVehicleLogs(userId: string | undefined) {
+  return useQuery({
+    queryKey: ['active-vehicle-logs', userId],
+    queryFn: async () => {
+      if (!userId) return [];
+      
+      const { data: logs, error } = await supabase
+        .from('vehicle_logs')
+        .select(`
+          *,
+          vehicles (spz, brand, type),
+          projects (name)
+        `)
+        .eq('user_id', userId)
+        .eq('is_completed', false)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return logs || [];
+    },
+    enabled: !!userId,
+  });
+}
+
 export function useVehicleLogs(userId: string | undefined, params?: { limit?: number; offset?: number; startDate?: string; endDate?: string }) {
   const queryClient = useQueryClient();
   const { limit = 30, offset = 0, startDate, endDate } = params || {};
