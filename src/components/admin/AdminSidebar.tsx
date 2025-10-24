@@ -8,6 +8,7 @@ import {
   Route,
   Fuel,
   BarChart3,
+  Calendar,
   Settings,
 } from 'lucide-react';
 import {
@@ -33,6 +34,7 @@ const viewItems = [
   { title: 'Dochádzka', url: '/admin/attendance-overview', icon: Clock },
   { title: 'Jazdy', url: '/admin/drives-overview', icon: Route },
   { title: 'Tankovania', url: '/admin/fuelings-overview', icon: Fuel },
+  { title: 'Kalendár', url: '/admin/calendar', icon: Calendar },
   { title: 'Reporty', url: '/admin/reports', icon: BarChart3 },
 ];
 
