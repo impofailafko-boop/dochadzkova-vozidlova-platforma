@@ -26,7 +26,7 @@ export function useAdminAttendance(filters?: { startDate?: string; endDate?: str
         query = query.eq('user_id', filters.userId);
       }
 
-      const { data, error } = await query.limit(100);
+      const { data, error } = await query;
 
       if (error) throw error;
       return data;

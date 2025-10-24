@@ -8,8 +8,9 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { DatePicker } from '@/components/ui/date-picker';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Download, FileText, FileSpreadsheet } from 'lucide-react';
+import { Download, FileText, FileSpreadsheet, FileDown } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import * as XLSX from 'xlsx';
 
 const Reports = () => {
   const [dateRange, setDateRange] = useState({
@@ -26,8 +27,7 @@ const Reports = () => {
   const totalFuelCost = fuelings?.reduce((sum: number, fuel: any) => sum + (fuel.price || 0), 0) || 0;
   const totalLiters = fuelings?.reduce((sum: number, fuel: any) => sum + (fuel.liters || 0), 0) || 0;
 
-  const handleExportAll = () => {
-    // Attendance
+  const handleExportCSV = () => {
     if (attendance && attendance.length > 0) {
       const attendanceCsv = [
         ['DOCHÁDZKA'].join(','),
@@ -69,13 +69,90 @@ const Reports = () => {
 
       const fullCsv = `${attendanceCsv}\n${drivesCsv}\n${fuelingsCsv}`;
 
-      const blob = new Blob([fullCsv], { type: 'text/csv' });
+      const blob = new Blob([fullCsv], { type: 'text/csv;charset=utf-8;' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
       a.download = `kompletny_report_${dateRange.startDate}_${dateRange.endDate}.csv`;
       a.click();
+      window.URL.revokeObjectURL(url);
     }
+  };
+
+  const handleExportExcel = () => {
+    const wb = XLSX.utils.book_new();
+
+    // Attendance sheet
+    if (attendance && attendance.length > 0) {
+      const attendanceData = [
+        ['Dátum', 'Zamestnanec', 'Príchod', 'Odchod', 'Hodiny'],
+        ...attendance.map((record: any) => [
+          record.date,
+          record.profiles?.full_name || '-',
+          record.arrival_time || '-',
+          record.departure_time || '-',
+          record.total_hours || '-',
+        ]),
+      ];
+      const ws1 = XLSX.utils.aoa_to_sheet(attendanceData);
+      XLSX.utils.book_append_sheet(wb, ws1, 'Dochádzka');
+    }
+
+    // Drives sheet
+    if (drives && drives.length > 0) {
+      const drivesData = [
+        ['Dátum', 'Zamestnanec', 'Vozidlo', 'Projekt', 'Km'],
+        ...drives.map((record: any) => [
+          record.date,
+          record.profiles?.full_name || '-',
+          record.vehicles?.spz || '-',
+          record.projects?.name || '-',
+          record.km_driven,
+        ]),
+      ];
+      const ws2 = XLSX.utils.aoa_to_sheet(drivesData);
+      XLSX.utils.book_append_sheet(wb, ws2, 'Jazdy');
+    }
+
+    // Fuelings sheet
+    if (fuelings && fuelings.length > 0) {
+      const fuelingsData = [
+        ['Dátum', 'Zamestnanec', 'Vozidlo', 'Litre', 'Cena'],
+        ...fuelings.map((record: any) => [
+          record.date,
+          record.profiles?.full_name || '-',
+          record.vehicles?.spz || '-',
+          record.liters,
+          record.price || '-',
+        ]),
+      ];
+      const ws3 = XLSX.utils.aoa_to_sheet(fuelingsData);
+      XLSX.utils.book_append_sheet(wb, ws3, 'Tankovania');
+    }
+
+    // Summary sheet
+    const summaryData = [
+      ['SÚHRN REPORTU'],
+      ['Obdobie', `${dateRange.startDate} - ${dateRange.endDate}`],
+      [],
+      ['DOCHÁDZKA'],
+      ['Počet záznamov', attendance?.length || 0],
+      ['Celkové hodiny', totalHours.toFixed(2)],
+      [],
+      ['JAZDY'],
+      ['Počet jázd', drives?.length || 0],
+      ['Celkové km', totalKm],
+      [],
+      ['TANKOVANIA'],
+      ['Počet tankovaní', fuelings?.length || 0],
+      ['Celkové litre', totalLiters.toFixed(2)],
+      ['Celkové náklady', `${totalFuelCost.toFixed(2)} €`],
+      ['Priemerná cena/L', totalLiters > 0 ? `${(totalFuelCost / totalLiters).toFixed(2)} €` : '0 €'],
+    ];
+    const ws4 = XLSX.utils.aoa_to_sheet(summaryData);
+    XLSX.utils.book_append_sheet(wb, ws4, 'Súhrn');
+
+    XLSX.writeFile(wb, `kompletny_report_${dateRange.startDate}_${dateRange.endDate}.xlsx`);
   };
 
   const isLoading = loadingAttendance || loadingDrives || loadingFuelings;
@@ -87,10 +164,16 @@ const Reports = () => {
           <h1 className="text-3xl font-bold mb-2">Reporty</h1>
           <p className="text-muted-foreground">Komplexné reporty a štatistiky</p>
         </div>
-        <Button onClick={handleExportAll} disabled={isLoading}>
-          <Download className="mr-2 h-4 w-4" />
-          Export všetkých dát
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={handleExportExcel} disabled={isLoading} variant="default">
+            <FileSpreadsheet className="mr-2 h-4 w-4" />
+            Export Excel
+          </Button>
+          <Button onClick={handleExportCSV} disabled={isLoading} variant="outline">
+            <FileDown className="mr-2 h-4 w-4" />
+            Export CSV
+          </Button>
+        </div>
       </div>
 
       <Card>

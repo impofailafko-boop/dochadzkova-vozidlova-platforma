@@ -46,7 +46,7 @@ export function useAdminFuelings(filters?: {
         query = query.eq('project_id', filters.projectId);
       }
 
-      const { data, error } = await query.limit(100);
+      const { data, error } = await query;
 
       if (error) throw error;
       return data;
