@@ -90,9 +90,22 @@ const AttendanceButton = () => {
             <div>
               <p className="text-sm font-medium mb-2">Odchod</p>
               {hasDeparted && (
-                <p className="text-2xl font-bold text-secondary">
-                  {todayAttendance.departure_time}
-                </p>
+                <>
+                  <p className="text-2xl font-bold text-secondary">
+                    {todayAttendance.departure_time}
+                  </p>
+                  {todayAttendance.departure_latitude && todayAttendance.departure_longitude && (
+                    <a
+                      href={`https://www.google.com/maps?q=${todayAttendance.departure_latitude},${todayAttendance.departure_longitude}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors mt-1"
+                    >
+                      <MapPin className="h-3 w-3" />
+                      Zobraziť polohu na mape
+                    </a>
+                  )}
+                </>
               )}
             </div>
             {!hasDeparted && (

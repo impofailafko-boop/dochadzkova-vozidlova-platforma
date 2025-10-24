@@ -21,6 +21,8 @@ export type Database = {
           arrival_time: string | null
           created_at: string
           date: string
+          departure_latitude: number | null
+          departure_longitude: number | null
           departure_time: string | null
           id: string
           total_hours: number | null
@@ -32,6 +34,8 @@ export type Database = {
           arrival_time?: string | null
           created_at?: string
           date: string
+          departure_latitude?: number | null
+          departure_longitude?: number | null
           departure_time?: string | null
           id?: string
           total_hours?: number | null
@@ -43,6 +47,8 @@ export type Database = {
           arrival_time?: string | null
           created_at?: string
           date?: string
+          departure_latitude?: number | null
+          departure_longitude?: number | null
           departure_time?: string | null
           id?: string
           total_hours?: number | null

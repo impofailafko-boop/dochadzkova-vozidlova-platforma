@@ -140,6 +140,27 @@ export function useAttendance(userId: string | undefined) {
       
       const now = new Date().toTimeString().split(' ')[0];
       
+      // Get GPS location for departure
+      let latitude: number | null = null;
+      let longitude: number | null = null;
+
+      if ('geolocation' in navigator) {
+        try {
+          const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, {
+              enableHighAccuracy: true,
+              timeout: 10000,
+              maximumAge: 0
+            });
+          });
+          latitude = position.coords.latitude;
+          longitude = position.coords.longitude;
+        } catch (error) {
+          console.warn('GPS location not available:', error);
+          // Continue without location - it's optional
+        }
+      }
+      
       // Calculate total hours
       const arrivalTime = todayAttendance.arrival_time;
       const arrival = new Date(`1970-01-01T${arrivalTime}`);
@@ -152,10 +173,14 @@ export function useAttendance(userId: string | undefined) {
         .update({
           departure_time: now,
           total_hours: parseFloat(totalHours),
+          departure_latitude: latitude,
+          departure_longitude: longitude,
         })
         .eq('id', todayAttendance.id);
 
       if (error) throw error;
+      
+      return { latitude, longitude };
     },
     onMutate: async () => {
       // Dismiss any existing toasts to prevent duplicates
@@ -184,7 +209,7 @@ export function useAttendance(userId: string | undefined) {
         });
         
         // Show success toast immediately
-        toast.success('Odchod zaznamenaný');
+        toast.success('Odchod zaznamenaný (zisťujem polohu...)');
       }
       
       // Return context for rollback
