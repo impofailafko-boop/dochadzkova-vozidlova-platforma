@@ -7,8 +7,6 @@ import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import ProtectedRoute from '@/components/common/ProtectedRoute';
 import RoleGuard from '@/components/common/RoleGuard';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
-import PinSetup from '@/components/auth/PinSetup';
-import PinUnlock from '@/components/auth/PinUnlock';
 
 // Layouts
 import EmployeeLayout from '@/components/layouts/EmployeeLayout';
@@ -41,16 +39,6 @@ import AdminSettings from '@/pages/employee/Settings'; // Reuse the same Setting
 const queryClient = new QueryClient();
 
 const AppContent = () => {
-  const { needsPinSetup, isLocked, unlockApp } = useAuth();
-
-  if (needsPinSetup) {
-    return <PinSetup onComplete={() => window.location.reload()} />;
-  }
-
-  if (isLocked) {
-    return <PinUnlock onUnlock={unlockApp} />;
-  }
-
   return (
     <Routes>
       <Route path="/" element={<Navigate to="/auth" replace />} />

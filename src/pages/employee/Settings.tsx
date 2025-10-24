@@ -32,12 +32,6 @@ const Settings = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isChangingPassword, setIsChangingPassword] = useState(false);
 
-  // PIN change state
-  const [currentPin, setCurrentPin] = useState('');
-  const [newPin, setNewPin] = useState('');
-  const [confirmPin, setConfirmPin] = useState('');
-  const [isChangingPin, setIsChangingPin] = useState(false);
-
   // Fetch profile
   const { data: profile, isLoading } = useQuery({
     queryKey: ['profile', user?.id],
@@ -87,55 +81,6 @@ const Settings = () => {
       toast.error(error.message || 'Nepodarilo sa zmeniť heslo');
     } finally {
       setIsChangingPassword(false);
-    }
-  };
-
-  // Change PIN
-  const handlePinChange = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (newPin.length !== 4 || !/^\d{4}$/.test(newPin)) {
-      toast.error('PIN musí obsahovať 4 číslice');
-      return;
-    }
-
-    if (newPin !== confirmPin) {
-      toast.error('PIN kódy sa nezhodujú');
-      return;
-    }
-
-    setIsChangingPin(true);
-    try {
-      // Verify current PIN
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('pin_code')
-        .eq('user_id', user?.id)
-        .single();
-
-      if (profileData?.pin_code !== currentPin) {
-        toast.error('Nesprávny aktuálny PIN kód');
-        setIsChangingPin(false);
-        return;
-      }
-
-      // Update to new PIN
-      const { error } = await supabase
-        .from('profiles')
-        .update({ pin_code: newPin })
-        .eq('user_id', user?.id);
-
-      if (error) throw error;
-
-      toast.success('PIN kód bol úspešne zmenený');
-      setCurrentPin('');
-      setNewPin('');
-      setConfirmPin('');
-    } catch (error) {
-      console.error('Error updating PIN:', error);
-      toast.error('Nepodarilo sa zmeniť PIN kód');
-    } finally {
-      setIsChangingPin(false);
     }
   };
 
@@ -239,76 +184,6 @@ const Settings = () => {
                 </>
               ) : (
                 'Zmeniť heslo'
-              )}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-
-      {/* Change PIN */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Lock className="h-5 w-5" />
-            Zmena PIN kódu
-          </CardTitle>
-          <CardDescription>Aktualizujte PIN kód pre odomknutie aplikácie</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handlePinChange} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="currentPin">Aktuálny PIN kód</Label>
-              <Input
-                id="currentPin"
-                type="password"
-                inputMode="numeric"
-                maxLength={4}
-                value={currentPin}
-                onChange={(e) => setCurrentPin(e.target.value.replace(/\D/g, ''))}
-                placeholder="••••"
-                className="text-center text-2xl tracking-widest"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="newPin">Nový PIN kód</Label>
-              <Input
-                id="newPin"
-                type="password"
-                inputMode="numeric"
-                maxLength={4}
-                value={newPin}
-                onChange={(e) => setNewPin(e.target.value.replace(/\D/g, ''))}
-                placeholder="••••"
-                className="text-center text-2xl tracking-widest"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="confirmPin">Potvrďte nový PIN kód</Label>
-              <Input
-                id="confirmPin"
-                type="password"
-                inputMode="numeric"
-                maxLength={4}
-                value={confirmPin}
-                onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, ''))}
-                placeholder="••••"
-                className="text-center text-2xl tracking-widest"
-                required
-              />
-            </div>
-
-            <Button type="submit" disabled={isChangingPin}>
-              {isChangingPin ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Mením PIN...
-                </>
-              ) : (
-                'Zmeniť PIN kód'
               )}
             </Button>
           </form>
