@@ -1,12 +1,16 @@
 import { useState } from 'react';
 import { useCalendarData } from '@/hooks/useCalendarData';
+import { useAdminAttendance } from '@/hooks/useAdminAttendance';
+import { useAdminDrives } from '@/hooks/useAdminDrives';
+import { useAdminFuelings } from '@/hooks/useAdminFuelings';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, Route, Fuel } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, Route, Fuel, FileSpreadsheet, FileDown } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths } from 'date-fns';
 import { sk } from 'date-fns/locale';
+import * as XLSX from 'xlsx';
 
 const Calendar = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -21,6 +25,9 @@ const Calendar = () => {
   };
 
   const { data: calendarData, isLoading } = useCalendarData(filters);
+  const { data: attendance } = useAdminAttendance(filters);
+  const { data: drives } = useAdminDrives(filters);
+  const { data: fuelings } = useAdminFuelings(filters);
 
   const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
   const firstDayOfWeek = monthStart.getDay();
@@ -37,6 +44,113 @@ const Calendar = () => {
 
   const selectedDayData = selectedDate ? calendarData?.byDate[selectedDate] : null;
 
+  const handleExportExcel = () => {
+    const wb = XLSX.utils.book_new();
+    const monthName = format(currentMonth, 'LLLL_yyyy', { locale: sk });
+
+    // Attendance sheet
+    if (attendance && attendance.length > 0) {
+      const attendanceData = [
+        ['Dátum', 'Zamestnanec', 'Príchod', 'Odchod', 'Hodiny'],
+        ...attendance.map((record: any) => [
+          record.date,
+          record.profiles?.full_name || '-',
+          record.arrival_time || '-',
+          record.departure_time || '-',
+          record.total_hours || '-',
+        ]),
+      ];
+      const ws1 = XLSX.utils.aoa_to_sheet(attendanceData);
+      XLSX.utils.book_append_sheet(wb, ws1, 'Dochádzka');
+    }
+
+    // Drives sheet
+    if (drives && drives.length > 0) {
+      const drivesData = [
+        ['Dátum', 'Zamestnanec', 'Vozidlo', 'Projekt', 'Km'],
+        ...drives.map((record: any) => [
+          record.date,
+          record.profiles?.full_name || '-',
+          record.vehicles?.spz || '-',
+          record.projects?.name || '-',
+          record.km_driven,
+        ]),
+      ];
+      const ws2 = XLSX.utils.aoa_to_sheet(drivesData);
+      XLSX.utils.book_append_sheet(wb, ws2, 'Jazdy');
+    }
+
+    // Fuelings sheet
+    if (fuelings && fuelings.length > 0) {
+      const fuelingsData = [
+        ['Dátum', 'Zamestnanec', 'Vozidlo', 'Litre', 'Cena'],
+        ...fuelings.map((record: any) => [
+          record.date,
+          record.profiles?.full_name || '-',
+          record.vehicles?.spz || '-',
+          record.liters,
+          record.price || '-',
+        ]),
+      ];
+      const ws3 = XLSX.utils.aoa_to_sheet(fuelingsData);
+      XLSX.utils.book_append_sheet(wb, ws3, 'Tankovania');
+    }
+
+    XLSX.writeFile(wb, `kalendar_${monthName}.xlsx`);
+  };
+
+  const handleExportCSV = () => {
+    const monthName = format(currentMonth, 'LLLL_yyyy', { locale: sk });
+
+    const attendanceCsv = attendance && attendance.length > 0 ? [
+      ['DOCHÁDZKA'].join(','),
+      ['Dátum', 'Zamestnanec', 'Príchod', 'Odchod', 'Hodiny'].join(','),
+      ...attendance.map((record: any) => [
+        record.date,
+        record.profiles?.full_name || '-',
+        record.arrival_time || '-',
+        record.departure_time || '-',
+        record.total_hours || '-',
+      ].join(',')),
+      [],
+    ].join('\n') : '';
+
+    const drivesCsv = drives && drives.length > 0 ? [
+      ['JAZDY'].join(','),
+      ['Dátum', 'Zamestnanec', 'Vozidlo', 'Projekt', 'Km'].join(','),
+      ...drives.map((record: any) => [
+        record.date,
+        record.profiles?.full_name || '-',
+        record.vehicles?.spz || '-',
+        record.projects?.name || '-',
+        record.km_driven,
+      ].join(',')),
+      [],
+    ].join('\n') : '';
+
+    const fuelingsCsv = fuelings && fuelings.length > 0 ? [
+      ['TANKOVANIA'].join(','),
+      ['Dátum', 'Zamestnanec', 'Vozidlo', 'Litre', 'Cena'].join(','),
+      ...fuelings.map((record: any) => [
+        record.date,
+        record.profiles?.full_name || '-',
+        record.vehicles?.spz || '-',
+        record.liters,
+        record.price || '-',
+      ].join(',')),
+    ].join('\n') : '';
+
+    const fullCsv = `${attendanceCsv}\n${drivesCsv}\n${fuelingsCsv}`;
+
+    const blob = new Blob([fullCsv], { type: 'text/csv;charset=utf-8;' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `kalendar_${monthName}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
@@ -45,13 +159,22 @@ const Calendar = () => {
           <p className="text-muted-foreground">Prehľad aktivít podľa dní</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={previousMonth}>
+          <Button variant="default" onClick={handleExportExcel} disabled={isLoading}>
+            <FileSpreadsheet className="mr-2 h-4 w-4" />
+            Export Excel
+          </Button>
+          <Button variant="outline" onClick={handleExportCSV} disabled={isLoading}>
+            <FileDown className="mr-2 h-4 w-4" />
+            Export CSV
+          </Button>
+          <div className="border-l mx-2" />
+          <Button variant="outline" size="icon" onClick={previousMonth}>
             <ChevronLeft className="h-4 w-4" />
           </Button>
           <Button variant="outline" onClick={today}>
             Dnes
           </Button>
-          <Button variant="outline" onClick={nextMonth}>
+          <Button variant="outline" size="icon" onClick={nextMonth}>
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
