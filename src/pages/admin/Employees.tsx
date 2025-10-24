@@ -122,12 +122,14 @@ const Employees = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="phone">Telefón (voliteľné)</Label>
+                <Label htmlFor="phone">Telefón</Label>
                 <Input
                   id="phone"
                   type="tel"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  required
+                  placeholder="+421 XXX XXX XXX"
                 />
               </div>
               <Button type="submit" disabled={isCreating} className="w-full">

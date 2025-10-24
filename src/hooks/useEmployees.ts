@@ -6,7 +6,7 @@ interface EmployeeInput {
   email: string;
   password: string;
   full_name: string;
-  phone?: string;
+  phone: string;
 }
 
 export function useEmployees() {
@@ -41,6 +41,7 @@ export function useEmployees() {
         options: {
           data: {
             full_name: input.full_name,
+            phone: input.phone,
           },
         },
       });
@@ -48,15 +49,13 @@ export function useEmployees() {
       if (authError) throw authError;
       if (!authData.user) throw new Error('User creation failed');
 
-      // Update profile with phone if provided
-      if (input.phone) {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .update({ phone: input.phone })
-          .eq('user_id', authData.user.id);
+      // Update profile with phone
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ phone: input.phone })
+        .eq('user_id', authData.user.id);
 
-        if (profileError) throw profileError;
-      }
+      if (profileError) throw profileError;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['employees'] });
