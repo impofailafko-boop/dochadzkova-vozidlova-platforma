@@ -69,13 +69,9 @@ const AttendanceButton = () => {
             )}
           </div>
           <Button
-            onClick={() => {
-              if (!hasArrived || hasDeparted) {
-                recordArrival();
-              }
-            }}
+            onClick={() => recordArrival()}
             disabled={isRecordingArrival || (hasArrived && !hasDeparted)}
-            variant={(!hasArrived || hasDeparted) ? "success" : "destructive"}
+            variant={(!hasArrived || hasDeparted) ? "success" : "outline"}
             className="w-full gap-2"
             size="lg"
           >

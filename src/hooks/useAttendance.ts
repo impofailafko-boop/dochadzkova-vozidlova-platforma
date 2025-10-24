@@ -5,22 +5,42 @@ import { toast } from 'sonner';
 export function useAttendance(userId: string | undefined) {
   const queryClient = useQueryClient();
 
-  // Get today's attendance
+  // Get today's attendance - find the latest incomplete record or the most recent one
   const { data: todayAttendance, isLoading } = useQuery({
     queryKey: ['attendance', 'today', userId],
     queryFn: async () => {
       if (!userId) return null;
       
       const today = new Date().toISOString().split('T')[0];
-      const { data, error } = await supabase
+      
+      // First, try to find an incomplete attendance (no departure_time)
+      const { data: incompleteData, error: incompleteError } = await supabase
         .from('attendance')
         .select('*')
         .eq('user_id', userId)
         .eq('date', today)
+        .is('departure_time', null)
+        .order('arrival_time', { ascending: false })
+        .limit(1)
         .maybeSingle();
 
-      if (error) throw error;
-      return data;
+      if (incompleteError) throw incompleteError;
+      
+      // If found incomplete record, return it
+      if (incompleteData) return incompleteData;
+      
+      // Otherwise, return the most recent completed record
+      const { data: completedData, error: completedError } = await supabase
+        .from('attendance')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('date', today)
+        .order('arrival_time', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (completedError) throw completedError;
+      return completedData;
     },
     enabled: !!userId,
   });
