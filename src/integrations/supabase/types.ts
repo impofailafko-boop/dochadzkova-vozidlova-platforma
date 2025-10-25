@@ -129,6 +129,7 @@ export type Database = {
         Row: {
           created_at: string
           current_project_id: string | null
+          employment_type: Database["public"]["Enums"]["employment_type"] | null
           full_name: string
           id: string
           phone: string | null
@@ -137,6 +138,9 @@ export type Database = {
         Insert: {
           created_at?: string
           current_project_id?: string | null
+          employment_type?:
+            | Database["public"]["Enums"]["employment_type"]
+            | null
           full_name: string
           id?: string
           phone?: string | null
@@ -145,6 +149,9 @@ export type Database = {
         Update: {
           created_at?: string
           current_project_id?: string | null
+          employment_type?:
+            | Database["public"]["Enums"]["employment_type"]
+            | null
           full_name?: string
           id?: string
           phone?: string | null
@@ -337,6 +344,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "employee"
+      employment_type: "zivnost" | "dohoda"
       project_status: "planned" | "active" | "completed"
     }
     CompositeTypes: {
@@ -466,6 +474,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "employee"],
+      employment_type: ["zivnost", "dohoda"],
       project_status: ["planned", "active", "completed"],
     },
   },

@@ -44,8 +44,7 @@ import {
 } from '@/components/ui/alert-dialog';
 
 const Employees = () => {
-  const { employees, isLoading, createEmployee, deleteEmployee, updateEmployeeProject, updateEmployeeRole, isCreating } = useEmployees();
-  const { projects } = useAdminProjects();
+  const { employees, isLoading, createEmployee, deleteEmployee, updateEmployeeType, updateEmployeeRole, isCreating } = useEmployees();
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
@@ -61,8 +60,8 @@ const Employees = () => {
     setOpen(false);
   };
 
-  const handleProjectChange = (userId: string, projectId: string) => {
-    updateEmployeeProject({ userId, projectId: projectId === 'none' ? null : projectId });
+  const handleTypeChange = (userId: string, employmentType: string) => {
+    updateEmployeeType({ userId, employmentType: employmentType as 'zivnost' | 'dohoda' });
   };
 
   const handleRoleChange = (userId: string, role: string) => {
@@ -159,7 +158,7 @@ const Employees = () => {
                   <TableRow>
                     <TableHead className="whitespace-nowrap">Meno</TableHead>
                     <TableHead className="whitespace-nowrap">Telefón</TableHead>
-                    <TableHead className="whitespace-nowrap">Aktuálny projekt</TableHead>
+                    <TableHead className="whitespace-nowrap">Typ pracovného vzťahu</TableHead>
                     <TableHead className="text-right whitespace-nowrap">Akcie</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -171,19 +170,15 @@ const Employees = () => {
                         <TableCell className="whitespace-nowrap">{employee.phone || '-'}</TableCell>
                         <TableCell className="whitespace-nowrap">
                           <Select 
-                            value={employee.current_project_id || 'none'} 
-                            onValueChange={(value) => handleProjectChange(employee.user_id, value)}
+                            value={employee.employment_type || 'zivnost'} 
+                            onValueChange={(value) => handleTypeChange(employee.user_id, value)}
                           >
                             <SelectTrigger className="w-[200px]">
-                              <SelectValue placeholder="Žiadny projekt" />
+                              <SelectValue placeholder="Typ vzťahu" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="none">Žiadny projekt</SelectItem>
-                              {projects?.map((project: any) => (
-                                <SelectItem key={project.id} value={project.id}>
-                                  {project.name}
-                                </SelectItem>
-                              ))}
+                              <SelectItem value="zivnost">Živnosť</SelectItem>
+                              <SelectItem value="dohoda">Dohoda</SelectItem>
                             </SelectContent>
                           </Select>
                         </TableCell>

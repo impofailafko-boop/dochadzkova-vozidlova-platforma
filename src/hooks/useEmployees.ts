@@ -104,6 +104,24 @@ export function useEmployees() {
     },
   });
 
+  const updateEmployeeType = useMutation({
+    mutationFn: async ({ userId, employmentType }: { userId: string; employmentType: 'zivnost' | 'dohoda' }) => {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ employment_type: employmentType })
+        .eq('user_id', userId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['employees'] });
+      toast.success('Typ pracovného vzťahu aktualizovaný');
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Chyba pri aktualizácii typu vzťahu');
+    },
+  });
+
   const updateEmployeeRole = useMutation({
     mutationFn: async ({ userId, role }: { userId: string; role: 'admin' | 'employee' }) => {
       const { error } = await supabase
@@ -128,9 +146,11 @@ export function useEmployees() {
     createEmployee: createEmployee.mutate,
     deleteEmployee: deleteEmployee.mutate,
     updateEmployeeProject: updateEmployeeProject.mutate,
+    updateEmployeeType: updateEmployeeType.mutate,
     updateEmployeeRole: updateEmployeeRole.mutate,
     isCreating: createEmployee.isPending,
     isDeleting: deleteEmployee.isPending,
     isUpdatingProject: updateEmployeeProject.isPending,
+    isUpdatingType: updateEmployeeType.isPending,
   };
 }
