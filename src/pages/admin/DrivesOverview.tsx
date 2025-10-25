@@ -37,6 +37,8 @@ const DrivesOverview = () => {
     projectId: 'all',
   });
 
+  const [statsProjectFilter, setStatsProjectFilter] = useState('all');
+
   const { data: drives, isLoading } = useAdminDrives({
     startDate: filters.startDate,
     endDate: filters.endDate,
@@ -48,10 +50,14 @@ const DrivesOverview = () => {
   const { vehicles } = useAdminVehicles();
   const { projects } = useAdminProjects();
 
-  const totalKm = drives?.reduce((sum: number, drive: any) => 
+  const filteredDrivesForStats = statsProjectFilter === 'all' 
+    ? drives 
+    : drives?.filter((d: any) => d.project_id === statsProjectFilter);
+
+  const totalKm = filteredDrivesForStats?.reduce((sum: number, drive: any) => 
     sum + (drive.is_completed ? (drive.km_driven || 0) : 0), 0) || 0;
-  const completedDrives = drives?.filter((d: any) => d.is_completed).length || 0;
-  const inProgressDrives = drives?.filter((d: any) => !d.is_completed).length || 0;
+  const completedDrives = filteredDrivesForStats?.filter((d: any) => d.is_completed).length || 0;
+  const inProgressDrives = filteredDrivesForStats?.filter((d: any) => !d.is_completed).length || 0;
 
   const handleExport = () => {
     if (!drives || drives.length === 0) return;
@@ -97,13 +103,31 @@ const DrivesOverview = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Štatistiky</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle>Štatistiky</CardTitle>
+            <Select
+              value={statsProjectFilter}
+              onValueChange={setStatsProjectFilter}
+            >
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Všetky projekty" />
+              </SelectTrigger>
+              <SelectContent className="bg-popover z-50">
+                <SelectItem value="all">Všetky projekty</SelectItem>
+                {projects?.map((project: any) => (
+                  <SelectItem key={project.id} value={project.id}>
+                    {project.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-3">
             <div>
               <p className="text-sm text-muted-foreground">Celkový počet jázd</p>
-              <p className="text-2xl font-bold">{drives?.length || 0}</p>
+              <p className="text-2xl font-bold">{filteredDrivesForStats?.length || 0}</p>
               <p className="text-xs text-muted-foreground mt-1">
                 {completedDrives} ukončených, {inProgressDrives} prebieha
               </p>

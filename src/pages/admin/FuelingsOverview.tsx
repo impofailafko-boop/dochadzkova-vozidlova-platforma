@@ -36,6 +36,8 @@ const FuelingsOverview = () => {
     projectId: 'all',
   });
 
+  const [statsProjectFilter, setStatsProjectFilter] = useState('all');
+
   const { data: fuelings, isLoading } = useAdminFuelings({
     startDate: filters.startDate,
     endDate: filters.endDate,
@@ -47,8 +49,12 @@ const FuelingsOverview = () => {
   const { vehicles } = useAdminVehicles();
   const { projects } = useAdminProjects();
 
-  const totalLiters = fuelings?.reduce((sum: number, fuel: any) => sum + (fuel.liters || 0), 0) || 0;
-  const totalPrice = fuelings?.reduce((sum: number, fuel: any) => sum + (fuel.price || 0), 0) || 0;
+  const filteredFuelingsForStats = statsProjectFilter === 'all' 
+    ? fuelings 
+    : fuelings?.filter((f: any) => f.project_id === statsProjectFilter);
+
+  const totalLiters = filteredFuelingsForStats?.reduce((sum: number, fuel: any) => sum + (fuel.liters || 0), 0) || 0;
+  const totalPrice = filteredFuelingsForStats?.reduce((sum: number, fuel: any) => sum + (fuel.price || 0), 0) || 0;
 
   const handleExport = () => {
     if (!fuelings || fuelings.length === 0) return;
@@ -89,13 +95,31 @@ const FuelingsOverview = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Štatistiky</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle>Štatistiky</CardTitle>
+            <Select
+              value={statsProjectFilter}
+              onValueChange={setStatsProjectFilter}
+            >
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Všetky projekty" />
+              </SelectTrigger>
+              <SelectContent className="bg-popover z-50">
+                <SelectItem value="all">Všetky projekty</SelectItem>
+                {projects?.map((project: any) => (
+                  <SelectItem key={project.id} value={project.id}>
+                    {project.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-3">
             <div>
               <p className="text-sm text-muted-foreground">Celkový počet tankovaní</p>
-              <p className="text-2xl font-bold">{fuelings?.length || 0}</p>
+              <p className="text-2xl font-bold">{filteredFuelingsForStats?.length || 0}</p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Celkové litre</p>
