@@ -304,27 +304,39 @@ export type Database = {
           brand: string
           created_at: string
           current_km: number
+          emission_date: string | null
           id: string
+          insurance_date: string | null
           is_active: boolean
+          service_date: string | null
           spz: string
+          stk_date: string | null
           type: string
         }
         Insert: {
           brand: string
           created_at?: string
           current_km?: number
+          emission_date?: string | null
           id?: string
+          insurance_date?: string | null
           is_active?: boolean
+          service_date?: string | null
           spz: string
+          stk_date?: string | null
           type: string
         }
         Update: {
           brand?: string
           created_at?: string
           current_km?: number
+          emission_date?: string | null
           id?: string
+          insurance_date?: string | null
           is_active?: boolean
+          service_date?: string | null
           spz?: string
+          stk_date?: string | null
           type?: string
         }
         Relationships: []

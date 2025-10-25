@@ -7,6 +7,10 @@ interface VehicleInput {
   brand: string;
   type: string;
   current_km: number;
+  service_date?: string;
+  stk_date?: string;
+  insurance_date?: string;
+  emission_date?: string;
 }
 
 export function useAdminVehicles() {

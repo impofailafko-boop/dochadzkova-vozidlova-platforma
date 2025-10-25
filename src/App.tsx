@@ -29,6 +29,7 @@ import Settings from '@/pages/employee/Settings';
 import AdminDashboard from '@/pages/admin/AdminDashboard';
 import Employees from '@/pages/admin/Employees';
 import Vehicles from '@/pages/admin/Vehicles';
+import VehicleDetail from '@/pages/admin/VehicleDetail';
 import Projects from '@/pages/admin/Projects';
 import AttendanceOverview from '@/pages/admin/AttendanceOverview';
 import DrivesOverview from '@/pages/admin/DrivesOverview';
@@ -62,6 +63,7 @@ const AppContent = () => {
         <Route path="/admin/employees" element={<Employees />} />
         <Route path="/admin/projects" element={<Projects />} />
         <Route path="/admin/vehicles" element={<Vehicles />} />
+        <Route path="/admin/vehicles/:id" element={<VehicleDetail />} />
         <Route path="/admin/attendance-overview" element={<AttendanceOverview />} />
         <Route path="/admin/drives-overview" element={<DrivesOverview />} />
         <Route path="/admin/fuelings-overview" element={<FuelingsOverview />} />

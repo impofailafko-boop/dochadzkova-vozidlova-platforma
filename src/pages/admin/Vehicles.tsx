@@ -23,10 +23,12 @@ import {
 } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { Plus, Edit, Power } from 'lucide-react';
+import { Plus, FileText } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const Vehicles = () => {
-  const { vehicles, isLoading, createVehicle, updateVehicle, toggleVehicleStatus, isCreating } = useAdminVehicles();
+  const navigate = useNavigate();
+  const { vehicles, isLoading, createVehicle, updateVehicle, isCreating } = useAdminVehicles();
   const [open, setOpen] = useState(false);
   const [editingVehicle, setEditingVehicle] = useState<any>(null);
   const [formData, setFormData] = useState({
@@ -34,6 +36,10 @@ const Vehicles = () => {
     brand: '',
     type: '',
     current_km: '',
+    service_date: '',
+    stk_date: '',
+    insurance_date: '',
+    emission_date: '',
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -44,6 +50,10 @@ const Vehicles = () => {
       brand: formData.brand,
       type: formData.type,
       current_km: parseInt(formData.current_km),
+      service_date: formData.service_date,
+      stk_date: formData.stk_date,
+      insurance_date: formData.insurance_date,
+      emission_date: formData.emission_date,
     };
 
     if (editingVehicle) {
@@ -52,7 +62,16 @@ const Vehicles = () => {
       createVehicle(vehicleData);
     }
 
-    setFormData({ spz: '', brand: '', type: '', current_km: '' });
+    setFormData({ 
+      spz: '', 
+      brand: '', 
+      type: '', 
+      current_km: '',
+      service_date: '',
+      stk_date: '',
+      insurance_date: '',
+      emission_date: '',
+    });
     setEditingVehicle(null);
     setOpen(false);
   };
@@ -64,13 +83,14 @@ const Vehicles = () => {
       brand: vehicle.brand,
       type: vehicle.type,
       current_km: vehicle.current_km.toString(),
+      service_date: vehicle.service_date || '',
+      stk_date: vehicle.stk_date || '',
+      insurance_date: vehicle.insurance_date || '',
+      emission_date: vehicle.emission_date || '',
     });
     setOpen(true);
   };
 
-  const handleToggleStatus = (id: string, currentStatus: boolean) => {
-    toggleVehicleStatus({ id, isActive: !currentStatus });
-  };
 
   return (
     <div className="p-6 space-y-6">
@@ -84,7 +104,16 @@ const Vehicles = () => {
           setOpen(o);
           if (!o) {
             setEditingVehicle(null);
-            setFormData({ spz: '', brand: '', type: '', current_km: '' });
+            setFormData({ 
+              spz: '', 
+              brand: '', 
+              type: '', 
+              current_km: '',
+              service_date: '',
+              stk_date: '',
+              insurance_date: '',
+              emission_date: '',
+            });
           }
         }}>
           <DialogTrigger asChild>
@@ -144,6 +173,42 @@ const Vehicles = () => {
                   required
                 />
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="service_date">Servis vozidla</Label>
+                <Input
+                  id="service_date"
+                  value={formData.service_date}
+                  onChange={(e) => setFormData({ ...formData, service_date: e.target.value })}
+                  placeholder="napr. 15.12.2024"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="stk_date">STK</Label>
+                <Input
+                  id="stk_date"
+                  value={formData.stk_date}
+                  onChange={(e) => setFormData({ ...formData, stk_date: e.target.value })}
+                  placeholder="napr. 20.01.2025"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="insurance_date">Poistka</Label>
+                <Input
+                  id="insurance_date"
+                  value={formData.insurance_date}
+                  onChange={(e) => setFormData({ ...formData, insurance_date: e.target.value })}
+                  placeholder="napr. 30.03.2025"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="emission_date">Emisná kontrola</Label>
+                <Input
+                  id="emission_date"
+                  value={formData.emission_date}
+                  onChange={(e) => setFormData({ ...formData, emission_date: e.target.value })}
+                  placeholder="napr. 10.06.2025"
+                />
+              </div>
               <Button type="submit" disabled={isCreating} className="w-full">
                 {isCreating ? 'Ukladám...' : editingVehicle ? 'Uložiť zmeny' : 'Vytvoriť'}
               </Button>
@@ -173,8 +238,7 @@ const Vehicles = () => {
                     <TableHead className="whitespace-nowrap">Značka</TableHead>
                     <TableHead className="whitespace-nowrap">Model</TableHead>
                     <TableHead className="text-right whitespace-nowrap">Km</TableHead>
-                    <TableHead className="whitespace-nowrap">Stav</TableHead>
-                    <TableHead className="text-right whitespace-nowrap">Akcie</TableHead>
+                    <TableHead className="text-center whitespace-nowrap">Servis vozidla</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -185,30 +249,21 @@ const Vehicles = () => {
                         <TableCell className="whitespace-nowrap">{vehicle.brand}</TableCell>
                         <TableCell className="whitespace-nowrap">{vehicle.type}</TableCell>
                         <TableCell className="text-right whitespace-nowrap">{vehicle.current_km.toLocaleString()}</TableCell>
-                        <TableCell className="whitespace-nowrap">
-                          <Badge variant={vehicle.is_active ? 'default' : 'secondary'}>
-                            {vehicle.is_active ? 'Aktívne' : 'Neaktívne'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right whitespace-nowrap">
-                          <div className="flex justify-end gap-2">
-                            <Button variant="ghost" size="sm" onClick={() => handleEdit(vehicle)}>
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleToggleStatus(vehicle.id, vehicle.is_active)}
-                            >
-                              <Power className={`h-4 w-4 ${vehicle.is_active ? 'text-green-600' : 'text-gray-400'}`} />
-                            </Button>
-                          </div>
+                        <TableCell className="text-center whitespace-nowrap">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => navigate(`/admin/vehicles/${vehicle.id}`)}
+                          >
+                            <FileText className="mr-2 h-4 w-4" />
+                            Skontrolovať
+                          </Button>
                         </TableCell>
                       </TableRow>
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center text-muted-foreground">
+                      <TableCell colSpan={5} className="text-center text-muted-foreground">
                         Žiadne vozidlá
                       </TableCell>
                     </TableRow>
