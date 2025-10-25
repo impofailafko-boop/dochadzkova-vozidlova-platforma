@@ -1,0 +1,143 @@
+import "https://deno.land/x/xhr@0.1.0/mod.ts";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.75.1';
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const { question, userId } = await req.json();
+    
+    if (!question || !userId) {
+      return new Response(
+        JSON.stringify({ error: 'Missing question or userId' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Initialize Supabase client
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Fetch relevant data from database
+    const now = new Date();
+    const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+    const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
+
+    const [attendanceRes, drivesRes, fuelingsRes, projectsRes, vehiclesRes, profilesRes] = await Promise.all([
+      supabase.from('attendance').select('*').gte('date', firstDayOfMonth).lte('date', lastDayOfMonth),
+      supabase.from('vehicle_logs').select('*, vehicles(*), projects(*), profiles(full_name)').gte('date', firstDayOfMonth).lte('date', lastDayOfMonth),
+      supabase.from('fuel_logs').select('*, vehicles(*), projects(*), profiles(full_name)').gte('date', firstDayOfMonth).lte('date', lastDayOfMonth),
+      supabase.from('projects').select('*'),
+      supabase.from('vehicles').select('*'),
+      supabase.from('profiles').select('full_name, user_id'),
+    ]);
+
+    // Prepare context for AI
+    const context = `
+Dáta z firemného systému za aktuálny mesiac (${firstDayOfMonth} až ${lastDayOfMonth}):
+
+DOCHÁDZKA:
+${JSON.stringify(attendanceRes.data, null, 2)}
+
+JAZDY VOZIDIEL:
+${JSON.stringify(drivesRes.data, null, 2)}
+
+TANKOVANIA:
+${JSON.stringify(fuelingsRes.data, null, 2)}
+
+PROJEKTY:
+${JSON.stringify(projectsRes.data, null, 2)}
+
+VOZIDLÁ:
+${JSON.stringify(vehiclesRes.data, null, 2)}
+
+ZAMESTNANCI:
+${JSON.stringify(profilesRes.data, null, 2)}
+`;
+
+    const systemPrompt = `Si AI asistent pre analýzu firemných dát spoločnosti.
+Máš prístup k dátam o dochádzke, jazdách vozidiel, tankovaní a projektoch.
+
+Tvoja úloha:
+- Analyzuj poskytnuté dáta a odpovedaj na otázky používateľa
+- Buď konkrétny a uvádzaj presné čísla a štatistiky
+- Poskytuj praktické odporúčania a návrhy na zlepšenie
+- Odpovedaj v slovenčine
+- Buď stručný ale informatívny
+- Ak sa pýtajú na dáta, ktoré nemáš, povedz to jasne
+
+Formátuj odpovede prehľadne:
+- Používaj zoznamy a bodovanie
+- Zvýrazňuj dôležité čísla
+- Pridávaj krátke zhrnutia na konci
+
+Ak dáta chýbajú alebo sú neúplné, povedz to používateľovi a pracuj s tým, čo máš.`;
+
+    // Call Lovable AI
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    if (!LOVABLE_API_KEY) {
+      throw new Error('LOVABLE_API_KEY is not configured');
+    }
+
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: `${context}\n\nOtázka používateľa: ${question}` },
+        ],
+        stream: true,
+      }),
+    });
+
+    if (!response.ok) {
+      if (response.status === 429) {
+        return new Response(
+          JSON.stringify({ error: 'Prekročený limit požiadaviek. Skúste to neskôr.' }),
+          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      if (response.status === 402) {
+        return new Response(
+          JSON.stringify({ error: 'Potrebné doplniť kredity v Lovable AI workspace.' }),
+          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      const errorText = await response.text();
+      console.error('AI gateway error:', response.status, errorText);
+      return new Response(
+        JSON.stringify({ error: 'Chyba AI služby' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Stream the response back
+    return new Response(response.body, {
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'text/event-stream',
+      },
+    });
+
+  } catch (error) {
+    console.error('Error in ai-reports function:', error);
+    return new Response(
+      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+});

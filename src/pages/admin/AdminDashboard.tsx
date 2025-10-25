@@ -5,6 +5,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Users, Car, FolderKanban, Clock, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { CalendarWidget } from '@/components/admin/CalendarWidget';
+import { AlertsWidget } from '@/components/admin/AlertsWidget';
 
 const AdminDashboard = () => {
   const { user } = useAuth();
@@ -119,6 +120,8 @@ const AdminDashboard = () => {
           );
         })}
       </div>
+
+      <AlertsWidget />
 
       <CalendarWidget />
     </div>

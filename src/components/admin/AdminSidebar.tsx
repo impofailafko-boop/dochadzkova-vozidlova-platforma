@@ -10,6 +10,7 @@ import {
   BarChart3,
   Calendar,
   Settings,
+  Sparkles,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -36,6 +37,7 @@ const viewItems = [
   { title: 'Tankovania', url: '/admin/fuelings-overview', icon: Fuel },
   { title: 'Kalendár', url: '/admin/calendar', icon: Calendar },
   { title: 'Reporty', url: '/admin/reports', icon: BarChart3 },
+  { title: 'AI Asistent', url: '/admin/ai-reports', icon: Sparkles },
 ];
 
 const settingsItems = [

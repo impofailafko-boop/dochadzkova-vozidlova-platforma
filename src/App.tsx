@@ -36,6 +36,7 @@ import DrivesOverview from '@/pages/admin/DrivesOverview';
 import FuelingsOverview from '@/pages/admin/FuelingsOverview';
 import Reports from '@/pages/admin/Reports';
 import Calendar from '@/pages/admin/Calendar';
+import AIReports from '@/pages/admin/AIReports';
 import AdminSettings from '@/pages/employee/Settings'; // Reuse the same Settings component
 
 const queryClient = new QueryClient();
@@ -69,6 +70,7 @@ const AppContent = () => {
         <Route path="/admin/fuelings-overview" element={<FuelingsOverview />} />
         <Route path="/admin/reports" element={<Reports />} />
         <Route path="/admin/calendar" element={<Calendar />} />
+        <Route path="/admin/ai-reports" element={<AIReports />} />
         <Route path="/admin/settings" element={<AdminSettings />} />
       </Route>
 
