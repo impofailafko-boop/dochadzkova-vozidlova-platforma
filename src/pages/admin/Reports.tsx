@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useAdminAttendance } from '@/hooks/useAdminAttendance';
 import { useAdminDrives } from '@/hooks/useAdminDrives';
 import { useAdminFuelings } from '@/hooks/useAdminFuelings';
+import { useAdminProjects } from '@/hooks/useAdminProjects';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,6 +11,8 @@ import { DatePicker } from '@/components/ui/date-picker';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Download, FileText, FileSpreadsheet, FileDown } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import * as XLSX from 'xlsx';
 
 const Reports = () => {
@@ -17,15 +20,83 @@ const Reports = () => {
     startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     endDate: new Date().toISOString().split('T')[0],
   });
+  const [selectedProject, setSelectedProject] = useState<string>('all');
 
+  const { projects, isLoading: loadingProjects } = useAdminProjects();
   const { data: attendance, isLoading: loadingAttendance } = useAdminAttendance(dateRange);
   const { data: drives, isLoading: loadingDrives } = useAdminDrives(dateRange);
   const { data: fuelings, isLoading: loadingFuelings } = useAdminFuelings(dateRange);
 
-  const totalHours = attendance?.reduce((sum: number, record: any) => sum + (record.total_hours || 0), 0) || 0;
-  const totalKm = drives?.reduce((sum: number, drive: any) => sum + (drive.km_driven || 0), 0) || 0;
-  const totalFuelCost = fuelings?.reduce((sum: number, fuel: any) => sum + (fuel.price || 0), 0) || 0;
-  const totalLiters = fuelings?.reduce((sum: number, fuel: any) => sum + (fuel.liters || 0), 0) || 0;
+  // Filter data by selected project
+  const filteredDrives = useMemo(() => {
+    if (!drives) return [];
+    if (selectedProject === 'all') return drives;
+    return drives.filter((drive: any) => drive.project_id === selectedProject);
+  }, [drives, selectedProject]);
+
+  const filteredFuelings = useMemo(() => {
+    if (!fuelings) return [];
+    if (selectedProject === 'all') return fuelings;
+    return fuelings.filter((fuel: any) => fuel.project_id === selectedProject);
+  }, [fuelings, selectedProject]);
+
+  // Get user IDs who worked on the selected project (from drives)
+  const projectUserIds = useMemo(() => {
+    if (selectedProject === 'all') return [];
+    return [...new Set(filteredDrives.map((drive: any) => drive.user_id))];
+  }, [filteredDrives, selectedProject]);
+
+  // Filter attendance by project users
+  const filteredAttendance = useMemo(() => {
+    if (!attendance) return [];
+    if (selectedProject === 'all') return attendance;
+    return attendance.filter((att: any) => projectUserIds.includes(att.user_id));
+  }, [attendance, selectedProject, projectUserIds]);
+
+  // Calculate project statistics
+  const projectStats = useMemo(() => {
+    // Employee stats
+    const employeeStats = new Map<string, { name: string; hours: number }>();
+    filteredAttendance.forEach((att: any) => {
+      const existing = employeeStats.get(att.user_id) || { name: att.profiles?.full_name || '-', hours: 0 };
+      employeeStats.set(att.user_id, {
+        name: existing.name,
+        hours: existing.hours + (att.total_hours || 0)
+      });
+    });
+
+    // Vehicle stats
+    const vehicleStats = new Map<string, { spz: string; km: number }>();
+    filteredDrives.forEach((drive: any) => {
+      const spz = drive.vehicles?.spz || '-';
+      const existing = vehicleStats.get(drive.vehicle_id) || { spz, km: 0 };
+      vehicleStats.set(drive.vehicle_id, {
+        spz: existing.spz,
+        km: existing.km + (drive.km_driven || 0)
+      });
+    });
+
+    const totalLiters = filteredFuelings.reduce((sum: number, fuel: any) => sum + (fuel.liters || 0), 0);
+
+    return {
+      employees: Array.from(employeeStats.entries()).map(([id, data]) => ({
+        id,
+        name: data.name,
+        hours: data.hours
+      })),
+      vehicles: Array.from(vehicleStats.entries()).map(([id, data]) => ({
+        id,
+        spz: data.spz,
+        km: data.km
+      })),
+      totalLiters
+    };
+  }, [filteredAttendance, filteredDrives, filteredFuelings]);
+
+  const totalHours = filteredAttendance?.reduce((sum: number, record: any) => sum + (record.total_hours || 0), 0) || 0;
+  const totalKm = filteredDrives?.reduce((sum: number, drive: any) => sum + (drive.km_driven || 0), 0) || 0;
+  const totalFuelCost = filteredFuelings?.reduce((sum: number, fuel: any) => sum + (fuel.price || 0), 0) || 0;
+  const totalLiters = filteredFuelings?.reduce((sum: number, fuel: any) => sum + (fuel.liters || 0), 0) || 0;
 
   const handleExportCSV = () => {
     if (attendance && attendance.length > 0) {
@@ -294,37 +365,120 @@ const Reports = () => {
         <TabsContent value="summary" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Sumárny prehľad</CardTitle>
-              <CardDescription>
-                Obdobie: {new Date(dateRange.startDate).toLocaleDateString('sk-SK')} - {new Date(dateRange.endDate).toLocaleDateString('sk-SK')}
-              </CardDescription>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <CardTitle>Sumárny prehľad</CardTitle>
+                  <CardDescription>
+                    Obdobie: {new Date(dateRange.startDate).toLocaleDateString('sk-SK')} - {new Date(dateRange.endDate).toLocaleDateString('sk-SK')}
+                  </CardDescription>
+                </div>
+                <div className="w-full sm:w-[250px]">
+                  <Label>Filter projektu</Label>
+                  <Select value={selectedProject} onValueChange={setSelectedProject}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Všetky projekty" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Všetky projekty</SelectItem>
+                      {projects?.map((project: any) => (
+                        <SelectItem key={project.id} value={project.id}>
+                          {project.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <h3 className="font-semibold mb-2">Dochádzka</h3>
-                <p className="text-sm text-muted-foreground">
-                  Celkový počet záznamov: <strong>{attendance?.length || 0}</strong><br />
-                  Odpracované hodiny: <strong>{totalHours.toFixed(2)}h</strong>
-                </p>
-              </div>
-              
-              <div>
-                <h3 className="font-semibold mb-2">Služobné jazdy</h3>
-                <p className="text-sm text-muted-foreground">
-                  Celkový počet jázd: <strong>{drives?.length || 0}</strong><br />
-                  Najazdené kilometre: <strong>{totalKm.toLocaleString()} km</strong>
-                </p>
-              </div>
-              
-              <div>
-                <h3 className="font-semibold mb-2">Tankovanie</h3>
-                <p className="text-sm text-muted-foreground">
-                  Celkový počet tankovaní: <strong>{fuelings?.length || 0}</strong><br />
-                  Spotrebované litre: <strong>{totalLiters.toFixed(2)} L</strong><br />
-                  Celkové náklady: <strong>{totalFuelCost.toFixed(2)} €</strong><br />
-                  Priemerná cena za liter: <strong>{totalLiters > 0 ? (totalFuelCost / totalLiters).toFixed(2) : 0} €/L</strong>
-                </p>
-              </div>
+            <CardContent className="space-y-6">
+              {selectedProject !== 'all' && (
+                <>
+                  <div>
+                    <h3 className="font-semibold mb-3">Zamestnanci na projekte</h3>
+                    {projectStats.employees.length > 0 ? (
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Meno</TableHead>
+                            <TableHead className="text-right">Odpracované hodiny</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {projectStats.employees.map((emp) => (
+                            <TableRow key={emp.id}>
+                              <TableCell>{emp.name}</TableCell>
+                              <TableCell className="text-right font-medium">{emp.hours.toFixed(2)}h</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">Žiadni zamestnanci</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <h3 className="font-semibold mb-3">Vozidlá na projekte</h3>
+                    {projectStats.vehicles.length > 0 ? (
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>SPZ</TableHead>
+                            <TableHead className="text-right">Najazdené km</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {projectStats.vehicles.map((vehicle) => (
+                            <TableRow key={vehicle.id}>
+                              <TableCell className="font-medium">{vehicle.spz}</TableCell>
+                              <TableCell className="text-right">{vehicle.km.toLocaleString()} km</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">Žiadne vozidlá</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <h3 className="font-semibold mb-2">Tankovanie na projekte</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Celkovo pretankované litre: <strong>{projectStats.totalLiters.toFixed(2)} L</strong>
+                    </p>
+                  </div>
+                </>
+              )}
+
+              {selectedProject === 'all' && (
+                <>
+                  <div>
+                    <h3 className="font-semibold mb-2">Dochádzka</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Celkový počet záznamov: <strong>{attendance?.length || 0}</strong><br />
+                      Odpracované hodiny: <strong>{totalHours.toFixed(2)}h</strong>
+                    </p>
+                  </div>
+                  
+                  <div>
+                    <h3 className="font-semibold mb-2">Služobné jazdy</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Celkový počet jázd: <strong>{drives?.length || 0}</strong><br />
+                      Najazdené kilometre: <strong>{totalKm.toLocaleString()} km</strong>
+                    </p>
+                  </div>
+                  
+                  <div>
+                    <h3 className="font-semibold mb-2">Tankovanie</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Celkový počet tankovaní: <strong>{fuelings?.length || 0}</strong><br />
+                      Spotrebované litre: <strong>{totalLiters.toFixed(2)} L</strong><br />
+                      Celkové náklady: <strong>{totalFuelCost.toFixed(2)} €</strong><br />
+                      Priemerná cena za liter: <strong>{totalLiters > 0 ? (totalFuelCost / totalLiters).toFixed(2) : 0} €/L</strong>
+                    </p>
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
