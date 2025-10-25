@@ -78,7 +78,7 @@ const VehicleUse = () => {
   const isLoading = loadingVehicles || loadingProjects;
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 sm:p-6 space-y-6">
       <div>
         <h1 className="text-3xl font-bold mb-2">Použitie auta</h1>
         <p className="text-muted-foreground">
@@ -99,7 +99,7 @@ const VehicleUse = () => {
           ) : (
             <Form {...form}>
               <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-                <div className="grid gap-4 md:grid-cols-2">
+                <div className="flex flex-col sm:grid sm:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
                     name="vehicle_id"

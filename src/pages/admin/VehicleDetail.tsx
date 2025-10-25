@@ -101,15 +101,15 @@ const VehicleDetail = () => {
   };
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="p-4 sm:p-6 space-y-6">
+      <div className="space-y-4">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => navigate('/admin/vehicles')}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold">Detail vozidla</h1>
-            <p className="text-muted-foreground">{vehicle.brand} {vehicle.type} - {vehicle.spz}</p>
+            <h1 className="text-2xl sm:text-3xl font-bold">Detail vozidla</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">{vehicle.brand} {vehicle.type} - {vehicle.spz}</p>
           </div>
         </div>
         <div className="flex gap-2">
@@ -120,6 +120,7 @@ const VehicleDetail = () => {
             variant="outline" 
             onClick={handleToggleStatus}
             disabled={isToggling}
+            className="flex-1 sm:flex-none"
           >
             {vehicle.is_active ? 'Deaktivovať' : 'Aktivovať'}
           </Button>

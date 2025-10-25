@@ -13,6 +13,7 @@ import { Download, FileText, FileSpreadsheet, FileDown } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import * as XLSX from 'xlsx';
 
 const Reports = () => {
@@ -229,20 +230,22 @@ const Reports = () => {
   const isLoading = loadingAttendance || loadingDrives || loadingFuelings;
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="p-4 sm:p-6 space-y-6">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold mb-2">Reporty</h1>
           <p className="text-muted-foreground">Komplexné reporty a štatistiky</p>
         </div>
-        <div className="flex gap-2">
-          <Button onClick={handleExportExcel} disabled={isLoading} variant="default">
+        <div className="flex flex-wrap gap-2">
+          <Button onClick={handleExportExcel} disabled={isLoading} variant="default" className="flex-1 sm:flex-none">
             <FileSpreadsheet className="mr-2 h-4 w-4" />
-            Export Excel
+            <span className="hidden sm:inline">Export Excel</span>
+            <span className="sm:hidden">Excel</span>
           </Button>
-          <Button onClick={handleExportCSV} disabled={isLoading} variant="outline">
+          <Button onClick={handleExportCSV} disabled={isLoading} variant="outline" className="flex-1 sm:flex-none">
             <FileDown className="mr-2 h-4 w-4" />
-            Export CSV
+            <span className="hidden sm:inline">Export CSV</span>
+            <span className="sm:hidden">CSV</span>
           </Button>
         </div>
       </div>
@@ -253,7 +256,7 @@ const Reports = () => {
           <CardDescription>Vyberte časové obdobie pre generovanie reportu</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="flex flex-col sm:flex-row gap-4">
             <div className="space-y-2">
               <Label>Od dátumu</Label>
               <DatePicker
@@ -396,22 +399,25 @@ const Reports = () => {
                   <div>
                     <h3 className="font-semibold mb-3">Zamestnanci na projekte</h3>
                     {projectStats.employees.length > 0 ? (
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Meno</TableHead>
-                            <TableHead className="text-right">Odpracované hodiny</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {projectStats.employees.map((emp) => (
-                            <TableRow key={emp.id}>
-                              <TableCell>{emp.name}</TableCell>
-                              <TableCell className="text-right font-medium">{emp.hours.toFixed(2)}h</TableCell>
+                      <ScrollArea className="w-full">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead className="whitespace-nowrap">Meno</TableHead>
+                              <TableHead className="text-right whitespace-nowrap">Odpracované hodiny</TableHead>
                             </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
+                          </TableHeader>
+                          <TableBody>
+                            {projectStats.employees.map((emp) => (
+                              <TableRow key={emp.id}>
+                                <TableCell className="whitespace-nowrap">{emp.name}</TableCell>
+                                <TableCell className="text-right font-medium whitespace-nowrap">{emp.hours.toFixed(2)}h</TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                        <ScrollBar orientation="horizontal" />
+                      </ScrollArea>
                     ) : (
                       <p className="text-sm text-muted-foreground">Žiadni zamestnanci</p>
                     )}
@@ -420,22 +426,25 @@ const Reports = () => {
                   <div>
                     <h3 className="font-semibold mb-3">Vozidlá na projekte</h3>
                     {projectStats.vehicles.length > 0 ? (
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>SPZ</TableHead>
-                            <TableHead className="text-right">Najazdené km</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {projectStats.vehicles.map((vehicle) => (
-                            <TableRow key={vehicle.id}>
-                              <TableCell className="font-medium">{vehicle.spz}</TableCell>
-                              <TableCell className="text-right">{vehicle.km.toLocaleString()} km</TableCell>
+                      <ScrollArea className="w-full">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead className="whitespace-nowrap">SPZ</TableHead>
+                              <TableHead className="text-right whitespace-nowrap">Najazdené km</TableHead>
                             </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
+                          </TableHeader>
+                          <TableBody>
+                            {projectStats.vehicles.map((vehicle) => (
+                              <TableRow key={vehicle.id}>
+                                <TableCell className="font-medium whitespace-nowrap">{vehicle.spz}</TableCell>
+                                <TableCell className="text-right whitespace-nowrap">{vehicle.km.toLocaleString()} km</TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                        <ScrollBar orientation="horizontal" />
+                      </ScrollArea>
                     ) : (
                       <p className="text-sm text-muted-foreground">Žiadne vozidlá</p>
                     )}

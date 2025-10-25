@@ -152,31 +152,36 @@ const Calendar = () => {
   };
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="p-4 sm:p-6 space-y-6">
+      <div className="space-y-4">
         <div>
           <h1 className="text-3xl font-bold mb-2">Kalendár</h1>
           <p className="text-muted-foreground">Prehľad aktivít podľa dní</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="default" onClick={handleExportExcel} disabled={isLoading}>
-            <FileSpreadsheet className="mr-2 h-4 w-4" />
-            Export Excel
-          </Button>
-          <Button variant="outline" onClick={handleExportCSV} disabled={isLoading}>
-            <FileDown className="mr-2 h-4 w-4" />
-            Export CSV
-          </Button>
-          <div className="border-l mx-2" />
-          <Button variant="outline" size="icon" onClick={previousMonth}>
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <Button variant="outline" onClick={today}>
-            Dnes
-          </Button>
-          <Button variant="outline" size="icon" onClick={nextMonth}>
-            <ChevronRight className="h-4 w-4" />
-          </Button>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <div className="flex gap-2 flex-1">
+            <Button variant="default" onClick={handleExportExcel} disabled={isLoading} className="flex-1 sm:flex-none">
+              <FileSpreadsheet className="mr-2 h-4 w-4" />
+              <span className="hidden sm:inline">Export Excel</span>
+              <span className="sm:hidden">Excel</span>
+            </Button>
+            <Button variant="outline" onClick={handleExportCSV} disabled={isLoading} className="flex-1 sm:flex-none">
+              <FileDown className="mr-2 h-4 w-4" />
+              <span className="hidden sm:inline">Export CSV</span>
+              <span className="sm:hidden">CSV</span>
+            </Button>
+          </div>
+          <div className="flex gap-2 justify-center sm:justify-end">
+            <Button variant="outline" size="icon" onClick={previousMonth}>
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button variant="outline" onClick={today}>
+              Dnes
+            </Button>
+            <Button variant="outline" size="icon" onClick={nextMonth}>
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </div>
 
