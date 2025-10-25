@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, Route, Fuel, FileSpreadsheet, FileDown } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths } from 'date-fns';
 import { sk } from 'date-fns/locale';
 import * as XLSX from 'xlsx';
@@ -295,65 +297,76 @@ const Calendar = () => {
               </p>
             ) : (
               <div className="space-y-4">
-                {/* Attendance */}
+                {/* Employees */}
                 {selectedDayData.attendance.count > 0 && (
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
                       <Clock className="h-4 w-4 text-green-500" />
-                      <h4 className="font-semibold">Dochádzka</h4>
-                      <Badge variant="secondary" className="ml-auto">
-                        {selectedDayData.attendance.count}
-                      </Badge>
+                      <h4 className="text-sm font-semibold">Zamestnanci</h4>
                     </div>
-                    <div className="text-sm text-muted-foreground pl-6">
-                      <p>Celkové hodiny: <strong>{selectedDayData.attendance.totalHours.toFixed(2)}h</strong></p>
-                      <p className="text-xs mt-1">
-                        {selectedDayData.attendance.records.map((r: any) => r.profiles?.full_name).join(', ')}
-                      </p>
-                    </div>
+                    <ScrollArea className="w-full">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="text-xs">Meno</TableHead>
+                            <TableHead className="text-xs text-right">Hodiny</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {selectedDayData.attendance.records.map((record: any) => (
+                            <TableRow key={record.id}>
+                              <TableCell className="text-xs py-2">{record.profiles?.full_name || '-'}</TableCell>
+                              <TableCell className="text-xs text-right py-2">{record.total_hours?.toFixed(2) || '0.00'}h</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                      <ScrollBar orientation="horizontal" />
+                    </ScrollArea>
                   </div>
                 )}
 
-                {/* Drives */}
+                {/* Vehicles */}
                 {selectedDayData.drives.count > 0 && (
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
                       <Route className="h-4 w-4 text-blue-500" />
-                      <h4 className="font-semibold">Jazdy</h4>
-                      <Badge variant="secondary" className="ml-auto">
-                        {selectedDayData.drives.count}
-                      </Badge>
+                      <h4 className="text-sm font-semibold">Vozidlá</h4>
                     </div>
-                    <div className="text-sm text-muted-foreground pl-6">
-                      <p>Celkové km: <strong>{selectedDayData.drives.totalKm.toLocaleString()} km</strong></p>
-                      <p className="text-xs mt-1">
-                        {selectedDayData.drives.records.map((r: any) => 
-                          `${r.profiles?.full_name} (${r.vehicles?.spz})`
-                        ).join(', ')}
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Fuelings */}
-                {selectedDayData.fuelings.count > 0 && (
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Fuel className="h-4 w-4 text-orange-500" />
-                      <h4 className="font-semibold">Tankovania</h4>
-                      <Badge variant="secondary" className="ml-auto">
-                        {selectedDayData.fuelings.count}
-                      </Badge>
-                    </div>
-                    <div className="text-sm text-muted-foreground pl-6">
-                      <p>Celkové litre: <strong>{selectedDayData.fuelings.totalLiters.toFixed(2)} L</strong></p>
-                      <p>Celková cena: <strong>{selectedDayData.fuelings.totalCost.toFixed(2)} €</strong></p>
-                      <p className="text-xs mt-1">
-                        {selectedDayData.fuelings.records.map((r: any) => 
-                          `${r.profiles?.full_name} (${r.vehicles?.spz})`
-                        ).join(', ')}
-                      </p>
-                    </div>
+                    <ScrollArea className="w-full">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="text-xs">SPZ</TableHead>
+                            <TableHead className="text-xs text-right">Km</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {(() => {
+                            const vehicleMap = new Map<string, { spz: string; km: number }>();
+                            selectedDayData.drives.records.forEach((record: any) => {
+                              const vehicleId = record.vehicle_id;
+                              const spz = record.vehicles?.spz || '-';
+                              const km = record.km_driven || 0;
+                              
+                              if (vehicleMap.has(vehicleId)) {
+                                vehicleMap.get(vehicleId)!.km += km;
+                              } else {
+                                vehicleMap.set(vehicleId, { spz, km });
+                              }
+                            });
+                            
+                            return Array.from(vehicleMap.values()).map((vehicle, index) => (
+                              <TableRow key={index}>
+                                <TableCell className="text-xs py-2">{vehicle.spz}</TableCell>
+                                <TableCell className="text-xs text-right py-2">{vehicle.km.toLocaleString()} km</TableCell>
+                              </TableRow>
+                            ));
+                          })()}
+                        </TableBody>
+                      </Table>
+                      <ScrollBar orientation="horizontal" />
+                    </ScrollArea>
                   </div>
                 )}
               </div>
