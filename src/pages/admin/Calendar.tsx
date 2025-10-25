@@ -166,24 +166,6 @@ const Calendar = () => {
           <h1 className="text-3xl font-bold mb-2">Kalendár</h1>
           <p className="text-muted-foreground">Prehľad aktivít podľa dní</p>
         </div>
-        
-        {/* Project filter */}
-        <div className="w-full sm:w-64">
-          <Select value={selectedProject} onValueChange={setSelectedProject}>
-            <SelectTrigger>
-              <SelectValue placeholder="Všetky projekty" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Všetky projekty</SelectItem>
-              {projects?.map((project) => (
-                <SelectItem key={project.id} value={project.id}>
-                  {project.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
         <div className="flex flex-col sm:flex-row gap-2">
           <div className="flex gap-2 flex-1">
             <Button variant="default" onClick={handleExportExcel} disabled={isLoading} className="flex-1 sm:flex-none">
@@ -214,11 +196,30 @@ const Calendar = () => {
       <div className="grid gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CalendarIcon className="h-5 w-5" />
-              {format(currentMonth, 'LLLL yyyy', { locale: sk })}
-            </CardTitle>
-            <CardDescription>Kliknite na deň pre zobrazenie detailov</CardDescription>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div className="flex-1">
+                <CardTitle className="flex items-center gap-2 mb-2">
+                  <CalendarIcon className="h-5 w-5" />
+                  {format(currentMonth, 'LLLL yyyy', { locale: sk })}
+                </CardTitle>
+                <CardDescription>Kliknite na deň pre zobrazenie detailov</CardDescription>
+              </div>
+              <div className="w-full sm:w-48">
+                <Select value={selectedProject} onValueChange={setSelectedProject}>
+                  <SelectTrigger className="h-9">
+                    <SelectValue placeholder="Všetky projekty" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Všetky projekty</SelectItem>
+                    {projects?.map((project) => (
+                      <SelectItem key={project.id} value={project.id}>
+                        {project.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
             {isLoading ? (
