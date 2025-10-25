@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Users, Car, FolderKanban, Clock, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { CalendarWidget } from '@/components/admin/CalendarWidget';
 
 const AdminDashboard = () => {
   const { user } = useAuth();
@@ -118,6 +119,8 @@ const AdminDashboard = () => {
           );
         })}
       </div>
+
+      <CalendarWidget />
     </div>
   );
 };
