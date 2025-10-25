@@ -374,44 +374,6 @@ const Calendar = () => {
           </CardContent>
         </Card>
       </div>
-
-      {/* Monthly summary */}
-      {!isLoading && calendarData && (
-        <div className="grid gap-4 md:grid-cols-3">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Celková dochádzka</CardTitle>
-              <Clock className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{calendarData.totalAttendance}</div>
-              <p className="text-xs text-muted-foreground">záznamov v mesiaci</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Celkové jazdy</CardTitle>
-              <Route className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{calendarData.totalDrives}</div>
-              <p className="text-xs text-muted-foreground">jázd v mesiaci</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Celkové tankovania</CardTitle>
-              <Fuel className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{calendarData.totalFuelings}</div>
-              <p className="text-xs text-muted-foreground">tankovaní v mesiaci</p>
-            </CardContent>
-          </Card>
-        </div>
-      )}
     </div>
   );
 };
