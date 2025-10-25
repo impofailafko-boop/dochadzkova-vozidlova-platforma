@@ -3,6 +3,7 @@ import { useCalendarData } from '@/hooks/useCalendarData';
 import { useAdminAttendance } from '@/hooks/useAdminAttendance';
 import { useAdminDrives } from '@/hooks/useAdminDrives';
 import { useAdminFuelings } from '@/hooks/useAdminFuelings';
+import { useAdminProjects } from '@/hooks/useAdminProjects';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, Route, Fuel, FileSpreadsheet, FileDown } from 'lucide-react';
@@ -10,6 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths } from 'date-fns';
 import { sk } from 'date-fns/locale';
 import * as XLSX from 'xlsx';
@@ -17,6 +19,7 @@ import * as XLSX from 'xlsx';
 const Calendar = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [selectedProject, setSelectedProject] = useState<string>('all');
 
   const monthStart = startOfMonth(currentMonth);
   const monthEnd = endOfMonth(currentMonth);
@@ -24,7 +27,10 @@ const Calendar = () => {
   const filters = {
     startDate: format(monthStart, 'yyyy-MM-dd'),
     endDate: format(monthEnd, 'yyyy-MM-dd'),
+    ...(selectedProject !== 'all' && { projectId: selectedProject }),
   };
+
+  const { projects } = useAdminProjects();
 
   const { data: calendarData, isLoading } = useCalendarData(filters);
   const { data: attendance } = useAdminAttendance(filters);
@@ -160,6 +166,24 @@ const Calendar = () => {
           <h1 className="text-3xl font-bold mb-2">Kalendár</h1>
           <p className="text-muted-foreground">Prehľad aktivít podľa dní</p>
         </div>
+        
+        {/* Project filter */}
+        <div className="w-full sm:w-64">
+          <Select value={selectedProject} onValueChange={setSelectedProject}>
+            <SelectTrigger>
+              <SelectValue placeholder="Všetky projekty" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Všetky projekty</SelectItem>
+              {projects?.map((project) => (
+                <SelectItem key={project.id} value={project.id}>
+                  {project.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
         <div className="flex flex-col sm:flex-row gap-2">
           <div className="flex gap-2 flex-1">
             <Button variant="default" onClick={handleExportExcel} disabled={isLoading} className="flex-1 sm:flex-none">
@@ -363,6 +387,37 @@ const Calendar = () => {
                               </TableRow>
                             ));
                           })()}
+                        </TableBody>
+                      </Table>
+                      <ScrollBar orientation="horizontal" />
+                    </ScrollArea>
+                  </div>
+                )}
+
+                {/* Fuelings */}
+                {selectedDayData.fuelings.count > 0 && (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Fuel className="h-4 w-4 text-orange-500" />
+                      <h4 className="text-sm font-semibold">Tankovanie</h4>
+                    </div>
+                    <ScrollArea className="w-full">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="text-xs">SPZ</TableHead>
+                            <TableHead className="text-xs text-right">Litre</TableHead>
+                            <TableHead className="text-xs text-right">Cena</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {selectedDayData.fuelings.records.map((record: any) => (
+                            <TableRow key={record.id}>
+                              <TableCell className="text-xs py-2">{record.vehicles?.spz || '-'}</TableCell>
+                              <TableCell className="text-xs text-right py-2">{record.liters?.toFixed(2) || '0.00'} L</TableCell>
+                              <TableCell className="text-xs text-right py-2">{record.price?.toFixed(2) || '0.00'} €</TableCell>
+                            </TableRow>
+                          ))}
                         </TableBody>
                       </Table>
                       <ScrollBar orientation="horizontal" />
