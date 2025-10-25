@@ -164,19 +164,35 @@ const AttendanceOverview = () => {
                         <TableCell className="whitespace-nowrap">{record.arrival_time || '-'}</TableCell>
                         <TableCell className="whitespace-nowrap">{record.departure_time || '-'}</TableCell>
                         <TableCell className="whitespace-nowrap">
-                          {record.arrival_latitude && record.arrival_longitude ? (
-                            <a
-                              href={`https://www.google.com/maps?q=${record.arrival_latitude},${record.arrival_longitude}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1 text-primary hover:underline"
-                            >
-                              <MapPin className="h-4 w-4" />
-                              Mapa
-                            </a>
-                          ) : (
-                            <span className="text-muted-foreground text-sm">-</span>
-                          )}
+                          <div className="flex items-center gap-2">
+                            {record.arrival_latitude && record.arrival_longitude ? (
+                              <a
+                                href={`https://www.google.com/maps?q=${record.arrival_latitude},${record.arrival_longitude}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 text-green-600 hover:text-green-700 hover:underline"
+                              >
+                                <MapPin className="h-4 w-4" />
+                                Mapa
+                              </a>
+                            ) : (
+                              <span className="text-muted-foreground text-sm">-</span>
+                            )}
+                            <span className="text-muted-foreground">/</span>
+                            {record.departure_latitude && record.departure_longitude ? (
+                              <a
+                                href={`https://www.google.com/maps?q=${record.departure_latitude},${record.departure_longitude}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 text-red-600 hover:text-red-700 hover:underline"
+                              >
+                                <MapPin className="h-4 w-4" />
+                                Mapa
+                              </a>
+                            ) : (
+                              <span className="text-muted-foreground text-sm">-</span>
+                            )}
+                          </div>
                         </TableCell>
                         <TableCell className="text-right whitespace-nowrap">
                           {record.total_hours ? `${record.total_hours}h` : '-'}
