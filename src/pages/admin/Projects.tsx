@@ -81,8 +81,8 @@ const Projects = () => {
   };
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="p-4 sm:p-6 space-y-6">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold mb-2">Projekty</h1>
           <p className="text-muted-foreground">Správa firemných projektov</p>
@@ -96,12 +96,12 @@ const Projects = () => {
           }
         }}>
           <DialogTrigger asChild>
-            <Button>
+            <Button className="w-full sm:w-auto">
               <Plus className="mr-2 h-4 w-4" />
               Nový projekt
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-w-[95vw] sm:max-w-md">
             <DialogHeader>
               <DialogTitle>
                 {editingProject ? 'Upraviť projekt' : 'Pridať projekt'}

@@ -122,7 +122,7 @@ const Vehicles = () => {
               Nové vozidlo
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-h-[90vh] max-w-2xl">
+          <DialogContent className="max-h-[90vh] max-w-[95vw] sm:max-w-2xl">
             <DialogHeader>
               <DialogTitle>
                 {editingVehicle ? 'Upraviť vozidlo' : 'Pridať vozidlo'}
@@ -134,7 +134,7 @@ const Vehicles = () => {
             <form onSubmit={handleSubmit} className="flex flex-col">
               <ScrollArea className="max-h-[calc(90vh-200px)] pr-4">
                 <div className="space-y-4 pb-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="spz">SPZ</Label>
                     <Input
@@ -180,7 +180,7 @@ const Vehicles = () => {
 
                 <div className="border-t pt-4 mt-4">
                   <h4 className="text-sm font-semibold mb-3">Servisné údaje</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="service_date">Servis vozidla</Label>
                       <Input
