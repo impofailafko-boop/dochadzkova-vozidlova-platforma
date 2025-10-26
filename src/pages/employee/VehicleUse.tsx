@@ -105,141 +105,148 @@ const VehicleUse = () => {
             <div className="flex items-center justify-center py-8">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
-          ) : !hasCheckedIn ? (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Príchod do práce nie je zaznamenaný</AlertTitle>
-              <AlertDescription className="mt-2 space-y-3">
-                <p>Pred evidenciou jazdy musíte najprv zaznamenať príchod do práce.</p>
-                <Button asChild variant="outline" className="w-full sm:w-auto">
-                  <Link to="/attendance">Zaznamenať príchod</Link>
-                </Button>
-              </AlertDescription>
-            </Alert>
           ) : (
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-                <div className="flex flex-col sm:grid sm:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="vehicle_id"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Vozidlo (SPZ)</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Vyberte vozidlo" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent className="bg-popover z-50">
-                            {vehicles?.map((vehicle) => (
-                              <SelectItem key={vehicle.id} value={vehicle.id}>
-                                {vehicle.spz} - {vehicle.brand} {vehicle.type}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+            <div className="space-y-4">
+              {!hasCheckedIn && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Príchod do práce nie je zaznamenaný</AlertTitle>
+                  <AlertDescription className="mt-2 space-y-3">
+                    <p>Pred evidenciou jazdy musíte najprv zaznamenať príchod do práce.</p>
+                    <Button asChild variant="outline" size="sm">
+                      <Link to="/attendance">Zaznamenať príchod</Link>
+                    </Button>
+                  </AlertDescription>
+                </Alert>
+              )}
+              
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+                  <fieldset disabled={!hasCheckedIn} className="space-y-4">
+                    <div className="flex flex-col sm:grid sm:grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="vehicle_id"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Vozidlo (SPZ)</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value} disabled={!hasCheckedIn}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Vyberte vozidlo" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent className="bg-popover z-50">
+                                {vehicles?.map((vehicle) => (
+                                  <SelectItem key={vehicle.id} value={vehicle.id}>
+                                    {vehicle.spz} - {vehicle.brand} {vehicle.type}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
-                  <FormField
-                    control={form.control}
-                    name="project_id"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Projekt</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Vyberte projekt" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent className="bg-popover z-50">
-                            {projects?.map((project) => (
-                              <SelectItem key={project.id} value={project.id}>
-                                {project.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                      <FormField
+                        control={form.control}
+                        name="project_id"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Projekt</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value} disabled={!hasCheckedIn}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Vyberte projekt" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent className="bg-popover z-50">
+                                {projects?.map((project) => (
+                                  <SelectItem key={project.id} value={project.id}>
+                                    {project.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
-                  <FormField
-                    control={form.control}
-                    name="date"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Dátum</FormLabel>
-                        <FormControl>
-                          <DatePicker
-                            date={field.value ? new Date(field.value) : undefined}
-                            onDateChange={(date) => {
-                              field.onChange(date ? date.toISOString().split('T')[0] : '');
-                            }}
-                            placeholder="Vyberte dátum jazdy"
-                            disableFuture
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                      <FormField
+                        control={form.control}
+                        name="date"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Dátum</FormLabel>
+                            <FormControl>
+                              <DatePicker
+                                date={field.value ? new Date(field.value) : undefined}
+                                onDateChange={(date) => {
+                                  field.onChange(date ? date.toISOString().split('T')[0] : '');
+                                }}
+                                placeholder="Vyberte dátum jazdy"
+                                disableFuture
+                                disabled={!hasCheckedIn}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
-                  <FormField
-                    control={form.control}
-                    name="km_start"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Kilometre na začiatku</FormLabel>
-                        <FormControl>
-                          <Input type="number" placeholder="napr. 45000" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                      <FormField
+                        control={form.control}
+                        name="km_start"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Kilometre na začiatku</FormLabel>
+                            <FormControl>
+                              <Input type="number" placeholder="napr. 45000" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
-                  <FormField
-                    control={form.control}
-                    name="photo_km_start"
-                    render={({ field: { value, onChange, ...field } }) => (
-                      <FormItem>
-                        <FormLabel>Foto stavu kilometrov</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="file" 
-                            accept="image/*"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) onChange(file);
-                            }}
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+                      <FormField
+                        control={form.control}
+                        name="photo_km_start"
+                        render={({ field: { value, onChange, ...field } }) => (
+                          <FormItem>
+                            <FormLabel>Foto stavu kilometrov</FormLabel>
+                            <FormControl>
+                              <Input 
+                                type="file" 
+                                accept="image/*"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) onChange(file);
+                                }}
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
 
-                <Button type="submit" disabled={isCreating} className="w-full">
-                  {isCreating ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Začínam...
-                    </>
-                  ) : (
-                    'Začať jazdu'
-                  )}
-                </Button>
-              </form>
-            </Form>
+                    <Button type="submit" disabled={isCreating || !hasCheckedIn} className="w-full">
+                      {isCreating ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Začínam...
+                        </>
+                      ) : (
+                        'Začať jazdu'
+                      )}
+                    </Button>
+                  </fieldset>
+                </form>
+              </Form>
+            </div>
           )}
         </CardContent>
       </Card>

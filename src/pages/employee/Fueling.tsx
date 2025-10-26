@@ -117,173 +117,180 @@ const Fueling = () => {
             <div className="flex items-center justify-center py-8">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
-          ) : !hasCheckedIn ? (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Príchod do práce nie je zaznamenaný</AlertTitle>
-              <AlertDescription className="mt-2 space-y-3">
-                <p>Pred evidenciou tankovania musíte najprv zaznamenať príchod do práce.</p>
-                <Button asChild variant="outline" className="w-full sm:w-auto">
-                  <Link to="/attendance">Zaznamenať príchod</Link>
-                </Button>
-              </AlertDescription>
-            </Alert>
           ) : (
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-                <div className="flex flex-col sm:grid sm:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="vehicle_id"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Vozidlo (SPZ)</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
+            <div className="space-y-4">
+              {!hasCheckedIn && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Príchod do práce nie je zaznamenaný</AlertTitle>
+                  <AlertDescription className="mt-2 space-y-3">
+                    <p>Pred evidenciou tankovania musíte najprv zaznamenať príchod do práce.</p>
+                    <Button asChild variant="outline" size="sm">
+                      <Link to="/attendance">Zaznamenať príchod</Link>
+                    </Button>
+                  </AlertDescription>
+                </Alert>
+              )}
+              
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+                  <fieldset disabled={!hasCheckedIn} className="space-y-4">
+                    <div className="flex flex-col sm:grid sm:grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="vehicle_id"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Vozidlo (SPZ)</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value} disabled={!hasCheckedIn}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Vyberte vozidlo" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent className="bg-popover z-50">
+                                {vehicles?.map((vehicle) => (
+                                  <SelectItem key={vehicle.id} value={vehicle.id}>
+                                    {vehicle.spz} - {vehicle.brand} {vehicle.type}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="project_id"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Projekt - voliteľný</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value} disabled={!hasCheckedIn}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Vyberte projekt" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent className="bg-popover z-50">
+                                {projects?.map((project) => (
+                                  <SelectItem key={project.id} value={project.id}>
+                                    {project.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="date"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Dátum</FormLabel>
+                            <FormControl>
+                              <DatePicker
+                                date={field.value ? new Date(field.value) : undefined}
+                                onDateChange={(date) => {
+                                  field.onChange(date ? date.toISOString().split('T')[0] : '');
+                                }}
+                                placeholder="Vyberte dátum tankovania"
+                                disableFuture
+                                disabled={!hasCheckedIn}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="liters"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Počet litrov</FormLabel>
+                            <FormControl>
+                              <Input type="number" step="0.01" placeholder="napr. 45.5" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="price"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Cena (€) - voliteľné</FormLabel>
+                            <FormControl>
+                              <Input type="number" step="0.01" placeholder="napr. 75.50" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <FormField
+                      control={form.control}
+                      name="note"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Poznámka - voliteľná</FormLabel>
                           <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Vyberte vozidlo" />
-                            </SelectTrigger>
+                            <Textarea
+                              placeholder="Prípadné poznámky k tankovaniu..."
+                              rows={3}
+                              {...field}
+                            />
                           </FormControl>
-                          <SelectContent className="bg-popover z-50">
-                            {vehicles?.map((vehicle) => (
-                              <SelectItem key={vehicle.id} value={vehicle.id}>
-                                {vehicle.spz} - {vehicle.brand} {vehicle.type}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                  <FormField
-                    control={form.control}
-                    name="project_id"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Projekt - voliteľný</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
+                    <FormField
+                      control={form.control}
+                      name="photo_receipt"
+                      render={({ field: { value, onChange, ...field } }) => (
+                        <FormItem>
+                          <FormLabel>Foto účtenky - voliteľné</FormLabel>
                           <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Vyberte projekt" />
-                            </SelectTrigger>
+                            <Input 
+                              type="file" 
+                              accept="image/*"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) onChange(file);
+                              }}
+                              {...field}
+                            />
                           </FormControl>
-                          <SelectContent className="bg-popover z-50">
-                            {projects?.map((project) => (
-                              <SelectItem key={project.id} value={project.id}>
-                                {project.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                  <FormField
-                    control={form.control}
-                    name="date"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Dátum</FormLabel>
-                        <FormControl>
-                          <DatePicker
-                            date={field.value ? new Date(field.value) : undefined}
-                            onDateChange={(date) => {
-                              field.onChange(date ? date.toISOString().split('T')[0] : '');
-                            }}
-                            placeholder="Vyberte dátum tankovania"
-                            disableFuture
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="liters"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Počet litrov</FormLabel>
-                        <FormControl>
-                          <Input type="number" step="0.01" placeholder="napr. 45.5" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="price"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Cena (€) - voliteľné</FormLabel>
-                        <FormControl>
-                          <Input type="number" step="0.01" placeholder="napr. 75.50" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <FormField
-                  control={form.control}
-                  name="note"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Poznámka - voliteľná</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Prípadné poznámky k tankovaniu..."
-                          rows={3}
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="photo_receipt"
-                  render={({ field: { value, onChange, ...field } }) => (
-                    <FormItem>
-                      <FormLabel>Foto účtenky - voliteľné</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="file" 
-                          accept="image/*"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) onChange(file);
-                          }}
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <Button type="submit" disabled={isCreating} className="w-full">
-                  {isCreating ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Ukladám...
-                    </>
-                  ) : (
-                    'Uložiť záznam'
-                  )}
-                </Button>
-              </form>
-            </Form>
+                    <Button type="submit" disabled={isCreating || !hasCheckedIn} className="w-full">
+                      {isCreating ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Ukladám...
+                        </>
+                      ) : (
+                        'Uložiť záznam'
+                      )}
+                    </Button>
+                  </fieldset>
+                </form>
+              </Form>
+            </div>
           )}
         </CardContent>
       </Card>
