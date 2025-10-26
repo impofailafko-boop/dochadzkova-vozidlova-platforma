@@ -114,7 +114,7 @@ const VehicleUse = () => {
                   <AlertDescription className="mt-2 space-y-3">
                     <p>Pred evidenciou jazdy musíte najprv zaznamenať príchod do práce.</p>
                     <Button asChild variant="outline" size="sm">
-                      <Link to="/attendance">Zaznamenať príchod</Link>
+                      <Link to="/attendance?returnUrl=/vehicle-use">Zaznamenať príchod</Link>
                     </Button>
                   </AlertDescription>
                 </Alert>

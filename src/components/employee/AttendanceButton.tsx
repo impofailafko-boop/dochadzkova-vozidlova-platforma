@@ -7,9 +7,14 @@ import { OfflineIndicator } from './OfflineIndicator';
 import { savePendingAttendance } from '@/lib/offlineStorage';
 import { toast } from 'sonner';
 import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 const AttendanceButton = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const returnUrl = searchParams.get('returnUrl');
+  
   const {
     todayAttendance,
     isLoading,
@@ -20,6 +25,7 @@ const AttendanceButton = () => {
   } = useAttendance(user?.id);
 
   const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [shouldNavigateBack, setShouldNavigateBack] = useState(false);
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -33,6 +39,16 @@ const AttendanceButton = () => {
       window.removeEventListener('offline', handleOffline);
     };
   }, []);
+
+  // Navigate back after successful check-in
+  useEffect(() => {
+    if (shouldNavigateBack && todayAttendance?.arrival_time && returnUrl) {
+      setShouldNavigateBack(false);
+      setTimeout(() => {
+        navigate(returnUrl);
+      }, 1500); // Small delay to let user see the success message
+    }
+  }, [todayAttendance, shouldNavigateBack, returnUrl, navigate]);
 
   const hasArrived = todayAttendance?.arrival_time;
   const hasDeparted = todayAttendance?.departure_time;
@@ -73,6 +89,9 @@ const AttendanceButton = () => {
       }
     } else {
       recordArrival();
+      if (returnUrl) {
+        setShouldNavigateBack(true);
+      }
     }
   };
 

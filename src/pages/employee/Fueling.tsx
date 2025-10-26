@@ -126,7 +126,7 @@ const Fueling = () => {
                   <AlertDescription className="mt-2 space-y-3">
                     <p>Pred evidenciou tankovania musíte najprv zaznamenať príchod do práce.</p>
                     <Button asChild variant="outline" size="sm">
-                      <Link to="/attendance">Zaznamenať príchod</Link>
+                      <Link to="/attendance?returnUrl=/fueling">Zaznamenať príchod</Link>
                     </Button>
                   </AlertDescription>
                 </Alert>
