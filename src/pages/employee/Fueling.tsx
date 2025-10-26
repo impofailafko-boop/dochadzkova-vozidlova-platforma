@@ -2,12 +2,14 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useVehicles } from '@/hooks/useVehicles';
 import { useFuelLogs } from '@/hooks/useFuelLogs';
 import { useProjects } from '@/hooks/useProjects';
+import { useAttendance } from '@/hooks/useAttendance';
 import { useFormPersistence } from '@/hooks/useFormPersistence';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { DatePicker } from '@/components/ui/date-picker';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import {
   Select,
   SelectContent,
@@ -15,12 +17,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Loader2 } from 'lucide-react';
+import { Loader2, AlertCircle } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { toast } from 'sonner';
+import { Link } from 'react-router-dom';
 
 const fuelLogSchema = z.object({
   vehicle_id: z.string().min(1, 'Vyberte vozidlo'),
@@ -44,6 +47,7 @@ const Fueling = () => {
   const { data: vehicles, isLoading: loadingVehicles } = useVehicles();
   const { data: projects, isLoading: loadingProjects } = useProjects();
   const { createLog, isCreating } = useFuelLogs(user?.id);
+  const { todayAttendance, isLoading: loadingAttendance } = useAttendance(user?.id);
 
   const form = useForm<FuelLogFormData>({
     resolver: zodResolver(fuelLogSchema),
@@ -91,6 +95,9 @@ const Fueling = () => {
     );
   };
 
+  const isLoading = loadingVehicles || loadingProjects || loadingAttendance;
+  const hasCheckedIn = todayAttendance && todayAttendance.arrival_time;
+
   return (
     <div className="p-4 sm:p-6 space-y-6">
       <div>
@@ -106,10 +113,21 @@ const Fueling = () => {
           <CardDescription>Vyplňte údaje o tankovaní</CardDescription>
         </CardHeader>
         <CardContent>
-          {loadingVehicles || loadingProjects ? (
+          {isLoading ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
+          ) : !hasCheckedIn ? (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Príchod do práce nie je zaznamenaný</AlertTitle>
+              <AlertDescription className="mt-2 space-y-3">
+                <p>Pred evidenciou tankovania musíte najprv zaznamenať príchod do práce.</p>
+                <Button asChild variant="outline" className="w-full sm:w-auto">
+                  <Link to="/attendance">Zaznamenať príchod</Link>
+                </Button>
+              </AlertDescription>
+            </Alert>
           ) : (
             <Form {...form}>
               <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
