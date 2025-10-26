@@ -1,13 +1,15 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { useAttendance } from '@/hooks/useAttendance';
+import { useActiveVehicleLogs } from '@/hooks/useVehicleLogs';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Clock, LogIn, LogOut, Loader2, MapPin, WifiOff } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Clock, LogIn, LogOut, Loader2, MapPin, WifiOff, AlertCircle } from 'lucide-react';
 import { OfflineIndicator } from './OfflineIndicator';
 import { savePendingAttendance } from '@/lib/offlineStorage';
 import { toast } from 'sonner';
 import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 
 const AttendanceButton = () => {
   const { user } = useAuth();
@@ -24,8 +26,12 @@ const AttendanceButton = () => {
     isRecordingDeparture,
   } = useAttendance(user?.id);
 
+  const { data: activeLogs, isLoading: isLoadingActiveLogs } = useActiveVehicleLogs(user?.id);
+
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [shouldNavigateBack, setShouldNavigateBack] = useState(false);
+
+  const hasActiveLogs = activeLogs && activeLogs.length > 0;
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -134,7 +140,7 @@ const AttendanceButton = () => {
     }
   };
 
-  if (isLoading) {
+  if (isLoading || isLoadingActiveLogs) {
     return (
       <Card>
         <CardContent className="flex items-center justify-center py-12">
@@ -227,10 +233,23 @@ const AttendanceButton = () => {
                 </>
               )}
             </div>
+            {!hasDeparted && hasActiveLogs && (
+              <Alert variant="destructive" className="mb-3">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Neukončené jazdy</AlertTitle>
+                <AlertDescription className="mt-2 space-y-3">
+                  <p>Pred odchodom z práce musíte ukončiť všetky aktívne jazdy.</p>
+                  <p className="text-sm">Aktívnych jázd: {activeLogs?.length}</p>
+                  <Button asChild variant="outline" size="sm">
+                    <Link to="/dashboard">Ukončiť jazdy</Link>
+                  </Button>
+                </AlertDescription>
+              </Alert>
+            )}
             {!hasDeparted && (
               <Button
                 onClick={handleDeparture}
-                disabled={isRecordingDeparture}
+                disabled={isRecordingDeparture || hasActiveLogs}
                 variant="secondary"
                 className="w-full gap-2"
                 size="lg"
