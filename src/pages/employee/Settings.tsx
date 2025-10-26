@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, User, LogOut, KeyRound, Shield } from 'lucide-react';
+import { Loader2, User, LogOut, KeyRound, Shield, UserX } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
@@ -24,11 +25,13 @@ import {
 
 const Settings = () => {
   const { user, role, signOut } = useAuth();
+  const navigate = useNavigate();
   
   // Password change state
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
 
   // Fetch profile
   const { data: profile, isLoading } = useQuery({
@@ -78,6 +81,29 @@ const Settings = () => {
       toast.error(error.message || 'Nepodarilo sa zmeniť heslo');
     } finally {
       setIsChangingPassword(false);
+    }
+  };
+
+  // Delete account
+  const handleDeleteAccount = async () => {
+    if (!user?.id) return;
+    
+    setIsDeletingAccount(true);
+    try {
+      // Delete user account - this will cascade delete all related data
+      const { error } = await supabase.rpc('delete_user_account');
+
+      if (error) throw error;
+
+      toast.success('Účet bol úspešne zrušený');
+      
+      // Sign out and redirect
+      await signOut();
+      navigate('/auth');
+    } catch (error: any) {
+      console.error('Error deleting account:', error);
+      toast.error(error.message || 'Nepodarilo sa zrušiť účet');
+      setIsDeletingAccount(false);
     }
   };
 
@@ -217,6 +243,65 @@ const Settings = () => {
                 <AlertDialogCancel>Zrušiť</AlertDialogCancel>
                 <AlertDialogAction onClick={signOut}>
                   Odhlásiť sa
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </CardContent>
+      </Card>
+
+      <Separator />
+
+      {/* Delete Account */}
+      <Card className="border-destructive">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-destructive">
+            <UserX className="h-5 w-5" />
+            Nebezpečná zóna
+          </CardTitle>
+          <CardDescription>
+            Trvalé zrušenie vášho účtu a všetkých súvisiacich údajov
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" className="gap-2" disabled={isDeletingAccount}>
+                {isDeletingAccount ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Ruším účet...
+                  </>
+                ) : (
+                  <>
+                    <UserX className="h-4 w-4" />
+                    Zrušiť účet
+                  </>
+                )}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Ste si absolútne istí?</AlertDialogTitle>
+                <AlertDialogDescription className="space-y-2">
+                  <p>Táto akcia je <strong>nevratná</strong>.</p>
+                  <p>Trvale sa vymažú:</p>
+                  <ul className="list-disc list-inside space-y-1 text-sm">
+                    <li>Váš účet a profil</li>
+                    <li>Všetky záznamy o dochádzke</li>
+                    <li>Všetky záznamy o jazde vozidiel</li>
+                    <li>Všetky záznamy o tankovaní</li>
+                    <li>Všetky súvisiace údaje</li>
+                  </ul>
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Zrušiť</AlertDialogCancel>
+                <AlertDialogAction 
+                  onClick={handleDeleteAccount}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  Áno, zrušiť môj účet
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
