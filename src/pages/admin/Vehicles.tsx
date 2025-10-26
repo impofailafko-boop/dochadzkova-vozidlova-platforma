@@ -5,6 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { DatePicker } from '@/components/ui/date-picker';
+import { Textarea } from '@/components/ui/textarea';
+import { format } from 'date-fns';
 import {
   Dialog,
   DialogContent,
@@ -36,10 +39,14 @@ const Vehicles = () => {
     brand: '',
     type: '',
     current_km: '',
-    service_date: '',
-    stk_date: '',
-    insurance_date: '',
-    emission_date: '',
+    service_date: undefined as Date | undefined,
+    stk_date: undefined as Date | undefined,
+    insurance_date: undefined as Date | undefined,
+    emission_date: undefined as Date | undefined,
+    service_note: '',
+    stk_note: '',
+    insurance_note: '',
+    emission_note: '',
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -50,10 +57,14 @@ const Vehicles = () => {
       brand: formData.brand,
       type: formData.type,
       current_km: parseInt(formData.current_km),
-      service_date: formData.service_date,
-      stk_date: formData.stk_date,
-      insurance_date: formData.insurance_date,
-      emission_date: formData.emission_date,
+      service_date: formData.service_date ? format(formData.service_date, 'dd.MM.yyyy') : null,
+      stk_date: formData.stk_date ? format(formData.stk_date, 'dd.MM.yyyy') : null,
+      insurance_date: formData.insurance_date ? format(formData.insurance_date, 'dd.MM.yyyy') : null,
+      emission_date: formData.emission_date ? format(formData.emission_date, 'dd.MM.yyyy') : null,
+      service_note: formData.service_note || null,
+      stk_note: formData.stk_note || null,
+      insurance_note: formData.insurance_note || null,
+      emission_note: formData.emission_note || null,
     };
 
     if (editingVehicle) {
@@ -67,10 +78,14 @@ const Vehicles = () => {
       brand: '', 
       type: '', 
       current_km: '',
-      service_date: '',
-      stk_date: '',
-      insurance_date: '',
-      emission_date: '',
+      service_date: undefined,
+      stk_date: undefined,
+      insurance_date: undefined,
+      emission_date: undefined,
+      service_note: '',
+      stk_note: '',
+      insurance_note: '',
+      emission_note: '',
     });
     setEditingVehicle(null);
     setOpen(false);
@@ -78,15 +93,26 @@ const Vehicles = () => {
 
   const handleEdit = (vehicle: any) => {
     setEditingVehicle(vehicle);
+    
+    const parseDate = (dateStr: string | null) => {
+      if (!dateStr) return undefined;
+      const [day, month, year] = dateStr.split('.');
+      return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    };
+    
     setFormData({
       spz: vehicle.spz,
       brand: vehicle.brand,
       type: vehicle.type,
       current_km: vehicle.current_km.toString(),
-      service_date: vehicle.service_date || '',
-      stk_date: vehicle.stk_date || '',
-      insurance_date: vehicle.insurance_date || '',
-      emission_date: vehicle.emission_date || '',
+      service_date: parseDate(vehicle.service_date),
+      stk_date: parseDate(vehicle.stk_date),
+      insurance_date: parseDate(vehicle.insurance_date),
+      emission_date: parseDate(vehicle.emission_date),
+      service_note: vehicle.service_note || '',
+      stk_note: vehicle.stk_note || '',
+      insurance_note: vehicle.insurance_note || '',
+      emission_note: vehicle.emission_note || '',
     });
     setOpen(true);
   };
@@ -109,10 +135,14 @@ const Vehicles = () => {
               brand: '', 
               type: '', 
               current_km: '',
-              service_date: '',
-              stk_date: '',
-              insurance_date: '',
-              emission_date: '',
+              service_date: undefined,
+              stk_date: undefined,
+              insurance_date: undefined,
+              emission_date: undefined,
+              service_note: '',
+              stk_note: '',
+              insurance_note: '',
+              emission_note: '',
             });
           }
         }}>
@@ -180,41 +210,68 @@ const Vehicles = () => {
 
                 <div className="border-t pt-4 mt-4">
                   <h4 className="text-sm font-semibold mb-3">Servisné údaje</h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-6">
                     <div className="space-y-2">
                       <Label htmlFor="service_date">Servis vozidla</Label>
-                      <Input
-                        id="service_date"
-                        value={formData.service_date}
-                        onChange={(e) => setFormData({ ...formData, service_date: e.target.value })}
-                        placeholder="napr. 15.12.2024"
+                      <DatePicker
+                        date={formData.service_date}
+                        onDateChange={(date) => setFormData({ ...formData, service_date: date })}
+                        placeholder="Vyberte dátum servisu"
+                      />
+                      <Textarea
+                        id="service_note"
+                        value={formData.service_note}
+                        onChange={(e) => setFormData({ ...formData, service_note: e.target.value })}
+                        placeholder="Poznámka k servisu (voliteľné)"
+                        className="min-h-[60px]"
                       />
                     </div>
+
                     <div className="space-y-2">
                       <Label htmlFor="stk_date">STK</Label>
-                      <Input
-                        id="stk_date"
-                        value={formData.stk_date}
-                        onChange={(e) => setFormData({ ...formData, stk_date: e.target.value })}
-                        placeholder="napr. 20.01.2025"
+                      <DatePicker
+                        date={formData.stk_date}
+                        onDateChange={(date) => setFormData({ ...formData, stk_date: date })}
+                        placeholder="Vyberte dátum STK"
+                      />
+                      <Textarea
+                        id="stk_note"
+                        value={formData.stk_note}
+                        onChange={(e) => setFormData({ ...formData, stk_note: e.target.value })}
+                        placeholder="Poznámka k STK (voliteľné)"
+                        className="min-h-[60px]"
                       />
                     </div>
+
                     <div className="space-y-2">
                       <Label htmlFor="insurance_date">Poistka</Label>
-                      <Input
-                        id="insurance_date"
-                        value={formData.insurance_date}
-                        onChange={(e) => setFormData({ ...formData, insurance_date: e.target.value })}
-                        placeholder="napr. 30.03.2025"
+                      <DatePicker
+                        date={formData.insurance_date}
+                        onDateChange={(date) => setFormData({ ...formData, insurance_date: date })}
+                        placeholder="Vyberte dátum poistky"
+                      />
+                      <Textarea
+                        id="insurance_note"
+                        value={formData.insurance_note}
+                        onChange={(e) => setFormData({ ...formData, insurance_note: e.target.value })}
+                        placeholder="Poznámka k poistke (voliteľné)"
+                        className="min-h-[60px]"
                       />
                     </div>
+
                     <div className="space-y-2">
                       <Label htmlFor="emission_date">Emisná kontrola</Label>
-                      <Input
-                        id="emission_date"
-                        value={formData.emission_date}
-                        onChange={(e) => setFormData({ ...formData, emission_date: e.target.value })}
-                        placeholder="napr. 10.06.2025"
+                      <DatePicker
+                        date={formData.emission_date}
+                        onDateChange={(date) => setFormData({ ...formData, emission_date: date })}
+                        placeholder="Vyberte dátum emisnej kontroly"
+                      />
+                      <Textarea
+                        id="emission_note"
+                        value={formData.emission_note}
+                        onChange={(e) => setFormData({ ...formData, emission_note: e.target.value })}
+                        placeholder="Poznámka k emisnej kontrole (voliteľné)"
+                        className="min-h-[60px]"
                       />
                     </div>
                   </div>

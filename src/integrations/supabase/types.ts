@@ -305,12 +305,16 @@ export type Database = {
           created_at: string
           current_km: number
           emission_date: string | null
+          emission_note: string | null
           id: string
           insurance_date: string | null
+          insurance_note: string | null
           is_active: boolean
           service_date: string | null
+          service_note: string | null
           spz: string
           stk_date: string | null
+          stk_note: string | null
           type: string
         }
         Insert: {
@@ -318,12 +322,16 @@ export type Database = {
           created_at?: string
           current_km?: number
           emission_date?: string | null
+          emission_note?: string | null
           id?: string
           insurance_date?: string | null
+          insurance_note?: string | null
           is_active?: boolean
           service_date?: string | null
+          service_note?: string | null
           spz: string
           stk_date?: string | null
+          stk_note?: string | null
           type: string
         }
         Update: {
@@ -331,12 +339,16 @@ export type Database = {
           created_at?: string
           current_km?: number
           emission_date?: string | null
+          emission_note?: string | null
           id?: string
           insurance_date?: string | null
+          insurance_note?: string | null
           is_active?: boolean
           service_date?: string | null
+          service_note?: string | null
           spz?: string
           stk_date?: string | null
+          stk_note?: string | null
           type?: string
         }
         Relationships: []

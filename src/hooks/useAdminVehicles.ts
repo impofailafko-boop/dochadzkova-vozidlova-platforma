@@ -11,6 +11,10 @@ interface VehicleInput {
   stk_date?: string;
   insurance_date?: string;
   emission_date?: string;
+  service_note?: string;
+  stk_note?: string;
+  insurance_note?: string;
+  emission_note?: string;
 }
 
 export function useAdminVehicles() {
