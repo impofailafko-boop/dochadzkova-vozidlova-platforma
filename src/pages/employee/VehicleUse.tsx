@@ -5,6 +5,7 @@ import { useVehicleLogs } from '@/hooks/useVehicleLogs';
 import { useAttendance } from '@/hooks/useAttendance';
 import { useFormPersistence } from '@/hooks/useFormPersistence';
 import { clearLastFormRoute } from '@/hooks/useRouteTracking';
+import { formatDateToLocalString, getTodayLocalString, parseDateString } from '@/lib/utils';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,9 +31,8 @@ const vehicleLogSchema = z.object({
   vehicle_id: z.string().min(1, 'Vyberte vozidlo'),
   project_id: z.string().min(1, 'Vyberte projekt'),
   date: z.string().refine((date) => {
-    const selectedDate = new Date(date);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const selectedDate = parseDateString(date);
+    const today = parseDateString(getTodayLocalString());
     return selectedDate <= today;
   }, 'Dátum nemôže byť v budúcnosti'),
   km_start: z.coerce.number().positive('Kilometre musia byť kladné číslo').int('Kilometre musia byť celé číslo'),
@@ -54,7 +54,7 @@ const VehicleUse = () => {
     defaultValues: {
       vehicle_id: '',
       project_id: '',
-      date: new Date().toISOString().split('T')[0],
+      date: getTodayLocalString(),
       km_start: 0,
     },
   });
@@ -184,9 +184,9 @@ const VehicleUse = () => {
                             <FormLabel>Dátum</FormLabel>
                             <FormControl>
                               <DatePicker
-                                date={field.value ? new Date(field.value) : undefined}
+                                date={field.value ? parseDateString(field.value) : undefined}
                                 onDateChange={(date) => {
-                                  field.onChange(date ? date.toISOString().split('T')[0] : '');
+                                  field.onChange(date ? formatDateToLocalString(date) : '');
                                 }}
                                 placeholder="Vyberte dátum jazdy"
                                 disableFuture

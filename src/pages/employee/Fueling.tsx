@@ -5,6 +5,7 @@ import { useProjects } from '@/hooks/useProjects';
 import { useAttendance } from '@/hooks/useAttendance';
 import { useFormPersistence } from '@/hooks/useFormPersistence';
 import { clearLastFormRoute } from '@/hooks/useRouteTracking';
+import { formatDateToLocalString, getTodayLocalString, parseDateString } from '@/lib/utils';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,9 +31,8 @@ const fuelLogSchema = z.object({
   vehicle_id: z.string().min(1, 'Vyberte vozidlo'),
   project_id: z.string().optional(),
   date: z.string().refine((date) => {
-    const selectedDate = new Date(date);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const selectedDate = parseDateString(date);
+    const today = parseDateString(getTodayLocalString());
     return selectedDate <= today;
   }, 'Dátum nemôže byť v budúcnosti'),
   liters: z.coerce.number().positive('Počet litrov musí byť kladné číslo').max(500, 'Počet litrov je príliš vysoký'),
@@ -55,7 +55,7 @@ const Fueling = () => {
     defaultValues: {
       vehicle_id: '',
       project_id: '',
-      date: new Date().toISOString().split('T')[0],
+      date: getTodayLocalString(),
       liters: 0,
       price: 0,
       note: '',
@@ -83,7 +83,7 @@ const Fueling = () => {
           form.reset({
             vehicle_id: '',
             project_id: '',
-            date: new Date().toISOString().split('T')[0],
+            date: getTodayLocalString(),
             liters: 0,
             price: 0,
             note: '',
@@ -196,9 +196,9 @@ const Fueling = () => {
                             <FormLabel>Dátum</FormLabel>
                             <FormControl>
                               <DatePicker
-                                date={field.value ? new Date(field.value) : undefined}
+                                date={field.value ? parseDateString(field.value) : undefined}
                                 onDateChange={(date) => {
-                                  field.onChange(date ? date.toISOString().split('T')[0] : '');
+                                  field.onChange(date ? formatDateToLocalString(date) : '');
                                 }}
                                 placeholder="Vyberte dátum tankovania"
                                 disableFuture
