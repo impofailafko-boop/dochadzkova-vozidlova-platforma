@@ -2,6 +2,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useVehicles } from '@/hooks/useVehicles';
 import { useProjects } from '@/hooks/useProjects';
 import { useVehicleLogs } from '@/hooks/useVehicleLogs';
+import { useFormPersistence } from '@/hooks/useFormPersistence';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -54,6 +55,9 @@ const VehicleUse = () => {
     },
   });
 
+  // Persist form data in localStorage (exclude photo file)
+  const { clearPersistedData } = useFormPersistence(form, 'vehicle-use-form', ['photo_km_start']);
+
   const handleSubmit = (data: VehicleLogFormData) => {
     createLog(
       {
@@ -65,6 +69,7 @@ const VehicleUse = () => {
       },
       {
         onSuccess: () => {
+          clearPersistedData();
           toast.success('Jazda začatá');
           navigate('/dashboard');
         },

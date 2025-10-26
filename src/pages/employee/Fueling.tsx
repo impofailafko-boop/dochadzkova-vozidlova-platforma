@@ -2,6 +2,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useVehicles } from '@/hooks/useVehicles';
 import { useFuelLogs } from '@/hooks/useFuelLogs';
 import { useProjects } from '@/hooks/useProjects';
+import { useFormPersistence } from '@/hooks/useFormPersistence';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -56,6 +57,9 @@ const Fueling = () => {
     },
   });
 
+  // Persist form data in localStorage (exclude photo file)
+  const { clearPersistedData } = useFormPersistence(form, 'fueling-form', ['photo_receipt']);
+
   const handleSubmit = (data: FuelLogFormData) => {
     createLog(
       {
@@ -69,6 +73,7 @@ const Fueling = () => {
       },
       {
         onSuccess: () => {
+          clearPersistedData();
           form.reset({
             vehicle_id: '',
             project_id: '',
