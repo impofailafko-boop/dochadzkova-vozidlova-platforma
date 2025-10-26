@@ -60,8 +60,12 @@ const Employees = () => {
     setOpen(false);
   };
 
-  const handleTypeChange = (userId: string, employmentType: string) => {
-    updateEmployeeType({ userId, employmentType: employmentType as 'zivnost' | 'dohoda' });
+  const handleTypeChange = (userId: string, employmentType: string | null) => {
+    if (employmentType === 'unset') {
+      updateEmployeeType({ userId, employmentType: null });
+    } else {
+      updateEmployeeType({ userId, employmentType: employmentType as 'zivnost' | 'dohoda' | null });
+    }
   };
 
   const handleRoleChange = (userId: string, role: string) => {
@@ -170,13 +174,14 @@ const Employees = () => {
                         <TableCell className="whitespace-nowrap">{employee.phone || '-'}</TableCell>
                         <TableCell className="whitespace-nowrap">
                           <Select 
-                            value={employee.employment_type || 'zivnost'} 
-                            onValueChange={(value) => handleTypeChange(employee.user_id, value)}
+                            value={employee.employment_type || 'unset'} 
+                            onValueChange={(value) => handleTypeChange(employee.user_id, value === 'unset' ? null : value)}
                           >
-                            <SelectTrigger className="w-[200px]">
-                              <SelectValue placeholder="Typ vzťahu" />
+                            <SelectTrigger className="w-[200px] bg-background">
+                              <SelectValue placeholder="Vyberte typ" />
                             </SelectTrigger>
-                            <SelectContent>
+                            <SelectContent className="bg-popover z-50">
+                              <SelectItem value="unset">Nezaznamenané</SelectItem>
                               <SelectItem value="zivnost">Živnosť</SelectItem>
                               <SelectItem value="dohoda">Dohoda</SelectItem>
                             </SelectContent>
