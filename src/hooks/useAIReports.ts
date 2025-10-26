@@ -87,7 +87,14 @@ export function useAIReports() {
             const parsed = JSON.parse(jsonStr);
             const content = parsed.choices?.[0]?.delta?.content;
             if (content) {
-              assistantContent += content;
+              // Clean up any escape sequences and unwanted characters
+              const cleanContent = content
+                .replace(/\\n/g, '\n')
+                .replace(/\\"/g, '"')
+                .replace(/\\'/g, "'")
+                .replace(/\\\\/g, '\\');
+              
+              assistantContent += cleanContent;
               // Update the last assistant message
               setMessages((prev) => {
                 const newMessages = [...prev];
@@ -119,7 +126,14 @@ export function useAIReports() {
             const parsed = JSON.parse(jsonStr);
             const content = parsed.choices?.[0]?.delta?.content;
             if (content) {
-              assistantContent += content;
+              // Clean up any escape sequences and unwanted characters
+              const cleanContent = content
+                .replace(/\\n/g, '\n')
+                .replace(/\\"/g, '"')
+                .replace(/\\'/g, "'")
+                .replace(/\\\\/g, '\\');
+              
+              assistantContent += cleanContent;
               setMessages((prev) => {
                 const newMessages = [...prev];
                 newMessages[newMessages.length - 1] = {
