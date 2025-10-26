@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/toaster';
 import { Toaster as Sonner } from '@/components/ui/sonner';
@@ -7,6 +7,8 @@ import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import ProtectedRoute from '@/components/common/ProtectedRoute';
 import RoleGuard from '@/components/common/RoleGuard';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
+import { useRouteTracking, getAndClearLastFormRoute } from '@/hooks/useRouteTracking';
+import { useEffect } from 'react';
 
 // Layouts
 import EmployeeLayout from '@/components/layouts/EmployeeLayout';
@@ -42,6 +44,22 @@ import AdminSettings from '@/pages/employee/Settings'; // Reuse the same Setting
 const queryClient = new QueryClient();
 
 const AppContent = () => {
+  const navigate = useNavigate();
+  const { user, loading } = useAuth();
+  
+  // Track current route for form persistence
+  useRouteTracking();
+
+  // Restore last form route on app load
+  useEffect(() => {
+    if (!loading && user) {
+      const lastFormRoute = getAndClearLastFormRoute();
+      if (lastFormRoute) {
+        navigate(lastFormRoute, { replace: true });
+      }
+    }
+  }, [loading, user, navigate]);
+
   return (
     <Routes>
       <Route path="/" element={<Navigate to="/auth" replace />} />

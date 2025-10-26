@@ -4,6 +4,7 @@ import { useFuelLogs } from '@/hooks/useFuelLogs';
 import { useProjects } from '@/hooks/useProjects';
 import { useAttendance } from '@/hooks/useAttendance';
 import { useFormPersistence } from '@/hooks/useFormPersistence';
+import { clearLastFormRoute } from '@/hooks/useRouteTracking';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -78,6 +79,7 @@ const Fueling = () => {
       {
         onSuccess: () => {
           clearPersistedData();
+          clearLastFormRoute();
           form.reset({
             vehicle_id: '',
             project_id: '',
