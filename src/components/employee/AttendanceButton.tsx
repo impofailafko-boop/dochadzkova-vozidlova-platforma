@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { formatHoursToReadable } from '@/lib/utils';
+import { SelectProjectDialog } from './SelectProjectDialog';
 
 const AttendanceButton = () => {
   const { user } = useAuth();
@@ -31,6 +32,7 @@ const AttendanceButton = () => {
 
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [shouldNavigateBack, setShouldNavigateBack] = useState(false);
+  const [showProjectDialog, setShowProjectDialog] = useState(false);
 
   const hasActiveLogs = activeLogs && activeLogs.length > 0;
 
@@ -60,7 +62,11 @@ const AttendanceButton = () => {
   const hasArrived = todayAttendance?.arrival_time;
   const hasDeparted = todayAttendance?.departure_time;
 
-  const handleArrival = async () => {
+  const handleArrivalClick = () => {
+    setShowProjectDialog(true);
+  };
+
+  const handleProjectSelect = async (projectId: string | null) => {
     if (!isOnline) {
       // Save to IndexedDB for offline
       try {
@@ -95,7 +101,7 @@ const AttendanceButton = () => {
         toast.error('Nepodarilo sa uložiť príchod offline');
       }
     } else {
-      recordArrival();
+      recordArrival(projectId);
       if (returnUrl) {
         setShouldNavigateBack(true);
       }
@@ -194,7 +200,7 @@ const AttendanceButton = () => {
             )}
           </div>
           <Button
-            onClick={handleArrival}
+            onClick={handleArrivalClick}
             disabled={isRecordingArrival || (hasArrived && !hasDeparted)}
             variant={(!hasArrived || hasDeparted) ? "success" : "outline"}
             className="w-full gap-2"
@@ -208,6 +214,12 @@ const AttendanceButton = () => {
             Príchod do práce
             {!isOnline && <WifiOff className="h-3 w-3 ml-2" />}
           </Button>
+          
+          <SelectProjectDialog
+            open={showProjectDialog}
+            onClose={() => setShowProjectDialog(false)}
+            onSelect={handleProjectSelect}
+          />
         </div>
 
         {/* Departure */}

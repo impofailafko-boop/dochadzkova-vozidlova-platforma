@@ -47,7 +47,7 @@ export function useAttendance(userId: string | undefined) {
 
   // Record arrival with GPS location
   const recordArrival = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (projectId?: string | null) => {
       if (!userId) throw new Error('User not authenticated');
       
       const today = new Date().toISOString().split('T')[0];
@@ -82,6 +82,7 @@ export function useAttendance(userId: string | undefined) {
           arrival_time: now,
           arrival_latitude: latitude,
           arrival_longitude: longitude,
+          project_id: projectId || null,
         });
 
       if (error) throw error;

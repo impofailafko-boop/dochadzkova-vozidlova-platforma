@@ -25,6 +25,7 @@ export type Database = {
           departure_longitude: number | null
           departure_time: string | null
           id: string
+          project_id: string | null
           total_hours: number | null
           user_id: string
         }
@@ -38,6 +39,7 @@ export type Database = {
           departure_longitude?: number | null
           departure_time?: string | null
           id?: string
+          project_id?: string | null
           total_hours?: number | null
           user_id: string
         }
@@ -51,10 +53,18 @@ export type Database = {
           departure_longitude?: number | null
           departure_time?: string | null
           id?: string
+          project_id?: string | null
           total_hours?: number | null
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "attendance_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "attendance_user_id_fkey"
             columns: ["user_id"]
