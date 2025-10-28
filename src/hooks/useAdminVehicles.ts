@@ -89,14 +89,35 @@ export function useAdminVehicles() {
     },
   });
 
+  const deleteVehicle = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('vehicles')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-vehicles'] });
+      queryClient.invalidateQueries({ queryKey: ['vehicles'] });
+      toast.success('Vozidlo vymazané');
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Chyba pri vymazávaní vozidla');
+    },
+  });
+
   return {
     vehicles,
     isLoading,
     createVehicle: createVehicle.mutate,
     updateVehicle: updateVehicle.mutate,
     toggleVehicleStatus: toggleVehicleStatus.mutate,
+    deleteVehicle: deleteVehicle.mutate,
     isCreating: createVehicle.isPending,
     isUpdating: updateVehicle.isPending,
     isToggling: toggleVehicleStatus.isPending,
+    isDeleting: deleteVehicle.isPending,
   };
 }

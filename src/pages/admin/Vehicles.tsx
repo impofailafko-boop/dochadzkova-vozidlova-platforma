@@ -26,14 +26,26 @@ import {
 } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { Plus, FileText } from 'lucide-react';
+import { Plus, FileText, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 const Vehicles = () => {
   const navigate = useNavigate();
-  const { vehicles, isLoading, createVehicle, updateVehicle, isCreating } = useAdminVehicles();
+  const { vehicles, isLoading, createVehicle, updateVehicle, deleteVehicle, isCreating, isDeleting } = useAdminVehicles();
   const [open, setOpen] = useState(false);
   const [editingVehicle, setEditingVehicle] = useState<any>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [vehicleToDelete, setVehicleToDelete] = useState<any>(null);
   const [formData, setFormData] = useState({
     spz: '',
     brand: '',
@@ -115,6 +127,19 @@ const Vehicles = () => {
       emission_note: vehicle.emission_note || '',
     });
     setOpen(true);
+  };
+
+  const handleDeleteClick = (vehicle: any) => {
+    setVehicleToDelete(vehicle);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (vehicleToDelete) {
+      deleteVehicle(vehicleToDelete.id);
+      setDeleteDialogOpen(false);
+      setVehicleToDelete(null);
+    }
   };
 
 
@@ -309,7 +334,7 @@ const Vehicles = () => {
                     <TableHead className="whitespace-nowrap">Značka</TableHead>
                     <TableHead className="whitespace-nowrap">Model</TableHead>
                     <TableHead className="text-right whitespace-nowrap">Km</TableHead>
-                    <TableHead className="text-center whitespace-nowrap">Servis vozidla</TableHead>
+                    <TableHead className="text-center whitespace-nowrap">Akcie</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -321,14 +346,24 @@ const Vehicles = () => {
                         <TableCell className="whitespace-nowrap">{vehicle.type}</TableCell>
                         <TableCell className="text-right whitespace-nowrap">{vehicle.current_km.toLocaleString()}</TableCell>
                         <TableCell className="text-center whitespace-nowrap">
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => navigate(`/admin/vehicles/${vehicle.id}`)}
-                          >
-                            <FileText className="mr-2 h-4 w-4" />
-                            Skontrolovať
-                          </Button>
+                          <div className="flex gap-2 justify-center">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => navigate(`/admin/vehicles/${vehicle.id}`)}
+                            >
+                              <FileText className="mr-2 h-4 w-4" />
+                              Skontrolovať
+                            </Button>
+                            <Button 
+                              variant="destructive" 
+                              size="sm"
+                              onClick={() => handleDeleteClick(vehicle)}
+                              disabled={isDeleting}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))
@@ -346,6 +381,23 @@ const Vehicles = () => {
           )}
         </CardContent>
       </Card>
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Vymazať vozidlo?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Naozaj chcete vymazať vozidlo <strong>{vehicleToDelete?.spz}</strong>? Táto akcia sa nedá vrátiť späť.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Zrušiť</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Vymazať
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
