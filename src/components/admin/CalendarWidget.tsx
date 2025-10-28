@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths } from 'date-fns';
 import { sk } from 'date-fns/locale';
 import * as XLSX from 'xlsx';
+import { formatHoursToReadable } from '@/lib/utils';
 
 export const CalendarWidget = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -332,7 +333,7 @@ export const CalendarWidget = () => {
                             {selectedDayData.attendance.records.map((record: any) => (
                               <TableRow key={record.id}>
                                 <TableCell className="text-xs py-2">{record.profiles?.full_name || '-'}</TableCell>
-                                <TableCell className="text-xs text-right py-2">{record.total_hours?.toFixed(2) || '0.00'}h</TableCell>
+                                <TableCell className="text-xs text-right py-2">{formatHoursToReadable(record.total_hours)}</TableCell>
                               </TableRow>
                             ))}
                           </TableBody>

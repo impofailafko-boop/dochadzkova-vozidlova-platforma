@@ -24,6 +24,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Download, MapPin } from 'lucide-react';
+import { formatHoursToReadable } from '@/lib/utils';
 
 const AttendanceOverview = () => {
   const [filters, setFilters] = useState({
@@ -195,7 +196,7 @@ const AttendanceOverview = () => {
                           </div>
                         </TableCell>
                         <TableCell className="text-right whitespace-nowrap">
-                          {record.total_hours ? `${record.total_hours}h` : '-'}
+                          {record.total_hours ? formatHoursToReadable(record.total_hours) : '-'}
                         </TableCell>
                       </TableRow>
                     ))

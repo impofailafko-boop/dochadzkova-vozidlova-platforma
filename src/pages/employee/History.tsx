@@ -21,7 +21,7 @@ import { Clock, Car, Fuel, CheckCircle2, AlertCircle, CalendarIcon, X } from 'lu
 import { CompleteDriveDialog } from '@/components/employee/CompleteDriveDialog';
 import { DatePicker } from '@/components/ui/date-picker';
 import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
+import { cn, formatHoursToReadable } from '@/lib/utils';
 import {
   Pagination,
   PaginationContent,
@@ -207,7 +207,7 @@ const History = () => {
                             <TableCell className="whitespace-nowrap">{record.arrival_time || '-'}</TableCell>
                             <TableCell className="whitespace-nowrap">{record.departure_time || '-'}</TableCell>
                             <TableCell className="text-right whitespace-nowrap">
-                              {record.total_hours ? `${record.total_hours}h` : '-'}
+                              {record.total_hours ? formatHoursToReadable(record.total_hours) : '-'}
                             </TableCell>
                           </TableRow>
                         ))

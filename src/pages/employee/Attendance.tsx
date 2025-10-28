@@ -15,6 +15,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { DatePicker } from '@/components/ui/date-picker';
+import { formatHoursToReadable } from '@/lib/utils';
 
 const Attendance = () => {
   const { user } = useAuth();
@@ -103,7 +104,7 @@ const Attendance = () => {
                           <TableCell className="whitespace-nowrap">{record.arrival_time || '-'}</TableCell>
                           <TableCell className="whitespace-nowrap">{record.departure_time || '-'}</TableCell>
                           <TableCell className="text-right whitespace-nowrap">
-                            {record.total_hours ? `${record.total_hours}h` : '-'}
+                            {record.total_hours ? formatHoursToReadable(record.total_hours) : '-'}
                           </TableCell>
                         </TableRow>
                       ))

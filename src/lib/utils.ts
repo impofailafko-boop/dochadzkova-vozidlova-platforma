@@ -30,3 +30,19 @@ export function parseDateString(dateString: string): Date {
   const [year, month, day] = dateString.split('-').map(Number);
   return new Date(year, month - 1, day, 0, 0, 0, 0);
 }
+
+/**
+ * Converts decimal hours to readable format (e.g., 6.58 -> "6h 35min")
+ */
+export function formatHoursToReadable(decimalHours: number | null | undefined): string {
+  if (!decimalHours || decimalHours === 0) return '0h';
+  
+  const hours = Math.floor(decimalHours);
+  const minutes = Math.round((decimalHours - hours) * 60);
+  
+  if (minutes === 0) {
+    return `${hours}h`;
+  }
+  
+  return `${hours}h ${minutes}min`;
+}

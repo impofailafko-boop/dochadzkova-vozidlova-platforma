@@ -10,6 +10,7 @@ import { savePendingAttendance } from '@/lib/offlineStorage';
 import { toast } from 'sonner';
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { formatHoursToReadable } from '@/lib/utils';
 
 const AttendanceButton = () => {
   const { user } = useAuth();
@@ -271,7 +272,7 @@ const AttendanceButton = () => {
           <div className="pt-4 border-t">
             <p className="text-sm text-muted-foreground">Odpracované hodiny</p>
             <p className="text-3xl font-bold text-accent">
-              {todayAttendance.total_hours}h
+              {formatHoursToReadable(todayAttendance.total_hours)}
             </p>
           </div>
         )}

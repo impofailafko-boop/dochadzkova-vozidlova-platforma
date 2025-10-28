@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import * as XLSX from 'xlsx';
+import { formatHoursToReadable } from '@/lib/utils';
 
 const Reports = () => {
   const [dateRange, setDateRange] = useState({
@@ -411,7 +412,7 @@ const Reports = () => {
                             {projectStats.employees.map((emp) => (
                               <TableRow key={emp.id}>
                                 <TableCell className="whitespace-nowrap">{emp.name}</TableCell>
-                                <TableCell className="text-right font-medium whitespace-nowrap">{emp.hours.toFixed(2)}h</TableCell>
+                                <TableCell className="text-right font-medium whitespace-nowrap">{formatHoursToReadable(emp.hours)}</TableCell>
                               </TableRow>
                             ))}
                           </TableBody>
@@ -465,7 +466,7 @@ const Reports = () => {
                     <h3 className="font-semibold mb-2">Dochádzka</h3>
                     <p className="text-sm text-muted-foreground">
                       Celkový počet záznamov: <strong>{attendance?.length || 0}</strong><br />
-                      Odpracované hodiny: <strong>{totalHours.toFixed(2)}h</strong>
+                      Odpracované hodiny: <strong>{formatHoursToReadable(totalHours)}</strong>
                     </p>
                   </div>
                   
