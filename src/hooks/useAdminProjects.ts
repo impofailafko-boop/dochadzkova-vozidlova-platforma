@@ -80,14 +80,35 @@ export function useAdminProjects() {
     },
   });
 
+  const deleteProject = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('projects')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-projects'] });
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      toast.success('Projekt vymazaný');
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Chyba pri vymazávaní projektu');
+    },
+  });
+
   return {
     projects,
     isLoading,
     createProject: createProject.mutate,
     updateProject: updateProject.mutate,
     updateProjectStatus: updateProjectStatus.mutate,
+    deleteProject: deleteProject.mutate,
     isCreating: createProject.isPending,
     isUpdating: updateProject.isPending,
     isUpdatingStatus: updateProjectStatus.isPending,
+    isDeleting: deleteProject.isPending,
   };
 }

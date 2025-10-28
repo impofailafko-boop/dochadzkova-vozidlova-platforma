@@ -31,12 +31,24 @@ import {
 } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { Plus, Edit, Power } from 'lucide-react';
+import { Plus, Edit, Trash2 } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 const Projects = () => {
-  const { projects, isLoading, createProject, updateProject, updateProjectStatus, isCreating, isUpdating } = useAdminProjects();
+  const { projects, isLoading, createProject, updateProject, updateProjectStatus, deleteProject, isCreating, isUpdating, isDeleting } = useAdminProjects();
   const [open, setOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<any>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [projectToDelete, setProjectToDelete] = useState<any>(null);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -69,6 +81,19 @@ const Projects = () => {
 
   const handleStatusChange = (id: string, newStatus: 'planned' | 'active' | 'completed') => {
     updateProjectStatus({ id, status: newStatus });
+  };
+
+  const handleDeleteClick = (project: any) => {
+    setProjectToDelete(project);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (projectToDelete) {
+      deleteProject(projectToDelete.id);
+      setDeleteDialogOpen(false);
+      setProjectToDelete(null);
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -205,9 +230,20 @@ const Projects = () => {
                             </Select>
                           </TableCell>
                           <TableCell className="text-right whitespace-nowrap">
-                            <Button variant="ghost" size="sm" onClick={() => handleEdit(project)}>
-                              <Edit className="h-4 w-4" />
-                            </Button>
+                            <div className="flex gap-2 justify-end">
+                              <Button variant="ghost" size="sm" onClick={() => handleEdit(project)}>
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                onClick={() => handleDeleteClick(project)}
+                                disabled={isDeleting}
+                                className="text-destructive hover:text-destructive"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       );
@@ -226,6 +262,23 @@ const Projects = () => {
           )}
         </CardContent>
       </Card>
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Vymazať projekt?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Naozaj chcete vymazať projekt <strong>{projectToDelete?.name}</strong>? Táto akcia sa nedá vrátiť späť.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Zrušiť</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Vymazať
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
