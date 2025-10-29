@@ -31,8 +31,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { data, error } = await supabase
         .from('user_roles')
         .select('role')
-        .eq('user_id', userId)
-        .single();
+        .eq('user_id', userId);
 
       if (error) {
         console.error('Error fetching user role:', error);
@@ -40,7 +39,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return 'employee';
       }
 
-      return data?.role as UserRole || 'employee';
+      if (!data || data.length === 0) {
+        return 'employee';
+      }
+
+      // If user has multiple roles, prefer admin role
+      const roles = data.map(r => r.role);
+      if (roles.includes('admin')) {
+        return 'admin';
+      }
+
+      return roles[0] as UserRole || 'employee';
     } catch (error) {
       console.error('Error in fetchUserRole:', error);
       // Fallback to 'employee' on error (prevents infinite loop)
