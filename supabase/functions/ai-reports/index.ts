@@ -13,11 +13,11 @@ serve(async (req) => {
   }
 
   try {
-    const { question, userId } = await req.json();
+    const { question } = await req.json();
     
-    if (!question || !userId) {
+    if (!question) {
       return new Response(
-        JSON.stringify({ error: 'Missing question or userId' }),
+        JSON.stringify({ error: 'Missing question' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -26,6 +26,44 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Extract and verify authenticated user from JWT token
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      console.error('AI Reports: Missing Authorization header');
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+
+    if (userError || !user) {
+      console.error('AI Reports: Invalid token', userError);
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Verify user has admin role
+    const { data: roles, error: rolesError } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id);
+
+    if (rolesError || !roles || !roles.some(r => r.role === 'admin')) {
+      console.error(`AI Reports: Access denied for user ${user.id}`, rolesError);
+      return new Response(
+        JSON.stringify({ error: 'Forbidden - len admini môžu používať AI reports' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log(`AI Reports: Admin ${user.id} requested analysis`);
+    const authenticatedUserId = user.id;
 
     // Fetch relevant data from database
     const now = new Date();
