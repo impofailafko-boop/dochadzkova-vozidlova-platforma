@@ -25,7 +25,8 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { Download, Edit, Trash2, Plus } from 'lucide-react';
+import { Download, Edit, Trash2, Plus, ImageIcon } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 import { EditFuelingDialog } from '@/components/admin/EditFuelingDialog';
 import { CreateFuelingDialog } from '@/components/admin/CreateFuelingDialog';
 import { useAuth } from '@/contexts/AuthContext';
@@ -110,7 +111,7 @@ const FuelingsOverview = () => {
     if (!fuelings || fuelings.length === 0) return;
 
     const csv = [
-      ['Dátum', 'Zamestnanec', 'Vozidlo', 'Projekt', 'Litre', 'Cena', 'Poznámka'].join(','),
+      ['Dátum', 'Zamestnanec', 'Vozidlo', 'Projekt', 'Litre', 'Cena', 'Poznámka', 'Bloček'].join(','),
       ...fuelings.map((record: any) => [
         record.date,
         record.profiles?.full_name || '-',
@@ -119,6 +120,7 @@ const FuelingsOverview = () => {
         record.liters,
         record.price || '-',
         record.note || '-',
+        record.photo_receipt ? 'Áno' : 'Nie',
       ].join(',')),
     ].join('\n');
 
@@ -303,6 +305,7 @@ const FuelingsOverview = () => {
                     <TableHead className="text-right whitespace-nowrap">Litre</TableHead>
                     <TableHead className="text-right whitespace-nowrap">Cena</TableHead>
                     <TableHead className="whitespace-nowrap">Poznámka</TableHead>
+                    <TableHead className="whitespace-nowrap">Bloček</TableHead>
                     <TableHead className="text-right whitespace-nowrap">Akcie</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -321,6 +324,25 @@ const FuelingsOverview = () => {
                           {record.price ? `${record.price}€` : '-'}
                         </TableCell>
                         <TableCell className="whitespace-nowrap max-w-xs truncate">{record.note || '-'}</TableCell>
+                        <TableCell className="whitespace-nowrap">
+                          {record.photo_receipt ? (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                const url = supabase.storage
+                                  .from('vehicle-photos')
+                                  .getPublicUrl(record.photo_receipt).data.publicUrl;
+                                window.open(url, '_blank');
+                              }}
+                            >
+                              <ImageIcon className="h-4 w-4 mr-2" />
+                              Zobraziť
+                            </Button>
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </TableCell>
                         <TableCell className="text-right whitespace-nowrap">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -344,7 +366,7 @@ const FuelingsOverview = () => {
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={8} className="text-center text-muted-foreground">
+                      <TableCell colSpan={9} className="text-center text-muted-foreground">
                         Žiadne záznamy
                       </TableCell>
                     </TableRow>

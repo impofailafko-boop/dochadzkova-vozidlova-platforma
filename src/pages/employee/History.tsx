@@ -17,7 +17,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { Clock, Car, Fuel, CheckCircle2, AlertCircle, CalendarIcon, X } from 'lucide-react';
+import { Clock, Car, Fuel, CheckCircle2, AlertCircle, CalendarIcon, X, ImageIcon } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 import { CompleteDriveDialog } from '@/components/employee/CompleteDriveDialog';
 import { DatePicker } from '@/components/ui/date-picker';
 import { format } from 'date-fns';
@@ -453,6 +454,7 @@ const History = () => {
                         <TableHead className="whitespace-nowrap">Projekt</TableHead>
                         <TableHead className="text-right whitespace-nowrap">Litre</TableHead>
                         <TableHead className="text-right whitespace-nowrap">Cena</TableHead>
+                        <TableHead className="whitespace-nowrap">Bloček</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -470,11 +472,30 @@ const History = () => {
                             <TableCell className="text-right whitespace-nowrap">
                               {log.price ? `${log.price}€` : '-'}
                             </TableCell>
+                            <TableCell className="whitespace-nowrap">
+                              {log.photo_receipt ? (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    const url = supabase.storage
+                                      .from('vehicle-photos')
+                                      .getPublicUrl(log.photo_receipt).data.publicUrl;
+                                    window.open(url, '_blank');
+                                  }}
+                                >
+                                  <ImageIcon className="h-4 w-4 mr-2" />
+                                  Zobraziť
+                                </Button>
+                              ) : (
+                                <span className="text-muted-foreground">-</span>
+                              )}
+                            </TableCell>
                           </TableRow>
                         ))
                       ) : (
                         <TableRow>
-                          <TableCell colSpan={5} className="text-center text-muted-foreground">
+                          <TableCell colSpan={6} className="text-center text-muted-foreground">
                             Žiadne záznamy
                           </TableCell>
                         </TableRow>
