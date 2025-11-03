@@ -44,22 +44,36 @@ GPS tracking je implementovaný pre **dochádzku** (attendance) a **jazdy vozidi
 
 ## 🔧 Technická implementácia
 
-### Geolocation API
+### Centralizovaný Geolocation Hook
+
+**Hook:** `src/hooks/useGeolocation.ts`
 
 ```typescript
-if ('geolocation' in navigator) {
-  const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-    navigator.geolocation.getCurrentPosition(resolve, reject, {
-      enableHighAccuracy: true,  // Použiť GPS namiesto WiFi/IP
-      timeout: 10000,             // Max 10 sekúnd čakanie
-      maximumAge: 0               // Nevrátiť cache, vždy fresh polohu
-    });
-  });
-  
-  const latitude = position.coords.latitude;
-  const longitude = position.coords.longitude;
+import { useGeolocation } from '@/hooks/useGeolocation';
+
+const { getLocation } = useGeolocation();
+
+// Získať GPS polohu
+const location = await getLocation();
+
+if (location) {
+  const { latitude, longitude } = location;
+  // Použiť súradnice
+} else {
+  // GPS nie je dostupné (používateľ odmietol, timeout, alebo chyba)
+  // Záznam sa uloží bez GPS
 }
 ```
+
+**Nastavenia:**
+- `enableHighAccuracy: true` - Použiť GPS namiesto WiFi/IP
+- `timeout: 10000` - Max 10 sekúnd čakanie
+- `maximumAge: 0` - Vždy fresh poloha, žiadna cache
+
+**Používa sa v:**
+- `useAttendance` - Pri príchode a odchode z práce
+- `useVehicleLogs` - Pri začatí a ukončení jazdy
+- `AttendanceButton` - Offline režim s IndexedDB
 
 ### Povolenia
 

@@ -93,6 +93,13 @@
 | `useProjects` | `/vehicle-use` (select projekt) | Fetch projektov so statusom 'active' | `['projects']` |
 | `useAdminProjects` | `/admin/projects` | CRUD projektov + update status (planned/active/completed) | `['admin-projects']` |
 
+### GPS & Utilities
+| Hook/Function | Kde sa používa | Čo robí |
+|---------------|----------------|---------|
+| `useGeolocation` | `useAttendance`, `useVehicleLogs`, `AttendanceButton` | Centralizovaný GPS tracking (Geolocation API wrapper) |
+| `calculateWorkHours` | `useAttendance` | Výpočet pracovných hodín z arrival/departure time (utils.ts) |
+| `formatHoursToReadable` | Všetky attendance/history pages | Formátovanie desatinných hodín na "Xh Ymin" (utils.ts) |
+
 ---
 
 ## 🔐 AUTH FLOW
@@ -215,38 +222,46 @@ ALL: has_role(auth.uid(), 'admin')
    ↓
 3. useAttendance.recordArrival()
    ↓
-4. supabase.insert('attendance', {
+4. useGeolocation.getLocation() → získa GPS súradnice
+   ↓
+5. supabase.insert('attendance', {
       user_id: userId,
       date: today,
-      arrival_time: now
+      arrival_time: now,
+      arrival_latitude: location?.latitude,
+      arrival_longitude: location?.longitude
    })
    ↓
-5. RLS policy: CHECK auth.uid() = user_id ✅
+6. RLS policy: CHECK auth.uid() = user_id ✅
    ↓
-6. Success → invalidate cache ['attendance']
+7. Success → invalidate cache ['attendance']
    ↓
-7. Toast: "Príchod zaznamenaný"
+8. Toast: "Príchod zaznamenaný (zisťujem polohu...)"
    ↓
-8. UI sa updatne → zobrazí tlačidlo "Zaznamenať odchod"
+9. UI sa updatne → zobrazí tlačidlo "Zaznamenať odchod"
 
 ---
 
-9. Klik na "Zaznamenať odchod"
+10. Klik na "Zaznamenať odchod"
    ↓
-10. useAttendance.recordDeparture()
+11. useAttendance.recordDeparture()
    ↓
-11. Vypočíta total_hours (departure_time - arrival_time)
+12. useGeolocation.getLocation() → získa GPS súradnice
    ↓
-12. supabase.update('attendance', {
+13. Vypočíta total_hours cez calculateWorkHours(arrival_time, now)
+   ↓
+14. supabase.update('attendance', {
        departure_time: now,
-       total_hours: calculated
+       total_hours: calculated,
+       departure_latitude: location?.latitude,
+       departure_longitude: location?.longitude
     }).eq('id', todayAttendance.id)
    ↓
-13. RLS policy: USING auth.uid() = user_id ✅
+15. RLS policy: USING auth.uid() = user_id ✅
    ↓
-14. Success → invalidate cache
+16. Success → invalidate cache
    ↓
-15. Toast: "Odchod zaznamenaný"
+17. Toast: "Odchod zaznamenaný (zisťujem polohu...)"
 ```
 
 ### Pridanie Jazdy (Vehicle Use) Flow - FÁZA 2 WORKFLOW
@@ -267,24 +282,28 @@ ALL: has_role(auth.uid(), 'admin')
    ↓
 6. Získa publicUrl fotky
    ↓
-7. useVehicleLogs.createLog({
+7. useGeolocation.getLocation() → získa GPS súradnice začiatku
+   ↓
+8. useVehicleLogs.createLog({
       vehicle_id,
       project_id,
       date,
       km_start,
       photo_km_start: publicUrl,
+      start_latitude: location?.latitude,
+      start_longitude: location?.longitude,
       is_completed: false,  // KĽÚČOVÉ!
       km_end: null,         // Vyplní sa neskôr
       km_driven: null       // Vypočíta sa neskôr
    })
    ↓
-8. supabase.insert('vehicle_logs', { ...input, user_id })
+9. supabase.insert('vehicle_logs', { ...input, user_id })
    ↓
-9. RLS: CHECK auth.uid() = user_id ✅
-   ↓
-10. Success → invalidate ['vehicle-logs']
+10. RLS: CHECK auth.uid() = user_id ✅
     ↓
-11. Toast: "Jazda začatá"
+11. Success → invalidate ['vehicle-logs']
+    ↓
+12. Toast: "Jazda začatá"
 ```
 
 **B) Ukončenie Jazdy:**
@@ -303,27 +322,31 @@ ALL: has_role(auth.uid(), 'admin')
    ↓
 7. Ak fotka existuje → uploadVehiclePhoto(file, userId)
    ↓
-8. useVehicleLogs.completeLog({
+8. useGeolocation.getLocation() → získa GPS súradnice konca
+   ↓
+9. useVehicleLogs.completeLog({
       id: driveId,
       km_end,
       photo_km_end: photoUrl | null,
+      end_latitude: location?.latitude,
+      end_longitude: location?.longitude,
       is_completed: true,
       km_driven: km_end - km_start  // Vypočítané
    })
    ↓
-9. supabase.update('vehicle_logs', { ...input })
+10. supabase.update('vehicle_logs', { ...input })
       .eq('id', id)
       .eq('user_id', userId)  // Extra security
    ↓
-10. RLS: USING auth.uid() = user_id ✅
+11. RLS: USING auth.uid() = user_id ✅
     ↓
-11. TRIGGER: trigger_update_vehicle_km sa spustí
+12. TRIGGER: trigger_update_vehicle_km sa spustí
     ↓
-12. UPDATE vehicles SET current_km = km_end WHERE id = vehicle_id
+13. UPDATE vehicles SET current_km = km_end WHERE id = vehicle_id
     ↓
-13. Success → invalidate ['vehicle-logs']
+14. Success → invalidate ['vehicle-logs']
     ↓
-14. Toast: "Jazda ukončená. Aktuálny stav vozidla: {km_end} km"
+15. Toast: "Jazda ukončená. Aktuálny stav vozidla: {km_end} km"
 ```
 
 ### Admin Vytvorenie Employeea
