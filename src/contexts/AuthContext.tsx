@@ -127,18 +127,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { error };
       }
 
-      // Update profile with phone number
-      if (authData.user) {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .update({ phone: phone })
-          .eq('user_id', authData.user.id);
-
-        if (profileError) {
-          console.error('Error updating profile with phone:', profileError);
-        }
-      }
-
       toast.success('Účet vytvorený! Prosím, prihláste sa.');
       return { error: null };
     } catch (error: any) {
