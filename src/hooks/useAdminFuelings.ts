@@ -92,11 +92,30 @@ export function useAdminFuelings(filters?: {
     },
   });
 
+  const createFueling = useMutation({
+    mutationFn: async (data: { user_id: string; vehicle_id: string; project_id: string; date: string; liters: number; price?: number; note?: string }) => {
+      const { error } = await supabase
+        .from('fuel_logs')
+        .insert(data);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-fuelings'] });
+      toast.success('Tankovanie vytvorené');
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Chyba pri vytváraní tankovania');
+    },
+  });
+
   return {
     ...query,
     updateFueling: updateFueling.mutate,
     deleteFueling: deleteFueling.mutate,
+    createFueling: createFueling.mutate,
     isUpdating: updateFueling.isPending,
     isDeleting: deleteFueling.isPending,
+    isCreating: createFueling.isPending,
   };
 }

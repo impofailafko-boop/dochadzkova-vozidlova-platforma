@@ -25,8 +25,10 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { Download, Edit, Trash2 } from 'lucide-react';
+import { Download, Edit, Trash2, Plus } from 'lucide-react';
 import { EditFuelingDialog } from '@/components/admin/EditFuelingDialog';
+import { CreateFuelingDialog } from '@/components/admin/CreateFuelingDialog';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -54,11 +56,13 @@ const FuelingsOverview = () => {
   });
   const [statsProjectFilter, setStatsProjectFilter] = useState('all');
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [selectedFueling, setSelectedFueling] = useState<any>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [fuelingToDelete, setFuelingToDelete] = useState<any>(null);
+  const { user } = useAuth();
 
-  const { data: fuelings, isLoading, updateFueling, deleteFueling, isUpdating, isDeleting } = useAdminFuelings({
+  const { data: fuelings, isLoading, updateFueling, deleteFueling, createFueling, isUpdating, isDeleting, isCreating } = useAdminFuelings({
     startDate: filters.startDate,
     endDate: filters.endDate,
     ...(filters.userId !== 'all' && { userId: filters.userId }),
@@ -89,6 +93,10 @@ const FuelingsOverview = () => {
 
   const handleSaveFueling = (id: string, data: any) => {
     updateFueling({ id, ...data });
+  };
+
+  const handleCreateFueling = (data: any) => {
+    createFueling(data);
   };
 
   const filteredFuelingsForStats = statsProjectFilter === 'all' 
@@ -129,10 +137,16 @@ const FuelingsOverview = () => {
           <h1 className="text-3xl font-bold mb-2">Prehľad tankovaní</h1>
           <p className="text-muted-foreground">Všetky tankovania služobných vozidiel</p>
         </div>
-        <Button onClick={handleExport} disabled={!fuelings || fuelings.length === 0}>
-          <Download className="mr-2 h-4 w-4" />
-          Export CSV
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={() => setCreateDialogOpen(true)} variant="outline">
+            <Plus className="mr-2 h-4 w-4" />
+            Pridať tankovanie
+          </Button>
+          <Button onClick={handleExport} disabled={!fuelings || fuelings.length === 0}>
+            <Download className="mr-2 h-4 w-4" />
+            Export CSV
+          </Button>
+        </div>
       </div>
 
       <Card>
@@ -354,6 +368,16 @@ const FuelingsOverview = () => {
           isUpdating={isUpdating}
         />
       )}
+
+      <CreateFuelingDialog
+        open={createDialogOpen}
+        onOpenChange={setCreateDialogOpen}
+        vehicles={vehicles || []}
+        projects={projects || []}
+        currentUserId={user?.id || ''}
+        onCreate={handleCreateFueling}
+        isCreating={isCreating}
+      />
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
