@@ -1,6 +1,7 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { useAttendance } from '@/hooks/useAttendance';
 import { useActiveVehicleLogs } from '@/hooks/useVehicleLogs';
+import { useGeolocation } from '@/hooks/useGeolocation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -29,6 +30,7 @@ const AttendanceButton = () => {
   } = useAttendance(user?.id);
 
   const { data: activeLogs, isLoading: isLoadingActiveLogs } = useActiveVehicleLogs(user?.id);
+  const { getLocation } = useGeolocation();
 
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [shouldNavigateBack, setShouldNavigateBack] = useState(false);
@@ -71,25 +73,16 @@ const AttendanceButton = () => {
       // Save to IndexedDB for offline
       try {
         const now = new Date();
-        let latitude: number | undefined;
-        let longitude: number | undefined;
-
-        try {
-          const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-            navigator.geolocation.getCurrentPosition(resolve, reject);
-          });
-          latitude = position.coords.latitude;
-          longitude = position.coords.longitude;
-        } catch (error) {
-          console.log('GPS not available');
-        }
+        
+        // Get GPS location using centralized hook
+        const location = await getLocation();
 
         await savePendingAttendance({
           id: `${user?.id}-arrival-${now.getTime()}`,
           type: 'arrival',
           timestamp: now.toISOString(),
-          latitude,
-          longitude,
+          latitude: location?.latitude,
+          longitude: location?.longitude,
           synced: false,
           userId: user?.id || '',
         });
@@ -113,25 +106,16 @@ const AttendanceButton = () => {
       // Save to IndexedDB for offline
       try {
         const now = new Date();
-        let latitude: number | undefined;
-        let longitude: number | undefined;
-
-        try {
-          const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-            navigator.geolocation.getCurrentPosition(resolve, reject);
-          });
-          latitude = position.coords.latitude;
-          longitude = position.coords.longitude;
-        } catch (error) {
-          console.log('GPS not available');
-        }
+        
+        // Get GPS location using centralized hook
+        const location = await getLocation();
 
         await savePendingAttendance({
           id: `${user?.id}-departure-${now.getTime()}`,
           type: 'departure',
           timestamp: now.toISOString(),
-          latitude,
-          longitude,
+          latitude: location?.latitude,
+          longitude: location?.longitude,
           synced: false,
           userId: user?.id || '',
         });
