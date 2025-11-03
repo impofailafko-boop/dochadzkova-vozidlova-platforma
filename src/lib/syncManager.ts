@@ -1,30 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { getPendingAttendance, markAttendanceSynced, deleteSyncedAttendance } from './offlineStorage';
 import { toast } from 'sonner';
-import { formatDateToISO } from './utils';
-
-/**
- * Vypočíta pracovné hodiny medzi dvoma časmi.
- * Utility verzia pre použitie mimo React komponentov (napr. v syncManager).
- */
-function calculateWorkHours(arrivalTime: string, departureTime: string): number | null {
-  try {
-    const arrivalDate = new Date(`1970-01-01T${arrivalTime}`);
-    const departureDate = new Date(`1970-01-01T${departureTime}`);
-    
-    if (isNaN(arrivalDate.getTime()) || isNaN(departureDate.getTime())) {
-      console.warn('Invalid time format:', { arrivalTime, departureTime });
-      return null;
-    }
-
-    const diffMs = departureDate.getTime() - arrivalDate.getTime();
-    const hours = diffMs / (1000 * 60 * 60);
-    return parseFloat(hours.toFixed(2));
-  } catch (error) {
-    console.error('Error calculating work hours:', error);
-    return null;
-  }
-}
+import { formatDateToISO, calculateWorkHours } from './utils';
 
 export async function syncPendingAttendance(): Promise<number> {
   try {

@@ -67,3 +67,41 @@ export function formatDateToISO(date: Date): string {
 export function getTodayISO(): string {
   return formatDateToISO(new Date());
 }
+
+/**
+ * Calculates work hours between arrival and departure times
+ * Supports both HH:MM:SS and HH:MM formats
+ * Handles times crossing midnight
+ */
+export function calculateWorkHours(arrivalTime: string | null | undefined, departureTime: string | null | undefined): number | null {
+  if (!arrivalTime || !departureTime) return null;
+
+  try {
+    const parseTime = (timeStr: string): Date => {
+      const parts = timeStr.split(':');
+      const hours = parseInt(parts[0], 10);
+      const minutes = parseInt(parts[1], 10);
+      const seconds = parts[2] ? parseInt(parts[2], 10) : 0;
+      
+      const date = new Date();
+      date.setHours(hours, minutes, seconds, 0);
+      return date;
+    };
+
+    const arrival = parseTime(arrivalTime);
+    const departure = parseTime(departureTime);
+
+    let diffMs = departure.getTime() - arrival.getTime();
+    
+    // Handle times crossing midnight
+    if (diffMs < 0) {
+      diffMs += 24 * 60 * 60 * 1000;
+    }
+
+    const hours = diffMs / (1000 * 60 * 60);
+    return parseFloat(hours.toFixed(2));
+  } catch (error) {
+    console.error('Error calculating work hours:', error);
+    return null;
+  }
+}

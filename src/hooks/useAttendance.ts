@@ -2,13 +2,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useGeolocation } from './useGeolocation';
-import { useWorkHours } from './useWorkHours';
-import { getTodayISO, getCurrentTimeString } from '@/lib/utils';
+import { getTodayISO, getCurrentTimeString, calculateWorkHours } from '@/lib/utils';
 
 export function useAttendance(userId: string | undefined) {
   const queryClient = useQueryClient();
   const { getLocation } = useGeolocation();
-  const { calculateHours } = useWorkHours();
 
   // Get today's attendance - find the latest incomplete record or the most recent one
   const { data: todayAttendance, isLoading } = useQuery({
@@ -131,8 +129,8 @@ export function useAttendance(userId: string | undefined) {
       // Get GPS location using centralized hook
       const location = await getLocation();
       
-      // Calculate total hours using centralized hook
-      const totalHours = calculateHours(todayAttendance.arrival_time, now);
+      // Calculate total hours using centralized utility
+      const totalHours = calculateWorkHours(todayAttendance.arrival_time, now);
 
       const { error } = await supabase
         .from('attendance')
@@ -161,7 +159,7 @@ export function useAttendance(userId: string | undefined) {
       // Calculate optimistic values
       if (todayAttendance) {
         const now = getCurrentTimeString();
-        const totalHours = calculateHours(todayAttendance.arrival_time, now);
+        const totalHours = calculateWorkHours(todayAttendance.arrival_time, now);
         
         // Optimistically update to new value
         queryClient.setQueryData(['attendance', 'today', userId], {
