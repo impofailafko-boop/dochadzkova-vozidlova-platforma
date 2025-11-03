@@ -23,8 +23,26 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { Download, MapPin } from 'lucide-react';
+import { Download, MapPin, Edit, Trash2, Plus } from 'lucide-react';
 import { formatHoursToReadable } from '@/lib/utils';
+import { EditAttendanceDialog } from '@/components/admin/EditAttendanceDialog';
+import { CreateAttendanceDialog } from '@/components/admin/CreateAttendanceDialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 const AttendanceOverview = () => {
   const [filters, setFilters] = useState({
@@ -32,13 +50,44 @@ const AttendanceOverview = () => {
     endDate: new Date().toISOString().split('T')[0],
     userId: 'all',
   });
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [selectedAttendance, setSelectedAttendance] = useState<any>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [attendanceToDelete, setAttendanceToDelete] = useState<any>(null);
 
-  const { data: attendance, isLoading } = useAdminAttendance(
+  const { data: attendance, isLoading, updateAttendance, deleteAttendance, createAttendance, isUpdating, isDeleting, isCreating } = useAdminAttendance(
     filters.userId === 'all' 
       ? { startDate: filters.startDate, endDate: filters.endDate }
       : filters
   );
   const { employees } = useEmployees();
+
+  const handleEdit = (record: any) => {
+    setSelectedAttendance(record);
+    setEditDialogOpen(true);
+  };
+
+  const handleDeleteClick = (record: any) => {
+    setAttendanceToDelete(record);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (attendanceToDelete) {
+      deleteAttendance(attendanceToDelete.id);
+      setDeleteDialogOpen(false);
+      setAttendanceToDelete(null);
+    }
+  };
+
+  const handleSave = (id: string, data: any) => {
+    updateAttendance({ id, ...data });
+  };
+
+  const handleCreate = (data: any) => {
+    createAttendance(data);
+  };
 
   const handleExport = () => {
     if (!attendance || attendance.length === 0) return;
@@ -71,10 +120,16 @@ const AttendanceOverview = () => {
           <h1 className="text-3xl font-bold mb-2">Prehľad dochádzky</h1>
           <p className="text-muted-foreground">Dochádzka všetkých zamestnancov</p>
         </div>
-        <Button onClick={handleExport} disabled={!attendance || attendance.length === 0}>
-          <Download className="mr-2 h-4 w-4" />
-          Export CSV
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={() => setCreateDialogOpen(true)} variant="outline">
+            <Plus className="mr-2 h-4 w-4" />
+            Pridať dochádzku
+          </Button>
+          <Button onClick={handleExport} disabled={!attendance || attendance.length === 0}>
+            <Download className="mr-2 h-4 w-4" />
+            Export CSV
+          </Button>
+        </div>
       </div>
 
       <Card>
@@ -152,6 +207,7 @@ const AttendanceOverview = () => {
                     <TableHead className="whitespace-nowrap">Odchod</TableHead>
                     <TableHead className="whitespace-nowrap">Poloha</TableHead>
                     <TableHead className="text-right whitespace-nowrap">Hodiny</TableHead>
+                    <TableHead className="text-right whitespace-nowrap">Akcie</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -198,11 +254,30 @@ const AttendanceOverview = () => {
                         <TableCell className="text-right whitespace-nowrap">
                           {record.total_hours ? formatHoursToReadable(record.total_hours) : '-'}
                         </TableCell>
+                        <TableCell className="text-right whitespace-nowrap">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm">
+                                •••
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="bg-popover z-50" align="end">
+                              <DropdownMenuItem onClick={() => handleEdit(record)}>
+                                <Edit className="mr-2 h-4 w-4" />
+                                Upraviť
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleDeleteClick(record)} className="text-destructive">
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Zmazať
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
                       </TableRow>
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center text-muted-foreground">
+                      <TableCell colSpan={7} className="text-center text-muted-foreground">
                         Žiadne záznamy
                       </TableCell>
                     </TableRow>
@@ -214,6 +289,44 @@ const AttendanceOverview = () => {
           )}
         </CardContent>
       </Card>
+
+      {selectedAttendance && (
+        <EditAttendanceDialog
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+          attendance={selectedAttendance}
+          onSave={handleSave}
+          isUpdating={isUpdating}
+        />
+      )}
+
+      <CreateAttendanceDialog
+        open={createDialogOpen}
+        onOpenChange={setCreateDialogOpen}
+        employees={employees || []}
+        onCreate={handleCreate}
+        isCreating={isCreating}
+      />
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Odstrániť dochádzku?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Táto akcia sa nedá vrátiť späť. Záznam dochádzky bude permanentne odstránený.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Zrušiť</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-destructive text-destructive-foreground"
+            >
+              Odstrániť
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

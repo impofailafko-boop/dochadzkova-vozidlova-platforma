@@ -25,7 +25,24 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { Download } from 'lucide-react';
+import { Download, Edit, Trash2 } from 'lucide-react';
+import { EditFuelingDialog } from '@/components/admin/EditFuelingDialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 const FuelingsOverview = () => {
   const [filters, setFilters] = useState({
@@ -35,10 +52,13 @@ const FuelingsOverview = () => {
     vehicleId: 'all',
     projectId: 'all',
   });
-
   const [statsProjectFilter, setStatsProjectFilter] = useState('all');
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [selectedFueling, setSelectedFueling] = useState<any>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [fuelingToDelete, setFuelingToDelete] = useState<any>(null);
 
-  const { data: fuelings, isLoading } = useAdminFuelings({
+  const { data: fuelings, isLoading, updateFueling, deleteFueling, isUpdating, isDeleting } = useAdminFuelings({
     startDate: filters.startDate,
     endDate: filters.endDate,
     ...(filters.userId !== 'all' && { userId: filters.userId }),
@@ -48,6 +68,28 @@ const FuelingsOverview = () => {
   const { employees } = useEmployees();
   const { vehicles } = useAdminVehicles();
   const { projects } = useAdminProjects();
+
+  const handleEdit = (record: any) => {
+    setSelectedFueling(record);
+    setEditDialogOpen(true);
+  };
+
+  const handleDeleteClick = (record: any) => {
+    setFuelingToDelete(record);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (fuelingToDelete) {
+      deleteFueling(fuelingToDelete.id);
+      setDeleteDialogOpen(false);
+      setFuelingToDelete(null);
+    }
+  };
+
+  const handleSaveFueling = (id: string, data: any) => {
+    updateFueling({ id, ...data });
+  };
 
   const filteredFuelingsForStats = statsProjectFilter === 'all' 
     ? fuelings 
@@ -247,6 +289,7 @@ const FuelingsOverview = () => {
                     <TableHead className="text-right whitespace-nowrap">Litre</TableHead>
                     <TableHead className="text-right whitespace-nowrap">Cena</TableHead>
                     <TableHead className="whitespace-nowrap">Poznámka</TableHead>
+                    <TableHead className="text-right whitespace-nowrap">Akcie</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -264,11 +307,30 @@ const FuelingsOverview = () => {
                           {record.price ? `${record.price}€` : '-'}
                         </TableCell>
                         <TableCell className="whitespace-nowrap max-w-xs truncate">{record.note || '-'}</TableCell>
+                        <TableCell className="text-right whitespace-nowrap">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm">
+                                •••
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="bg-popover z-50" align="end">
+                              <DropdownMenuItem onClick={() => handleEdit(record)}>
+                                <Edit className="mr-2 h-4 w-4" />
+                                Upraviť
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleDeleteClick(record)} className="text-destructive">
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Zmazať
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
                       </TableRow>
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center text-muted-foreground">
+                      <TableCell colSpan={8} className="text-center text-muted-foreground">
                         Žiadne záznamy
                       </TableCell>
                     </TableRow>
@@ -280,6 +342,38 @@ const FuelingsOverview = () => {
           )}
         </CardContent>
       </Card>
+
+      {selectedFueling && (
+        <EditFuelingDialog
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+          fueling={selectedFueling}
+          vehicles={vehicles || []}
+          projects={projects || []}
+          onSave={handleSaveFueling}
+          isUpdating={isUpdating}
+        />
+      )}
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Odstrániť tankovanie?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Táto akcia sa nedá vrátiť späť. Záznam tankovania bude permanentne odstránený.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Zrušiť</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-destructive text-destructive-foreground"
+            >
+              Odstrániť
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

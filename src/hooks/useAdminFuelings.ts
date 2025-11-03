@@ -1,5 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 export function useAdminFuelings(filters?: { 
   startDate?: string; 
@@ -8,7 +9,9 @@ export function useAdminFuelings(filters?: {
   vehicleId?: string;
   projectId?: string;
 }) {
-  return useQuery({
+  const queryClient = useQueryClient();
+
+  const query = useQuery({
     queryKey: ['admin-fuelings', filters],
     queryFn: async () => {
       let query = supabase
@@ -52,4 +55,48 @@ export function useAdminFuelings(filters?: {
       return data;
     },
   });
+
+  const updateFueling = useMutation({
+    mutationFn: async ({ id, ...data }: { id: string; liters?: number; price?: number; note?: string; date?: string; vehicle_id?: string; project_id?: string }) => {
+      const { error } = await supabase
+        .from('fuel_logs')
+        .update(data)
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-fuelings'] });
+      toast.success('Tankovanie aktualizované');
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Chyba pri aktualizácii tankovania');
+    },
+  });
+
+  const deleteFueling = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('fuel_logs')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-fuelings'] });
+      toast.success('Tankovanie odstránené');
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Chyba pri odstraňovaní tankovania');
+    },
+  });
+
+  return {
+    ...query,
+    updateFueling: updateFueling.mutate,
+    deleteFueling: deleteFueling.mutate,
+    isUpdating: updateFueling.isPending,
+    isDeleting: deleteFueling.isPending,
+  };
 }

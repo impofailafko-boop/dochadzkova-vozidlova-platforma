@@ -26,7 +26,25 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { Download, CheckCircle2, AlertCircle, MapPin } from 'lucide-react';
+import { Download, CheckCircle2, AlertCircle, MapPin, Edit, Trash2 } from 'lucide-react';
+import { EditDriveDialog } from '@/components/admin/EditDriveDialog';
+import { CompleteDriveDialog } from '@/components/admin/CompleteDriveDialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 const DrivesOverview = () => {
   const [filters, setFilters] = useState({
@@ -36,10 +54,14 @@ const DrivesOverview = () => {
     vehicleId: 'all',
     projectId: 'all',
   });
-
   const [statsProjectFilter, setStatsProjectFilter] = useState('all');
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [completeDialogOpen, setCompleteDialogOpen] = useState(false);
+  const [selectedDrive, setSelectedDrive] = useState<any>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [driveToDelete, setDriveToDelete] = useState<any>(null);
 
-  const { data: drives, isLoading } = useAdminDrives({
+  const { data: drives, isLoading, updateDrive, deleteDrive, completeDrive, isUpdating, isDeleting, isCompleting } = useAdminDrives({
     startDate: filters.startDate,
     endDate: filters.endDate,
     ...(filters.userId !== 'all' && { userId: filters.userId }),
@@ -49,6 +71,37 @@ const DrivesOverview = () => {
   const { employees } = useEmployees();
   const { vehicles } = useAdminVehicles();
   const { projects } = useAdminProjects();
+
+  const handleEdit = (record: any) => {
+    setSelectedDrive(record);
+    setEditDialogOpen(true);
+  };
+
+  const handleComplete = (record: any) => {
+    setSelectedDrive(record);
+    setCompleteDialogOpen(true);
+  };
+
+  const handleDeleteClick = (record: any) => {
+    setDriveToDelete(record);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (driveToDelete) {
+      deleteDrive(driveToDelete.id);
+      setDeleteDialogOpen(false);
+      setDriveToDelete(null);
+    }
+  };
+
+  const handleSaveDrive = (id: string, data: any) => {
+    updateDrive({ id, ...data });
+  };
+
+  const handleCompleteDrive = (id: string, km_end: number) => {
+    completeDrive({ id, km_end });
+  };
 
   const filteredDrivesForStats = statsProjectFilter === 'all' 
     ? drives 
@@ -262,6 +315,7 @@ const DrivesOverview = () => {
                     <TableHead>Status</TableHead>
                     <TableHead>GPS</TableHead>
                     <TableHead className="text-right">Km</TableHead>
+                    <TableHead className="text-right">Akcie</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -323,11 +377,36 @@ const DrivesOverview = () => {
                         <TableCell className="text-right whitespace-nowrap">
                           {record.is_completed ? `${record.km_driven} km` : `${record.km_start} km →`}
                         </TableCell>
+                        <TableCell className="text-right whitespace-nowrap">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm">
+                                •••
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="bg-popover z-50" align="end">
+                              <DropdownMenuItem onClick={() => handleEdit(record)}>
+                                <Edit className="mr-2 h-4 w-4" />
+                                Upraviť
+                              </DropdownMenuItem>
+                              {!record.is_completed && (
+                                <DropdownMenuItem onClick={() => handleComplete(record)}>
+                                  <CheckCircle2 className="mr-2 h-4 w-4" />
+                                  Dokončiť
+                                </DropdownMenuItem>
+                              )}
+                              <DropdownMenuItem onClick={() => handleDeleteClick(record)} className="text-destructive">
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Zmazať
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
                       </TableRow>
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center text-muted-foreground">
+                      <TableCell colSpan={8} className="text-center text-muted-foreground">
                         Žiadne záznamy
                       </TableCell>
                     </TableRow>
@@ -339,6 +418,49 @@ const DrivesOverview = () => {
           )}
         </CardContent>
       </Card>
+
+      {selectedDrive && (
+        <>
+          <EditDriveDialog
+            open={editDialogOpen}
+            onOpenChange={setEditDialogOpen}
+            drive={selectedDrive}
+            vehicles={vehicles || []}
+            projects={projects || []}
+            onSave={handleSaveDrive}
+            isUpdating={isUpdating}
+          />
+          {!selectedDrive.is_completed && (
+            <CompleteDriveDialog
+              open={completeDialogOpen}
+              onOpenChange={setCompleteDialogOpen}
+              drive={selectedDrive}
+              onComplete={handleCompleteDrive}
+              isCompleting={isCompleting}
+            />
+          )}
+        </>
+      )}
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Odstrániť jazdu?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Táto akcia sa nedá vrátiť späť. Záznam jazdy bude permanentne odstránený.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Zrušiť</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-destructive text-destructive-foreground"
+            >
+              Odstrániť
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

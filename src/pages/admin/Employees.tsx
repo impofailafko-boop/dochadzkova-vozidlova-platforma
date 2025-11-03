@@ -30,7 +30,7 @@ import {
 } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Edit } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -42,16 +42,34 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { EditEmployeeDialog } from '@/components/admin/EditEmployeeDialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 const Employees = () => {
-  const { employees, isLoading, createEmployee, deleteEmployee, updateEmployeeType, updateEmployeeRole, isCreating } = useEmployees();
+  const { employees, isLoading, createEmployee, deleteEmployee, updateEmployeeType, updateEmployeeRole, updateEmployeeProfile, isCreating, isUpdatingProfile } = useEmployees();
   const [open, setOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState<any>(null);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     full_name: '',
     phone: '',
   });
+
+  const handleEdit = (employee: any) => {
+    setSelectedEmployee(employee);
+    setEditDialogOpen(true);
+  };
+
+  const handleSaveProfile = (userId: string, data: any) => {
+    updateEmployeeProfile({ userId, ...data });
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -188,30 +206,46 @@ const Employees = () => {
                           </Select>
                         </TableCell>
                         <TableCell className="text-right whitespace-nowrap">
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
                               <Button variant="ghost" size="sm">
-                                <Trash2 className="h-4 w-4 text-destructive" />
+                                •••
                               </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Odstrániť zamestnanca?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Táto akcia sa nedá vrátiť späť. Účet zamestnanca bude permanentne odstránený.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Zrušiť</AlertDialogCancel>
-                                <AlertDialogAction
-                                  onClick={() => deleteEmployee(employee.user_id)}
-                                  className="bg-destructive text-destructive-foreground"
-                                >
-                                  Odstrániť
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="bg-popover z-50" align="end">
+                              <DropdownMenuItem onClick={() => handleEdit(employee)}>
+                                <Edit className="mr-2 h-4 w-4" />
+                                Upraviť profil
+                              </DropdownMenuItem>
+                              <DropdownMenuItem asChild>
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <div className="flex items-center cursor-pointer text-destructive">
+                                      <Trash2 className="mr-2 h-4 w-4" />
+                                      Odstrániť
+                                    </div>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>Odstrániť zamestnanca?</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        Táto akcia sa nedá vrátiť späť. Účet zamestnanca bude permanentne odstránený.
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>Zrušiť</AlertDialogCancel>
+                                      <AlertDialogAction
+                                        onClick={() => deleteEmployee(employee.user_id)}
+                                        className="bg-destructive text-destructive-foreground"
+                                      >
+                                        Odstrániť
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </TableCell>
                       </TableRow>
                     ))
@@ -229,6 +263,16 @@ const Employees = () => {
           )}
         </CardContent>
       </Card>
+
+      {selectedEmployee && (
+        <EditEmployeeDialog
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+          employee={selectedEmployee}
+          onSave={handleSaveProfile}
+          isUpdating={isUpdatingProfile}
+        />
+      )}
     </div>
   );
 };

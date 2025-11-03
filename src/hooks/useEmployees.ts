@@ -140,6 +140,24 @@ export function useEmployees() {
     },
   });
 
+  const updateEmployeeProfile = useMutation({
+    mutationFn: async ({ userId, ...data }: { userId: string; full_name?: string; phone?: string }) => {
+      const { error } = await supabase
+        .from('profiles')
+        .update(data)
+        .eq('user_id', userId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['employees'] });
+      toast.success('Profil aktualizovaný');
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Chyba pri aktualizácii profilu');
+    },
+  });
+
   return {
     employees,
     isLoading,
@@ -148,9 +166,11 @@ export function useEmployees() {
     updateEmployeeProject: updateEmployeeProject.mutate,
     updateEmployeeType: updateEmployeeType.mutate,
     updateEmployeeRole: updateEmployeeRole.mutate,
+    updateEmployeeProfile: updateEmployeeProfile.mutate,
     isCreating: createEmployee.isPending,
     isDeleting: deleteEmployee.isPending,
     isUpdatingProject: updateEmployeeProject.isPending,
     isUpdatingType: updateEmployeeType.isPending,
+    isUpdatingProfile: updateEmployeeProfile.isPending,
   };
 }
