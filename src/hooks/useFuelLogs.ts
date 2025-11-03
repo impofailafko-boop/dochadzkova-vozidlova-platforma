@@ -90,7 +90,7 @@ export function useFuelLogs(userId: string | undefined, params?: { limit?: numbe
 
       if (error) throw error;
     },
-    onMutate: async () => {
+    onMutate: async (input) => {
       // Dismiss any existing toasts
       toast.dismiss();
       
@@ -99,6 +99,29 @@ export function useFuelLogs(userId: string | undefined, params?: { limit?: numbe
       
       // Snapshot previous data
       const previousData = queryClient.getQueryData(['fuel-logs', userId, limit, offset, startDate, endDate]);
+      
+      // Optimistically update to new value
+      queryClient.setQueryData(['fuel-logs', userId, limit, offset, startDate, endDate], (old: any) => {
+        const tempLog = {
+          id: 'temp-' + Date.now(),
+          vehicle_id: input.vehicle_id,
+          project_id: input.project_id,
+          date: input.date,
+          liters: input.liters,
+          price: input.price,
+          note: input.note,
+          photo_receipt: null,
+          user_id: userId,
+          created_at: new Date().toISOString(),
+          vehicles: null,
+          projects: null,
+        };
+        
+        return {
+          data: [tempLog, ...(old?.data || [])],
+          count: (old?.count || 0) + 1,
+        };
+      });
       
       // Show success toast immediately
       toast.success('Tankovanie zaznamenané');
