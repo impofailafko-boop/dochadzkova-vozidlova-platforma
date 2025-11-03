@@ -26,8 +26,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { Download, CheckCircle2, AlertCircle, MapPin, Edit, Trash2 } from 'lucide-react';
+import { Download, CheckCircle2, AlertCircle, MapPin, Edit, Trash2, Image as ImageIcon } from 'lucide-react';
 import { EditDriveDialog } from '@/components/admin/EditDriveDialog';
+import { supabase } from '@/integrations/supabase/client';
 import { CompleteDriveDialog } from '@/components/admin/CompleteDriveDialog';
 import {
   AlertDialog,
@@ -315,6 +316,8 @@ const DrivesOverview = () => {
                     <TableHead>Status</TableHead>
                     <TableHead>GPS</TableHead>
                     <TableHead className="text-right">Km</TableHead>
+                    <TableHead>Tachometer (Štart)</TableHead>
+                    <TableHead>Tachometer (Koniec)</TableHead>
                     <TableHead className="text-right">Akcie</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -377,6 +380,44 @@ const DrivesOverview = () => {
                         <TableCell className="text-right whitespace-nowrap">
                           {record.is_completed ? `${record.km_driven} km` : `${record.km_start} km →`}
                         </TableCell>
+                        <TableCell className="whitespace-nowrap">
+                          {record.photo_km_start ? (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                const url = supabase.storage
+                                  .from('vehicle-photos')
+                                  .getPublicUrl(record.photo_km_start).data.publicUrl;
+                                window.open(url, '_blank');
+                              }}
+                            >
+                              <ImageIcon className="h-4 w-4 mr-2" />
+                              Zobraziť
+                            </Button>
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap">
+                          {record.photo_km_end ? (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                const url = supabase.storage
+                                  .from('vehicle-photos')
+                                  .getPublicUrl(record.photo_km_end).data.publicUrl;
+                                window.open(url, '_blank');
+                              }}
+                            >
+                              <ImageIcon className="h-4 w-4 mr-2" />
+                              Zobraziť
+                            </Button>
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </TableCell>
                         <TableCell className="text-right whitespace-nowrap">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -406,7 +447,7 @@ const DrivesOverview = () => {
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={8} className="text-center text-muted-foreground">
+                      <TableCell colSpan={10} className="text-center text-muted-foreground">
                         Žiadne záznamy
                       </TableCell>
                     </TableRow>

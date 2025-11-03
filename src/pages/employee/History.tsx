@@ -335,6 +335,8 @@ const History = () => {
                         <TableHead className="whitespace-nowrap">Projekt</TableHead>
                         <TableHead className="whitespace-nowrap">Status</TableHead>
                         <TableHead className="text-right whitespace-nowrap">Kilometre</TableHead>
+                        <TableHead className="whitespace-nowrap">Tachometer (Štart)</TableHead>
+                        <TableHead className="whitespace-nowrap">Tachometer (Koniec)</TableHead>
                         <TableHead className="whitespace-nowrap"></TableHead>
                       </TableRow>
                     </TableHeader>
@@ -364,6 +366,44 @@ const History = () => {
                               {log.is_completed ? `${log.km_driven} km` : `${log.km_start} km →`}
                             </TableCell>
                             <TableCell className="whitespace-nowrap">
+                              {log.photo_km_start ? (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    const url = supabase.storage
+                                      .from('vehicle-photos')
+                                      .getPublicUrl(log.photo_km_start).data.publicUrl;
+                                    window.open(url, '_blank');
+                                  }}
+                                >
+                                  <ImageIcon className="h-4 w-4 mr-2" />
+                                  Zobraziť
+                                </Button>
+                              ) : (
+                                <span className="text-muted-foreground">-</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="whitespace-nowrap">
+                              {log.photo_km_end ? (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    const url = supabase.storage
+                                      .from('vehicle-photos')
+                                      .getPublicUrl(log.photo_km_end).data.publicUrl;
+                                    window.open(url, '_blank');
+                                  }}
+                                >
+                                  <ImageIcon className="h-4 w-4 mr-2" />
+                                  Zobraziť
+                                </Button>
+                              ) : (
+                                <span className="text-muted-foreground">-</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="whitespace-nowrap">
                               {!log.is_completed && (
                                 <Button
                                   size="sm"
@@ -377,7 +417,7 @@ const History = () => {
                         ))
                       ) : (
                         <TableRow>
-                          <TableCell colSpan={6} className="text-center text-muted-foreground">
+                          <TableCell colSpan={8} className="text-center text-muted-foreground">
                             Žiadne záznamy
                           </TableCell>
                         </TableRow>
