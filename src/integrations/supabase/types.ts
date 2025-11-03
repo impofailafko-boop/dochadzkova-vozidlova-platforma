@@ -139,6 +139,7 @@ export type Database = {
         Row: {
           created_at: string
           current_project_id: string | null
+          email: string | null
           employment_type:
             | Database["public"]["Enums"]["employment_type_new"]
             | null
@@ -150,6 +151,7 @@ export type Database = {
         Insert: {
           created_at?: string
           current_project_id?: string | null
+          email?: string | null
           employment_type?:
             | Database["public"]["Enums"]["employment_type_new"]
             | null
@@ -161,6 +163,7 @@ export type Database = {
         Update: {
           created_at?: string
           current_project_id?: string | null
+          email?: string | null
           employment_type?:
             | Database["public"]["Enums"]["employment_type_new"]
             | null

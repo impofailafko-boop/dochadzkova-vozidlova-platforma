@@ -179,6 +179,7 @@ const Employees = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="whitespace-nowrap">Meno</TableHead>
+                    <TableHead className="whitespace-nowrap">Email</TableHead>
                     <TableHead className="whitespace-nowrap">Telefón</TableHead>
                     <TableHead className="whitespace-nowrap">Typ pracovného vzťahu</TableHead>
                     <TableHead className="text-right whitespace-nowrap">Akcie</TableHead>
@@ -189,6 +190,7 @@ const Employees = () => {
                     employees.map((employee: any) => (
                       <TableRow key={employee.id}>
                         <TableCell className="font-medium whitespace-nowrap">{employee.full_name}</TableCell>
+                        <TableCell className="whitespace-nowrap">{employee.email || '-'}</TableCell>
                         <TableCell className="whitespace-nowrap">{employee.phone || '-'}</TableCell>
                         <TableCell className="whitespace-nowrap">
                     <Select 
