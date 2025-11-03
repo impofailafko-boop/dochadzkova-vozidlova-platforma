@@ -1,6 +1,25 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { z } from 'zod';
+
+const createEmployeeSchema = z.object({
+  email: z.string()
+    .email('Neplatný email')
+    .max(255, 'Email je príliš dlhý'),
+  password: z.string()
+    .min(8, 'Heslo musí mať aspoň 8 znakov')
+    .max(72, 'Heslo je príliš dlhé'),
+  full_name: z.string()
+    .trim()
+    .min(2, 'Meno musí mať aspoň 2 znaky')
+    .max(100, 'Meno je príliš dlhé'),
+  phone: z.string()
+    .trim()
+    .regex(/^\+?[1-9]\d{1,14}$/, 'Neplatné telefónne číslo')
+    .optional()
+    .or(z.literal('')),
+});
 
 interface EmployeeInput {
   email: string;
@@ -36,14 +55,17 @@ export function useEmployees() {
 
   const createEmployee = useMutation({
     mutationFn: async (input: EmployeeInput) => {
+      // Validate input
+      const validatedInput = createEmployeeSchema.parse(input);
+
       // Create user via Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: input.email,
-        password: input.password,
+        email: validatedInput.email,
+        password: validatedInput.password,
         options: {
           data: {
-            full_name: input.full_name,
-            phone: input.phone,
+            full_name: validatedInput.full_name.trim(),
+            phone: validatedInput.phone || null,
           },
         },
       });
@@ -54,7 +76,7 @@ export function useEmployees() {
       // Update profile with phone
       const { error: profileError } = await supabase
         .from('profiles')
-        .update({ phone: input.phone })
+        .update({ phone: validatedInput.phone || null })
         .eq('user_id', authData.user.id);
 
       if (profileError) throw profileError;
@@ -64,7 +86,12 @@ export function useEmployees() {
       toast.success('Zamestnanec vytvorený');
     },
     onError: (error: any) => {
-      toast.error(error.message || 'Chyba pri vytváraní zamestnanca');
+      if (error instanceof z.ZodError) {
+        const firstError = error.errors[0];
+        toast.error(firstError.message);
+      } else {
+        toast.error(error.message || 'Chyba pri vytváraní zamestnanca');
+      }
     },
   });
 

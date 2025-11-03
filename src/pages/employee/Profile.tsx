@@ -4,18 +4,40 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, User, Lock } from 'lucide-react';
+import { Loader2, User } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+
+const profileSchema = z.object({
+  full_name: z.string()
+    .trim()
+    .min(2, 'Meno musí mať aspoň 2 znaky')
+    .max(100, 'Meno je príliš dlhé')
+    .regex(/^[a-zA-ZáäčďéěíĺľňóôŕřšťúůýžÁÄČĎÉĚÍĹĽŇÓÔŔŘŠŤÚŮÝŽ\s]+$/, 'Meno môže obsahovať len písmená a medzery'),
+  phone: z.string()
+    .trim()
+    .regex(/^\+?[1-9]\d{1,14}$/, 'Neplatné telefónne číslo')
+    .optional()
+    .or(z.literal('')),
+});
+
+type ProfileFormData = z.infer<typeof profileSchema>;
 
 const Profile = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [formData, setFormData] = useState({
-    full_name: '',
-    phone: '',
+  
+  const form = useForm<ProfileFormData>({
+    resolver: zodResolver(profileSchema),
+    defaultValues: {
+      full_name: '',
+      phone: '',
+    },
   });
   
   const { data: profile, isLoading } = useQuery({
@@ -36,14 +58,14 @@ const Profile = () => {
   });
 
   const updateProfile = useMutation({
-    mutationFn: async (input: { full_name: string; phone: string }) => {
+    mutationFn: async (input: ProfileFormData) => {
       if (!user?.id) throw new Error('User not authenticated');
       
       const { error } = await supabase
         .from('profiles')
         .update({
-          full_name: input.full_name,
-          phone: input.phone,
+          full_name: input.full_name.trim(),
+          phone: input.phone || null,
         })
         .eq('user_id', user.id);
       
@@ -61,16 +83,15 @@ const Profile = () => {
   // Update form when profile loads
   useEffect(() => {
     if (profile) {
-      setFormData({
+      form.reset({
         full_name: profile.full_name || '',
         phone: profile.phone || '',
       });
     }
-  }, [profile]);
+  }, [profile, form]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    updateProfile.mutate(formData);
+  const handleSubmit = (data: ProfileFormData) => {
+    updateProfile.mutate(data);
   };
 
   if (isLoading) {
@@ -99,52 +120,60 @@ const Profile = () => {
           <CardDescription>Aktualizujte svoje meno a telefónne číslo</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={user?.email || ''}
-                disabled
-                className="bg-muted"
-              />
-              <p className="text-xs text-muted-foreground">Email sa nedá zmeniť</p>
-            </div>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={user?.email || ''}
+                  disabled
+                  className="bg-muted"
+                />
+                <p className="text-xs text-muted-foreground">Email sa nedá zmeniť</p>
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="full_name">Celé meno</Label>
-              <Input
-                id="full_name"
-                value={formData.full_name}
-                onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                placeholder="Ján Novák"
-                required
+              <FormField
+                control={form.control}
+                name="full_name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Celé meno</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ján Novák" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="phone">Telefónne číslo</Label>
-              <Input
-                id="phone"
-                type="tel"
-                value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                placeholder="+421 900 000 000"
+              <FormField
+                control={form.control}
+                name="phone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Telefónne číslo</FormLabel>
+                    <FormControl>
+                      <Input type="tel" placeholder="+421 900 000 000" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
 
-            <Button type="submit" disabled={updateProfile.isPending} className="w-full">
-              {updateProfile.isPending ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Ukladám...
-                </>
-              ) : (
-                'Uložiť zmeny'
-              )}
-            </Button>
-          </form>
+              <Button type="submit" disabled={updateProfile.isPending} className="w-full">
+                {updateProfile.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Ukladám...
+                  </>
+                ) : (
+                  'Uložiť zmeny'
+                )}
+              </Button>
+            </form>
+          </Form>
         </CardContent>
       </Card>
     </div>
