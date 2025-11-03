@@ -12,6 +12,11 @@ interface FuelLogInput {
   photo_receipt?: File;
 }
 
+interface UpdateFuelLogInput {
+  id: string;
+  photo_receipt?: File;
+}
+
 export function useFuelLogs(userId: string | undefined, params?: { limit?: number; offset?: number; startDate?: string; endDate?: string }) {
   const queryClient = useQueryClient();
   const { limit = 30, offset = 0, startDate, endDate } = params || {};
@@ -94,11 +99,49 @@ export function useFuelLogs(userId: string | undefined, params?: { limit?: numbe
     },
   });
 
+  const updateLog = useMutation({
+    mutationFn: async (input: UpdateFuelLogInput) => {
+      if (!userId) throw new Error('User not authenticated');
+
+      let photoUrl: string | null = null;
+      
+      // Upload new photo if provided
+      if (input.photo_receipt) {
+        const fileExt = input.photo_receipt.name.split('.').pop();
+        const fileName = `${userId}/${Date.now()}_receipt.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('vehicle-photos')
+          .upload(fileName, input.photo_receipt);
+
+        if (uploadError) throw uploadError;
+        photoUrl = fileName;
+      }
+
+      const { error } = await supabase
+        .from('fuel_logs')
+        .update({ photo_receipt: photoUrl })
+        .eq('id', input.id)
+        .eq('user_id', userId); // Security check
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['fuel-logs'] });
+      toast.success('Fotka bločku bola pridaná');
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Chyba pri pridávaní fotky');
+    },
+  });
+
   return {
     logs,
     count,
     isLoading,
     createLog: createLog.mutate,
     isCreating: createLog.isPending,
+    updateLog: updateLog.mutate,
+    isUpdating: updateLog.isPending,
   };
 }

@@ -17,9 +17,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { Clock, Car, Fuel, CheckCircle2, AlertCircle, CalendarIcon, X, ImageIcon } from 'lucide-react';
+import { Clock, Car, Fuel, CheckCircle2, AlertCircle, CalendarIcon, X, ImageIcon, Camera } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { CompleteDriveDialog } from '@/components/employee/CompleteDriveDialog';
+import { EditFuelReceiptDialog } from '@/components/employee/EditFuelReceiptDialog';
 import { DatePicker } from '@/components/ui/date-picker';
 import { format } from 'date-fns';
 import { cn, formatHoursToReadable } from '@/lib/utils';
@@ -35,6 +36,7 @@ import {
 const History = () => {
   const { user } = useAuth();
   const [selectedLog, setSelectedLog] = useState<any>(null);
+  const [editingFuelLog, setEditingFuelLog] = useState<any>(null);
   
   // Date filtering state
   const [startDate, setStartDate] = useState<Date | undefined>();
@@ -84,6 +86,8 @@ const History = () => {
   const fuelLogs = fuelQuery.logs || [];
   const fuelCount = fuelQuery.count || 0;
   const loadingFuel = fuelQuery.isLoading;
+  const updateFuelLog = fuelQuery.updateLog;
+  const isUpdatingFuel = fuelQuery.isUpdating;
 
   // Calculate total pages
   const attendanceTotalPages = Math.ceil(attendanceCount / itemsPerPage);
@@ -101,6 +105,21 @@ const History = () => {
     setStartDate(undefined);
     setEndDate(undefined);
     handleDateChange();
+  };
+
+  const canEditFuelLog = (fuelLogDate: string) => {
+    const today = new Date().toISOString().split('T')[0];
+    
+    // Môže editovať len tankovania z dnešného dňa
+    if (fuelLogDate !== today) return false;
+    
+    // Skontrolovať či už neodišiel z práce
+    const todayAttendance = attendanceHistory.find(
+      (record) => record.date === today
+    );
+    
+    // Ak má departure_time, nemôže už editovať
+    return !todayAttendance?.departure_time;
   };
 
   return (
@@ -487,8 +506,19 @@ const History = () => {
                                   <ImageIcon className="h-4 w-4 mr-2" />
                                   Zobraziť
                                 </Button>
+                              ) : canEditFuelLog(log.date) ? (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setEditingFuelLog(log)}
+                                >
+                                  <Camera className="h-4 w-4 mr-2" />
+                                  Pridať
+                                </Button>
                               ) : (
-                                <span className="text-muted-foreground">-</span>
+                                <span className="text-muted-foreground text-xs">
+                                  Nedá sa pridať
+                                </span>
                               )}
                             </TableCell>
                           </TableRow>
@@ -575,6 +605,16 @@ const History = () => {
           log={selectedLog}
         />
       )}
+
+      <EditFuelReceiptDialog
+        open={!!editingFuelLog}
+        onClose={() => setEditingFuelLog(null)}
+        onUpdate={(fuelLogId, photo) => {
+          updateFuelLog({ id: fuelLogId, photo_receipt: photo });
+        }}
+        fuelLog={editingFuelLog}
+        isUpdating={isUpdatingFuel}
+      />
     </div>
   );
 };
