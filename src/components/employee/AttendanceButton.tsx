@@ -2,6 +2,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useAttendance } from '@/hooks/useAttendance';
 import { useActiveVehicleLogs } from '@/hooks/useVehicleLogs';
 import { useGeolocation } from '@/hooks/useGeolocation';
+import { useDebounce } from '@/hooks/useDebounce';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -9,7 +10,7 @@ import { Clock, LogIn, LogOut, Loader2, MapPin, WifiOff, AlertCircle } from 'luc
 import { OfflineIndicator } from './OfflineIndicator';
 import { savePendingAttendance } from '@/lib/offlineStorage';
 import { toast } from 'sonner';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { formatHoursToReadable } from '@/lib/utils';
 import { SelectProjectDialog } from './SelectProjectDialog';
@@ -68,7 +69,7 @@ const AttendanceButton = () => {
     setShowProjectDialog(true);
   };
 
-  const handleProjectSelect = async (projectId: string | null) => {
+  const handleProjectSelectCore = useCallback(async (projectId: string | null) => {
     if (!isOnline) {
       // Save to IndexedDB for offline
       try {
@@ -99,9 +100,15 @@ const AttendanceButton = () => {
         setShouldNavigateBack(true);
       }
     }
+  }, [isOnline, getLocation, user?.id, recordArrival, returnUrl]);
+
+  const { debouncedFn: debouncedProjectSelect } = useDebounce(handleProjectSelectCore, 2000);
+  
+  const handleProjectSelect = (projectId: string | null) => {
+    debouncedProjectSelect(projectId);
   };
 
-  const handleDeparture = async () => {
+  const handleDepartureCore = useCallback(async () => {
     if (!isOnline) {
       // Save to IndexedDB for offline
       try {
@@ -129,6 +136,12 @@ const AttendanceButton = () => {
     } else {
       recordDeparture();
     }
+  }, [isOnline, getLocation, user?.id, recordDeparture]);
+
+  const { debouncedFn: debouncedDeparture } = useDebounce(handleDepartureCore, 2000);
+  
+  const handleDeparture = () => {
+    debouncedDeparture();
   };
 
   if (isLoading || isLoadingActiveLogs) {

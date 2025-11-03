@@ -90,12 +90,32 @@ export function useFuelLogs(userId: string | undefined, params?: { limit?: numbe
 
       if (error) throw error;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['fuel-logs'] });
+    onMutate: async () => {
+      // Dismiss any existing toasts
+      toast.dismiss();
+      
+      // Cancel outgoing queries to prevent race conditions
+      await queryClient.cancelQueries({ queryKey: ['fuel-logs', userId] });
+      
+      // Snapshot previous data
+      const previousData = queryClient.getQueryData(['fuel-logs', userId, limit, offset, startDate, endDate]);
+      
+      // Show success toast immediately
       toast.success('Tankovanie zaznamenané');
+      
+      // Return context for rollback
+      return { previousData };
     },
-    onError: (error: any) => {
+    onError: (error: any, _variables, context) => {
+      // Rollback to previous state if available
+      if (context?.previousData !== undefined) {
+        queryClient.setQueryData(['fuel-logs', userId, limit, offset, startDate, endDate], context.previousData);
+      }
       toast.error(error.message || 'Chyba pri zaznamenaní tankovania');
+    },
+    onSettled: () => {
+      // Always refetch after error or success to sync with server
+      queryClient.invalidateQueries({ queryKey: ['fuel-logs'] });
     },
   });
 

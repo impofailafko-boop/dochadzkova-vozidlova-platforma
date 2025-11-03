@@ -5,6 +5,7 @@ import { useProjects } from '@/hooks/useProjects';
 import { useAttendance } from '@/hooks/useAttendance';
 import { useFormPersistence } from '@/hooks/useFormPersistence';
 import { clearLastFormRoute } from '@/hooks/useRouteTracking';
+import { useDebounce } from '@/hooks/useDebounce';
 import { formatDateToLocalString, getTodayLocalString, parseDateString } from '@/lib/utils';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -20,7 +21,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Loader2, AlertCircle, Camera, ImageIcon, X } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -96,7 +97,7 @@ const Fueling = () => {
     }
   };
 
-  const handleSubmit = (data: FuelLogFormData) => {
+  const handleSubmitCore = useCallback((data: FuelLogFormData) => {
     createLog(
       {
         vehicle_id: data.vehicle_id,
@@ -127,6 +128,12 @@ const Fueling = () => {
         },
       }
     );
+  }, [createLog, clearPersistedData, form]);
+
+  const { debouncedFn: debouncedSubmit } = useDebounce(handleSubmitCore, 2000);
+  
+  const handleSubmit = (data: FuelLogFormData) => {
+    debouncedSubmit(data);
   };
 
   const isLoading = loadingVehicles || loadingProjects || loadingAttendance;

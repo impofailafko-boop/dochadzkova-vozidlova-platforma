@@ -126,6 +126,11 @@ export function useAttendance(userId: string | undefined) {
       
       const now = getCurrentTimeString();
       
+      // Validate that departure time is after arrival time
+      if (todayAttendance.arrival_time >= now) {
+        throw new Error('Čas odchodu musí byť neskôr ako čas príchodu');
+      }
+      
       // Get GPS location using centralized hook
       const location = await getLocation();
       

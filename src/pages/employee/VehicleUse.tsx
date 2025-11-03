@@ -6,7 +6,8 @@ import { useAttendance } from '@/hooks/useAttendance';
 import { useFormPersistence } from '@/hooks/useFormPersistence';
 import { clearLastFormRoute } from '@/hooks/useRouteTracking';
 import { useProfile } from '@/hooks/useProfile';
-import { useMemo } from 'react';
+import { useDebounce } from '@/hooks/useDebounce';
+import { useMemo, useCallback } from 'react';
 import { formatDateToLocalString, getTodayLocalString, parseDateString } from '@/lib/utils';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -65,7 +66,7 @@ const VehicleUse = () => {
   // Persist form data in localStorage (exclude photo file)
   const { clearPersistedData } = useFormPersistence(form, 'vehicle-use-form', ['photo_km_start']);
 
-  const handleSubmit = (data: VehicleLogFormData) => {
+  const handleSubmitCore = useCallback((data: VehicleLogFormData) => {
     createLog(
       {
         vehicle_id: data.vehicle_id,
@@ -86,6 +87,12 @@ const VehicleUse = () => {
         },
       }
     );
+  }, [createLog, clearPersistedData, navigate]);
+
+  const { debouncedFn: debouncedSubmit } = useDebounce(handleSubmitCore, 2000);
+  
+  const handleSubmit = (data: VehicleLogFormData) => {
+    debouncedSubmit(data);
   };
 
   // Sort vehicles - last used vehicle first
