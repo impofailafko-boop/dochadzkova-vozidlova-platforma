@@ -134,6 +134,12 @@ export function useVehicleLogs(userId: string | undefined, params?: { limit?: nu
         });
 
       if (error) throw error;
+
+      // Update last used vehicle in profile
+      await supabase
+        .from('profiles')
+        .update({ last_used_vehicle_id: input.vehicle_id })
+        .eq('user_id', userId);
       
       return { startLatitude, startLongitude };
     },

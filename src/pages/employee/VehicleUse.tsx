@@ -5,6 +5,8 @@ import { useVehicleLogs } from '@/hooks/useVehicleLogs';
 import { useAttendance } from '@/hooks/useAttendance';
 import { useFormPersistence } from '@/hooks/useFormPersistence';
 import { clearLastFormRoute } from '@/hooks/useRouteTracking';
+import { useProfile } from '@/hooks/useProfile';
+import { useMemo } from 'react';
 import { formatDateToLocalString, getTodayLocalString, parseDateString } from '@/lib/utils';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -44,6 +46,7 @@ type VehicleLogFormData = z.infer<typeof vehicleLogSchema>;
 const VehicleUse = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { data: profile } = useProfile(user?.id);
   const { data: vehicles, isLoading: loadingVehicles } = useVehicles();
   const { data: projects, isLoading: loadingProjects } = useProjects();
   const { createLog, isCreating } = useVehicleLogs(user?.id);
@@ -84,6 +87,26 @@ const VehicleUse = () => {
       }
     );
   };
+
+  // Sort vehicles - last used vehicle first
+  const sortedVehicles = useMemo(() => {
+    if (!vehicles || !profile?.last_used_vehicle_id) {
+      return vehicles || [];
+    }
+    
+    const lastUsedIndex = vehicles.findIndex(
+      v => v.id === profile.last_used_vehicle_id
+    );
+    
+    if (lastUsedIndex === -1) {
+      return vehicles;
+    }
+    
+    const lastUsed = vehicles[lastUsedIndex];
+    const others = vehicles.filter(v => v.id !== profile.last_used_vehicle_id);
+    
+    return [lastUsed, ...others];
+  }, [vehicles, profile?.last_used_vehicle_id]);
 
   const isLoading = loadingVehicles || loadingProjects || loadingAttendance;
   const hasCheckedIn = todayAttendance && todayAttendance.arrival_time;
@@ -138,13 +161,20 @@ const VehicleUse = () => {
                                   <SelectValue placeholder="Vyberte vozidlo" />
                                 </SelectTrigger>
                               </FormControl>
-                              <SelectContent className="bg-popover z-50">
-                                {vehicles?.map((vehicle) => (
-                                  <SelectItem key={vehicle.id} value={vehicle.id}>
-                                    {vehicle.spz} - {vehicle.brand} {vehicle.type}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
+                  <SelectContent className="bg-popover z-50">
+                    {sortedVehicles?.map((vehicle, index) => (
+                      <SelectItem key={vehicle.id} value={vehicle.id}>
+                        <div className="flex items-center gap-2">
+                          <span>{vehicle.spz} - {vehicle.brand} {vehicle.type}</span>
+                          {index === 0 && profile?.last_used_vehicle_id === vehicle.id && (
+                            <span className="text-xs text-muted-foreground">
+                              (Naposledy použité)
+                            </span>
+                          )}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
                             </Select>
                             <FormMessage />
                           </FormItem>

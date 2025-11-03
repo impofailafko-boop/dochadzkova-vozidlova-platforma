@@ -146,6 +146,7 @@ export type Database = {
           full_name: string
           id: string
           job_position: Database["public"]["Enums"]["job_position"] | null
+          last_used_vehicle_id: string | null
           phone: string | null
           user_id: string
         }
@@ -159,6 +160,7 @@ export type Database = {
           full_name: string
           id?: string
           job_position?: Database["public"]["Enums"]["job_position"] | null
+          last_used_vehicle_id?: string | null
           phone?: string | null
           user_id: string
         }
@@ -172,6 +174,7 @@ export type Database = {
           full_name?: string
           id?: string
           job_position?: Database["public"]["Enums"]["job_position"] | null
+          last_used_vehicle_id?: string | null
           phone?: string | null
           user_id?: string
         }
@@ -181,6 +184,13 @@ export type Database = {
             columns: ["current_project_id"]
             isOneToOne: false
             referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_last_used_vehicle_id_fkey"
+            columns: ["last_used_vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
             referencedColumns: ["id"]
           },
         ]
