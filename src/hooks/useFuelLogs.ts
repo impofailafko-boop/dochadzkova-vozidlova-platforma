@@ -100,6 +100,13 @@ export function useFuelLogs(userId: string | undefined, params?: { limit?: numbe
       // Snapshot previous data
       const previousData = queryClient.getQueryData(['fuel-logs', userId, limit, offset, startDate, endDate]);
       
+      // Fetch vehicle and project info from cache
+      const vehiclesData: any = queryClient.getQueryData(['vehicles']);
+      const projectsData: any = queryClient.getQueryData(['projects']);
+      
+      const vehicle = vehiclesData?.find((v: any) => v.id === input.vehicle_id);
+      const project = input.project_id ? projectsData?.find((p: any) => p.id === input.project_id) : null;
+      
       // Optimistically update to new value
       queryClient.setQueryData(['fuel-logs', userId, limit, offset, startDate, endDate], (old: any) => {
         const tempLog = {
@@ -113,8 +120,8 @@ export function useFuelLogs(userId: string | undefined, params?: { limit?: numbe
           photo_receipt: null,
           user_id: userId,
           created_at: new Date().toISOString(),
-          vehicles: null,
-          projects: null,
+          vehicles: vehicle ? { spz: vehicle.spz, brand: vehicle.brand, type: vehicle.type } : null,
+          projects: project ? { name: project.name } : null,
         };
         
         return {
