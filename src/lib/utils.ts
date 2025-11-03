@@ -101,7 +101,9 @@ export function calculateWorkHours(arrivalTime: string | null | undefined, depar
     const hours = diffMs / (1000 * 60 * 60);
     return parseFloat(hours.toFixed(2));
   } catch (error) {
-    console.error('Error calculating work hours:', error);
+    if (import.meta.env.DEV) {
+      console.error('Error calculating work hours:', error);
+    }
     return null;
   }
 }

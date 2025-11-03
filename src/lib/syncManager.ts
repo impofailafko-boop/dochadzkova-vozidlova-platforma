@@ -73,8 +73,9 @@ export async function syncPendingAttendance(): Promise<number> {
         await markAttendanceSynced(record.id);
         syncedCount++;
       } catch (error) {
-        console.error('Failed to sync record:', record, error);
-        // Continue with other records even if one fails
+        if (import.meta.env.DEV) {
+          console.error('Failed to sync record:', record, error);
+        }
       }
     }
 
@@ -83,7 +84,9 @@ export async function syncPendingAttendance(): Promise<number> {
 
     return syncedCount;
   } catch (error) {
-    console.error('Sync failed:', error);
+    if (import.meta.env.DEV) {
+      console.error('Sync failed:', error);
+    }
     throw error;
   }
 }
@@ -97,7 +100,9 @@ export function setupAutoSync() {
         toast.success(`Synchronizované ${syncedCount} záznamov dochádzky`);
       }
     } catch (error) {
-      console.error('Auto-sync failed:', error);
+      if (import.meta.env.DEV) {
+        console.error('Auto-sync failed:', error);
+      }
       toast.error('Nepodarilo sa synchronizovať dochádzku');
     }
   });

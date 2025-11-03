@@ -12,11 +12,15 @@ export function useProjects() {
         .order('name');
 
       if (error) {
-        console.error('Error loading projects:', error);
+        if (import.meta.env.DEV) {
+          console.error('Error loading projects:', error);
+        }
         throw error;
       }
       
-      console.log('Loaded projects:', data);
+      if (import.meta.env.DEV) {
+        console.log('Loaded projects:', data);
+      }
       return data;
     },
   });

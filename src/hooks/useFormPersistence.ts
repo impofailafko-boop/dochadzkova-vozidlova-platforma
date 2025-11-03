@@ -24,7 +24,9 @@ export function useFormPersistence<T extends Record<string, any>>(
           }
         });
       } catch (error) {
-        console.error('Failed to parse saved form data:', error);
+        if (import.meta.env.DEV) {
+          console.error('Failed to parse saved form data:', error);
+        }
         localStorage.removeItem(storageKey);
       }
     }

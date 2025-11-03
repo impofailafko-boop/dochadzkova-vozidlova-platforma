@@ -34,8 +34,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .eq('user_id', userId);
 
       if (error) {
-        console.error('Error fetching user role:', error);
-        // Fallback to 'employee' if role not found (prevents infinite loop)
+        if (import.meta.env.DEV) {
+          console.error('Error fetching user role:', error);
+        }
         return 'employee';
       }
 
@@ -51,8 +52,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       return roles[0] as UserRole || 'employee';
     } catch (error) {
-      console.error('Error in fetchUserRole:', error);
-      // Fallback to 'employee' on error (prevents infinite loop)
+      if (import.meta.env.DEV) {
+        console.error('Error in fetchUserRole:', error);
+      }
       return 'employee';
     }
   };

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -7,16 +7,20 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { useProjects } from '@/hooks/useProjects';
 import { Loader2 } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+const selectProjectSchema = z.object({
+  project_id: z.string().min(1, 'Vyberte projekt alebo kliknite na Preskočiť'),
+});
+
+type SelectProjectFormData = z.infer<typeof selectProjectSchema>;
 
 interface SelectProjectDialogProps {
   open: boolean;
@@ -25,11 +29,23 @@ interface SelectProjectDialogProps {
 }
 
 export function SelectProjectDialog({ open, onClose, onSelect }: SelectProjectDialogProps) {
-  const [selectedProjectId, setSelectedProjectId] = useState<string>('');
   const { data: projects, isLoading } = useProjects();
+  
+  const form = useForm<SelectProjectFormData>({
+    resolver: zodResolver(selectProjectSchema),
+    defaultValues: {
+      project_id: '',
+    },
+  });
 
-  const handleConfirm = () => {
-    onSelect(selectedProjectId || null);
+  useEffect(() => {
+    if (open) {
+      form.reset({ project_id: '' });
+    }
+  }, [open, form]);
+
+  const onSubmit = (data: SelectProjectFormData) => {
+    onSelect(data.project_id);
     onClose();
   };
 
@@ -53,30 +69,43 @@ export function SelectProjectDialog({ open, onClose, onSelect }: SelectProjectDi
             <Loader2 className="h-6 w-6 animate-spin" />
           </div>
         ) : (
-          <div className="py-4">
-            <Select value={selectedProjectId} onValueChange={setSelectedProjectId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Vyberte projekt" />
-              </SelectTrigger>
-              <SelectContent>
-                {projects?.map((project) => (
-                  <SelectItem key={project.id} value={project.id}>
-                    {project.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        )}
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
+              <FormField
+                control={form.control}
+                name="project_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Vyberte projekt" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {projects?.map((project) => (
+                            <SelectItem key={project.id} value={project.id}>
+                              {project.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-        <DialogFooter className="flex gap-2">
-          <Button variant="outline" onClick={handleSkip}>
-            Preskočiť
-          </Button>
-          <Button onClick={handleConfirm} disabled={isLoading}>
-            Potvrdiť
-          </Button>
-        </DialogFooter>
+              <DialogFooter className="flex gap-2">
+                <Button type="button" variant="outline" onClick={handleSkip}>
+                  Preskočiť
+                </Button>
+                <Button type="submit" disabled={isLoading}>
+                  Potvrdiť
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        )}
       </DialogContent>
     </Dialog>
   );

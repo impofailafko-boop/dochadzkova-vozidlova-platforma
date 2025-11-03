@@ -159,9 +159,10 @@ export function useAIReports() {
       }
 
     } catch (error) {
-      console.error('AI chat error:', error);
+      if (import.meta.env.DEV) {
+        console.error('AI chat error:', error);
+      }
       toast.error('Nepodarilo sa získať odpoveď od AI');
-      // Remove the user message if failed
       setMessages((prev) => prev.slice(0, -2));
     } finally {
       setIsLoading(false);

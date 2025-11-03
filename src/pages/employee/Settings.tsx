@@ -77,8 +77,10 @@ const Settings = () => {
       setNewPassword('');
       setConfirmPassword('');
     } catch (error: any) {
-      console.error('Error changing password:', error);
-      toast.error(error.message || 'Nepodarilo sa zmeniť heslo');
+      if (import.meta.env.DEV) {
+        console.error('Error changing password:', error);
+      }
+      toast.error('Nepodarilo sa zmeniť heslo');
     } finally {
       setIsChangingPassword(false);
     }
@@ -101,8 +103,10 @@ const Settings = () => {
       await signOut();
       navigate('/auth');
     } catch (error: any) {
-      console.error('Error deleting account:', error);
-      toast.error(error.message || 'Nepodarilo sa zrušiť účet');
+      if (import.meta.env.DEV) {
+        console.error('Error deleting account:', error);
+      }
+      toast.error('Nepodarilo sa zrušiť účet');
       setIsDeletingAccount(false);
     }
   };
