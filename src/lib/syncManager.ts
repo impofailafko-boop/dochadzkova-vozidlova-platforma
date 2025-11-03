@@ -1,6 +1,30 @@
 import { supabase } from '@/integrations/supabase/client';
 import { getPendingAttendance, markAttendanceSynced, deleteSyncedAttendance } from './offlineStorage';
 import { toast } from 'sonner';
+import { formatDateToISO } from './utils';
+
+/**
+ * Vypočíta pracovné hodiny medzi dvoma časmi.
+ * Utility verzia pre použitie mimo React komponentov (napr. v syncManager).
+ */
+function calculateWorkHours(arrivalTime: string, departureTime: string): number | null {
+  try {
+    const arrivalDate = new Date(`1970-01-01T${arrivalTime}`);
+    const departureDate = new Date(`1970-01-01T${departureTime}`);
+    
+    if (isNaN(arrivalDate.getTime()) || isNaN(departureDate.getTime())) {
+      console.warn('Invalid time format:', { arrivalTime, departureTime });
+      return null;
+    }
+
+    const diffMs = departureDate.getTime() - arrivalDate.getTime();
+    const hours = diffMs / (1000 * 60 * 60);
+    return parseFloat(hours.toFixed(2));
+  } catch (error) {
+    console.error('Error calculating work hours:', error);
+    return null;
+  }
+}
 
 export async function syncPendingAttendance(): Promise<number> {
   try {
@@ -20,12 +44,13 @@ export async function syncPendingAttendance(): Promise<number> {
     for (const record of sortedRecords) {
       try {
         if (record.type === 'arrival') {
+          const recordDate = new Date(record.timestamp);
           const { error } = await supabase
             .from('attendance')
             .insert({
               user_id: record.userId,
-              date: new Date(record.timestamp).toISOString().split('T')[0],
-              arrival_time: new Date(record.timestamp).toTimeString().split(' ')[0].substring(0, 5),
+              date: formatDateToISO(recordDate),
+              arrival_time: recordDate.toTimeString().split(' ')[0].substring(0, 5),
               arrival_latitude: record.latitude,
               arrival_longitude: record.longitude,
             });
@@ -33,7 +58,8 @@ export async function syncPendingAttendance(): Promise<number> {
           if (error) throw error;
         } else {
           // Find today's incomplete attendance
-          const today = new Date(record.timestamp).toISOString().split('T')[0];
+          const recordDate = new Date(record.timestamp);
+          const today = formatDateToISO(recordDate);
           const { data: todayAttendance, error: fetchError } = await supabase
             .from('attendance')
             .select('*')
@@ -47,14 +73,11 @@ export async function syncPendingAttendance(): Promise<number> {
           if (fetchError) throw fetchError;
 
           if (todayAttendance) {
-            const departureTime = new Date(record.timestamp).toTimeString().split(' ')[0].substring(0, 5);
+            const departureTime = recordDate.toTimeString().split(' ')[0].substring(0, 5);
             const arrivalTime = todayAttendance.arrival_time;
             
-            // Calculate total hours
-            const arrival = new Date(`2000-01-01 ${arrivalTime}`);
-            const departure = new Date(`2000-01-01 ${departureTime}`);
-            const diffMs = departure.getTime() - arrival.getTime();
-            const totalHours = (diffMs / (1000 * 60 * 60)).toFixed(2);
+            // Calculate total hours using utility function
+            const totalHours = calculateWorkHours(arrivalTime, departureTime);
 
             const { error: updateError } = await supabase
               .from('attendance')
@@ -62,7 +85,7 @@ export async function syncPendingAttendance(): Promise<number> {
                 departure_time: departureTime,
                 departure_latitude: record.latitude,
                 departure_longitude: record.longitude,
-                total_hours: parseFloat(totalHours),
+                total_hours: totalHours,
               })
               .eq('id', todayAttendance.id);
 

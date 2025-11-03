@@ -46,3 +46,24 @@ export function formatHoursToReadable(decimalHours: number | null | undefined): 
   
   return `${hours}h ${minutes}min`;
 }
+
+/**
+ * Gets current time as a string in HH:MM:SS format
+ */
+export function getCurrentTimeString(): string {
+  return new Date().toTimeString().split(' ')[0];
+}
+
+/**
+ * Formats a Date object to ISO date string (YYYY-MM-DD)
+ */
+export function formatDateToISO(date: Date): string {
+  return date.toISOString().split('T')[0];
+}
+
+/**
+ * Gets today's date as ISO string (YYYY-MM-DD)
+ */
+export function getTodayISO(): string {
+  return formatDateToISO(new Date());
+}

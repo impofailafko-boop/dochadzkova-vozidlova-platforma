@@ -1,9 +1,14 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useGeolocation } from './useGeolocation';
+import { useWorkHours } from './useWorkHours';
+import { getTodayISO, getCurrentTimeString } from '@/lib/utils';
 
 export function useAttendance(userId: string | undefined) {
   const queryClient = useQueryClient();
+  const { getLocation } = useGeolocation();
+  const { calculateHours } = useWorkHours();
 
   // Get today's attendance - find the latest incomplete record or the most recent one
   const { data: todayAttendance, isLoading } = useQuery({
@@ -11,7 +16,7 @@ export function useAttendance(userId: string | undefined) {
     queryFn: async () => {
       if (!userId) return null;
       
-      const today = new Date().toISOString().split('T')[0];
+      const today = getTodayISO();
       
       // First, try to find an incomplete attendance (no departure_time)
       const { data: incompleteData, error: incompleteError } = await supabase
@@ -50,29 +55,11 @@ export function useAttendance(userId: string | undefined) {
     mutationFn: async (projectId?: string | null) => {
       if (!userId) throw new Error('User not authenticated');
       
-      const today = new Date().toISOString().split('T')[0];
-      const now = new Date().toTimeString().split(' ')[0];
+      const today = getTodayISO();
+      const now = getCurrentTimeString();
 
-      // Get GPS location
-      let latitude: number | null = null;
-      let longitude: number | null = null;
-
-      if ('geolocation' in navigator) {
-        try {
-          const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-            navigator.geolocation.getCurrentPosition(resolve, reject, {
-              enableHighAccuracy: true,
-              timeout: 10000,
-              maximumAge: 0
-            });
-          });
-          latitude = position.coords.latitude;
-          longitude = position.coords.longitude;
-        } catch (error) {
-          console.warn('GPS location not available:', error);
-          // Continue without location - it's optional
-        }
-      }
+      // Get GPS location using centralized hook
+      const location = await getLocation();
 
       const { error } = await supabase
         .from('attendance')
@@ -80,14 +67,14 @@ export function useAttendance(userId: string | undefined) {
           user_id: userId,
           date: today,
           arrival_time: now,
-          arrival_latitude: latitude,
-          arrival_longitude: longitude,
+          arrival_latitude: location?.latitude || null,
+          arrival_longitude: location?.longitude || null,
           project_id: projectId || null,
         });
 
       if (error) throw error;
       
-      return { latitude, longitude };
+      return location;
     },
     onMutate: async () => {
       // Dismiss any existing toasts to prevent duplicates
@@ -100,8 +87,8 @@ export function useAttendance(userId: string | undefined) {
       const previousAttendance = queryClient.getQueryData(['attendance', 'today', userId]);
       
       // Optimistically update to new value
-      const today = new Date().toISOString().split('T')[0];
-      const now = new Date().toTimeString().split(' ')[0];
+      const today = getTodayISO();
+      const now = getCurrentTimeString();
       
       queryClient.setQueryData(['attendance', 'today', userId], {
         id: 'temp-id',
@@ -139,49 +126,27 @@ export function useAttendance(userId: string | undefined) {
     mutationFn: async () => {
       if (!userId || !todayAttendance) throw new Error('No arrival record found');
       
-      const now = new Date().toTimeString().split(' ')[0];
+      const now = getCurrentTimeString();
       
-      // Get GPS location for departure
-      let latitude: number | null = null;
-      let longitude: number | null = null;
-
-      if ('geolocation' in navigator) {
-        try {
-          const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-            navigator.geolocation.getCurrentPosition(resolve, reject, {
-              enableHighAccuracy: true,
-              timeout: 10000,
-              maximumAge: 0
-            });
-          });
-          latitude = position.coords.latitude;
-          longitude = position.coords.longitude;
-        } catch (error) {
-          console.warn('GPS location not available:', error);
-          // Continue without location - it's optional
-        }
-      }
+      // Get GPS location using centralized hook
+      const location = await getLocation();
       
-      // Calculate total hours
-      const arrivalTime = todayAttendance.arrival_time;
-      const arrival = new Date(`1970-01-01T${arrivalTime}`);
-      const departure = new Date(`1970-01-01T${now}`);
-      const diffMs = departure.getTime() - arrival.getTime();
-      const totalHours = (diffMs / (1000 * 60 * 60)).toFixed(2);
+      // Calculate total hours using centralized hook
+      const totalHours = calculateHours(todayAttendance.arrival_time, now);
 
       const { error } = await supabase
         .from('attendance')
         .update({
           departure_time: now,
-          total_hours: parseFloat(totalHours),
-          departure_latitude: latitude,
-          departure_longitude: longitude,
+          total_hours: totalHours,
+          departure_latitude: location?.latitude || null,
+          departure_longitude: location?.longitude || null,
         })
         .eq('id', todayAttendance.id);
 
       if (error) throw error;
       
-      return { latitude, longitude };
+      return location;
     },
     onMutate: async () => {
       // Dismiss any existing toasts to prevent duplicates
@@ -195,18 +160,14 @@ export function useAttendance(userId: string | undefined) {
       
       // Calculate optimistic values
       if (todayAttendance) {
-        const now = new Date().toTimeString().split(' ')[0];
-        const arrivalTime = todayAttendance.arrival_time;
-        const arrival = new Date(`1970-01-01T${arrivalTime}`);
-        const departure = new Date(`1970-01-01T${now}`);
-        const diffMs = departure.getTime() - arrival.getTime();
-        const totalHours = (diffMs / (1000 * 60 * 60)).toFixed(2);
+        const now = getCurrentTimeString();
+        const totalHours = calculateHours(todayAttendance.arrival_time, now);
         
         // Optimistically update to new value
         queryClient.setQueryData(['attendance', 'today', userId], {
           ...todayAttendance,
           departure_time: now,
-          total_hours: parseFloat(totalHours),
+          total_hours: totalHours,
         });
         
         // Show success toast immediately
