@@ -1,13 +1,14 @@
 import AttendanceButton from '@/components/employee/AttendanceButton';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Car, Fuel, History, Loader2 } from 'lucide-react';
+import { Car, Fuel, History, Loader2, Briefcase } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useActiveVehicleLogs } from '@/hooks/useVehicleLogs';
 import { ActiveVehicleCard } from '@/components/employee/ActiveVehicleCard';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -19,7 +20,15 @@ const Dashboard = () => {
       
       const { data, error } = await supabase
         .from('profiles')
-        .select('full_name')
+        .select(`
+          full_name,
+          current_project_id,
+          projects:current_project_id(
+            id,
+            name,
+            description
+          )
+        `)
         .eq('user_id', user.id)
         .single();
       
@@ -50,6 +59,22 @@ const Dashboard = () => {
           Tu nájdeš prehľad svojej dochádzky a rýchly prístup k dôležitým funkciám
         </p>
       </div>
+
+      {/* Current Project Banner */}
+      {profile?.projects && (
+        <Alert className="border-2 border-primary bg-primary/5">
+          <Briefcase className="h-5 w-5" />
+          <AlertTitle className="text-lg font-bold mb-2">
+            Aktuálny projekt: {profile.projects.name}
+          </AlertTitle>
+          {profile.projects.description && (
+            <AlertDescription className="text-base leading-relaxed">
+              <strong className="block mb-1 text-foreground">Inštrukcie:</strong>
+              <span className="text-muted-foreground">{profile.projects.description}</span>
+            </AlertDescription>
+          )}
+        </Alert>
+      )}
 
       <div className="grid gap-4 md:grid-cols-2">
         {/* Attendance widget */}
