@@ -25,6 +25,8 @@ const VehicleDetail = () => {
     brand: '',
     type: '',
     current_km: '',
+    vin: '',
+    highway_sticker_expiry: undefined as Date | undefined,
     service_date: undefined as Date | undefined,
     stk_date: undefined as Date | undefined,
     insurance_date: undefined as Date | undefined,
@@ -48,6 +50,8 @@ const VehicleDetail = () => {
         brand: vehicle.brand,
         type: vehicle.type,
         current_km: vehicle.current_km.toString(),
+        vin: vehicle.vin || '',
+        highway_sticker_expiry: parseDate(vehicle.highway_sticker_expiry),
         service_date: parseDate(vehicle.service_date),
         stk_date: parseDate(vehicle.stk_date),
         insurance_date: parseDate(vehicle.insurance_date),
@@ -90,6 +94,8 @@ const VehicleDetail = () => {
       brand: formData.brand,
       type: formData.type,
       current_km: parseInt(formData.current_km),
+      vin: formData.vin || null,
+      highway_sticker_expiry: formData.highway_sticker_expiry ? format(formData.highway_sticker_expiry, 'dd.MM.yyyy') : null,
       service_date: formData.service_date ? format(formData.service_date, 'dd.MM.yyyy') : null,
       stk_date: formData.stk_date ? format(formData.stk_date, 'dd.MM.yyyy') : null,
       insurance_date: formData.insurance_date ? format(formData.insurance_date, 'dd.MM.yyyy') : null,
@@ -114,6 +120,8 @@ const VehicleDetail = () => {
       brand: vehicle.brand,
       type: vehicle.type,
       current_km: vehicle.current_km.toString(),
+      vin: vehicle.vin || '',
+      highway_sticker_expiry: parseDate(vehicle.highway_sticker_expiry),
       service_date: parseDate(vehicle.service_date),
       stk_date: parseDate(vehicle.stk_date),
       insurance_date: parseDate(vehicle.insurance_date),
@@ -236,6 +244,33 @@ const VehicleDetail = () => {
                 />
               ) : (
                 <p className="text-lg font-medium">{vehicle.current_km.toLocaleString()} km</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="vin">VIN číslo</Label>
+              {isEditing ? (
+                <Input
+                  id="vin"
+                  value={formData.vin}
+                  onChange={(e) => setFormData({ ...formData, vin: e.target.value })}
+                  placeholder="napr. WBADT43452G123456"
+                />
+              ) : (
+                <p className="text-lg font-medium">{vehicle.vin || '-'}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="highway_sticker">Diaľničná známka - platnosť do</Label>
+              {isEditing ? (
+                <DatePicker
+                  date={formData.highway_sticker_expiry}
+                  onDateChange={(date) => setFormData({ ...formData, highway_sticker_expiry: date })}
+                  placeholder="Vyberte dátum platnosti"
+                />
+              ) : (
+                <p className="text-lg font-medium">{vehicle.highway_sticker_expiry || '-'}</p>
               )}
             </div>
           </div>

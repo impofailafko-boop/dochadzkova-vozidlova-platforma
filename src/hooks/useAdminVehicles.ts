@@ -7,14 +7,16 @@ interface VehicleInput {
   brand: string;
   type: string;
   current_km: number;
-  service_date?: string;
-  stk_date?: string;
-  insurance_date?: string;
-  emission_date?: string;
-  service_note?: string;
-  stk_note?: string;
-  insurance_note?: string;
-  emission_note?: string;
+  vin?: string | null;
+  highway_sticker_expiry?: string | null;
+  service_date?: string | null;
+  stk_date?: string | null;
+  insurance_date?: string | null;
+  emission_date?: string | null;
+  service_note?: string | null;
+  stk_note?: string | null;
+  insurance_note?: string | null;
+  emission_note?: string | null;
 }
 
 export function useAdminVehicles() {
