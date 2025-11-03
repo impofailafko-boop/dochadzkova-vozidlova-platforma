@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useGeolocation } from './useGeolocation';
 
 interface VehicleLogInput {
   vehicle_id: string;
@@ -42,6 +43,7 @@ export function useActiveVehicleLogs(userId: string | undefined) {
 
 export function useVehicleLogs(userId: string | undefined, params?: { limit?: number; offset?: number; startDate?: string; endDate?: string }) {
   const queryClient = useQueryClient();
+  const { getLocation } = useGeolocation();
   const { limit = 30, offset = 0, startDate, endDate } = params || {};
 
   const { data, isLoading } = useQuery({
@@ -83,26 +85,8 @@ export function useVehicleLogs(userId: string | undefined, params?: { limit?: nu
     mutationFn: async (input: VehicleLogInput) => {
       if (!userId) throw new Error('User not authenticated');
 
-      // Get GPS location for start
-      let startLatitude: number | null = null;
-      let startLongitude: number | null = null;
-
-      if ('geolocation' in navigator) {
-        try {
-          const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-            navigator.geolocation.getCurrentPosition(resolve, reject, {
-              enableHighAccuracy: true,
-              timeout: 10000,
-              maximumAge: 0
-            });
-          });
-          startLatitude = position.coords.latitude;
-          startLongitude = position.coords.longitude;
-        } catch (error) {
-          console.warn('GPS location not available:', error);
-          // Continue without location - it's optional
-        }
-      }
+      // Get GPS location using centralized hook
+      const location = await getLocation();
 
       let photoUrl = null;
       
@@ -127,8 +111,8 @@ export function useVehicleLogs(userId: string | undefined, params?: { limit?: nu
           date: input.date,
           km_start: input.km_start,
           photo_km_start: photoUrl,
-          start_latitude: startLatitude,
-          start_longitude: startLongitude,
+          start_latitude: location?.latitude || null,
+          start_longitude: location?.longitude || null,
           user_id: userId,
           is_completed: false,
         });
@@ -141,7 +125,7 @@ export function useVehicleLogs(userId: string | undefined, params?: { limit?: nu
         .update({ last_used_vehicle_id: input.vehicle_id })
         .eq('user_id', userId);
       
-      return { startLatitude, startLongitude };
+      return location;
     },
     onMutate: async (input: VehicleLogInput) => {
       // Dismiss any existing toasts
@@ -202,26 +186,8 @@ export function useVehicleLogs(userId: string | undefined, params?: { limit?: nu
     mutationFn: async (input: CompleteLogInput) => {
       if (!userId) throw new Error('User not authenticated');
 
-      // Get GPS location for end
-      let endLatitude: number | null = null;
-      let endLongitude: number | null = null;
-
-      if ('geolocation' in navigator) {
-        try {
-          const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-            navigator.geolocation.getCurrentPosition(resolve, reject, {
-              enableHighAccuracy: true,
-              timeout: 10000,
-              maximumAge: 0
-            });
-          });
-          endLatitude = position.coords.latitude;
-          endLongitude = position.coords.longitude;
-        } catch (error) {
-          console.warn('GPS location not available:', error);
-          // Continue without location - it's optional
-        }
-      }
+      // Get GPS location using centralized hook
+      const location = await getLocation();
 
       let photoUrl = null;
       
@@ -243,15 +209,15 @@ export function useVehicleLogs(userId: string | undefined, params?: { limit?: nu
         .update({
           km_end: input.km_end,
           photo_km_end: photoUrl,
-          end_latitude: endLatitude,
-          end_longitude: endLongitude,
+          end_latitude: location?.latitude || null,
+          end_longitude: location?.longitude || null,
           is_completed: true,
         })
         .eq('id', input.logId);
 
       if (error) throw error;
       
-      return { endLatitude, endLongitude };
+      return location;
     },
     onMutate: async (input: CompleteLogInput) => {
       // Dismiss any existing toasts
