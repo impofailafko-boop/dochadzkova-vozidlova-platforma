@@ -105,7 +105,7 @@ export function useEmployees() {
   });
 
   const updateEmployeeType = useMutation({
-    mutationFn: async ({ userId, employmentType }: { userId: string; employmentType: 'zivnost' | 'dohoda' | null }) => {
+    mutationFn: async ({ userId, employmentType }: { userId: string; employmentType: 'zivnost' | 'dohoda_25' | 'dohoda_50' | 'tpp' | 'administrativa' | null }) => {
       const { error } = await supabase
         .from('profiles')
         .update({ employment_type: employmentType })

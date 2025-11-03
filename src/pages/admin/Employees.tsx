@@ -82,7 +82,7 @@ const Employees = () => {
     if (employmentType === 'unset') {
       updateEmployeeType({ userId, employmentType: null });
     } else {
-      updateEmployeeType({ userId, employmentType: employmentType as 'zivnost' | 'dohoda' | null });
+      updateEmployeeType({ userId, employmentType: employmentType as 'zivnost' | 'dohoda_25' | 'dohoda_50' | 'tpp' | 'administrativa' | null });
     }
   };
 
@@ -191,19 +191,22 @@ const Employees = () => {
                         <TableCell className="font-medium whitespace-nowrap">{employee.full_name}</TableCell>
                         <TableCell className="whitespace-nowrap">{employee.phone || '-'}</TableCell>
                         <TableCell className="whitespace-nowrap">
-                          <Select 
-                            value={employee.employment_type || 'unset'} 
-                            onValueChange={(value) => handleTypeChange(employee.user_id, value === 'unset' ? null : value)}
-                          >
-                            <SelectTrigger className="w-[200px] bg-background">
-                              <SelectValue placeholder="Vyberte typ" />
-                            </SelectTrigger>
-                            <SelectContent className="bg-popover z-50">
-                              <SelectItem value="unset">Nezaznamenané</SelectItem>
-                              <SelectItem value="zivnost">Živnosť</SelectItem>
-                              <SelectItem value="dohoda">Dohoda</SelectItem>
-                            </SelectContent>
-                          </Select>
+                    <Select 
+                      value={employee.employment_type || 'unset'} 
+                      onValueChange={(value) => handleTypeChange(employee.user_id, value === 'unset' ? null : value)}
+                    >
+                      <SelectTrigger className="w-[200px] bg-background">
+                        <SelectValue placeholder="Vyberte typ" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-popover z-50">
+                        <SelectItem value="unset">Nezaznamenané</SelectItem>
+                        <SelectItem value="zivnost">Živnosť</SelectItem>
+                        <SelectItem value="dohoda_25">Dohoda 25%</SelectItem>
+                        <SelectItem value="dohoda_50">Dohoda 50%</SelectItem>
+                        <SelectItem value="tpp">TPP</SelectItem>
+                        <SelectItem value="administrativa">Administratíva</SelectItem>
+                      </SelectContent>
+                    </Select>
                         </TableCell>
                         <TableCell className="text-right whitespace-nowrap">
                           <DropdownMenu>

@@ -139,7 +139,9 @@ export type Database = {
         Row: {
           created_at: string
           current_project_id: string | null
-          employment_type: Database["public"]["Enums"]["employment_type"] | null
+          employment_type:
+            | Database["public"]["Enums"]["employment_type_new"]
+            | null
           full_name: string
           id: string
           phone: string | null
@@ -149,7 +151,7 @@ export type Database = {
           created_at?: string
           current_project_id?: string | null
           employment_type?:
-            | Database["public"]["Enums"]["employment_type"]
+            | Database["public"]["Enums"]["employment_type_new"]
             | null
           full_name: string
           id?: string
@@ -160,7 +162,7 @@ export type Database = {
           created_at?: string
           current_project_id?: string | null
           employment_type?:
-            | Database["public"]["Enums"]["employment_type"]
+            | Database["public"]["Enums"]["employment_type_new"]
             | null
           full_name?: string
           id?: string
@@ -389,6 +391,12 @@ export type Database = {
     Enums: {
       app_role: "admin" | "employee"
       employment_type: "zivnost" | "dohoda"
+      employment_type_new:
+        | "zivnost"
+        | "dohoda_25"
+        | "dohoda_50"
+        | "tpp"
+        | "administrativa"
       project_status: "planned" | "active" | "completed"
     }
     CompositeTypes: {
@@ -519,6 +527,13 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "employee"],
       employment_type: ["zivnost", "dohoda"],
+      employment_type_new: [
+        "zivnost",
+        "dohoda_25",
+        "dohoda_50",
+        "tpp",
+        "administrativa",
+      ],
       project_status: ["planned", "active", "completed"],
     },
   },
