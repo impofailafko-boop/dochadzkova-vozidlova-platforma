@@ -324,6 +324,7 @@ export type Database = {
           current_km: number
           emission_date: string | null
           emission_note: string | null
+          highway_sticker_expiry: string | null
           id: string
           insurance_date: string | null
           insurance_note: string | null
@@ -334,6 +335,7 @@ export type Database = {
           stk_date: string | null
           stk_note: string | null
           type: string
+          vin: string | null
         }
         Insert: {
           brand: string
@@ -341,6 +343,7 @@ export type Database = {
           current_km?: number
           emission_date?: string | null
           emission_note?: string | null
+          highway_sticker_expiry?: string | null
           id?: string
           insurance_date?: string | null
           insurance_note?: string | null
@@ -351,6 +354,7 @@ export type Database = {
           stk_date?: string | null
           stk_note?: string | null
           type: string
+          vin?: string | null
         }
         Update: {
           brand?: string
@@ -358,6 +362,7 @@ export type Database = {
           current_km?: number
           emission_date?: string | null
           emission_note?: string | null
+          highway_sticker_expiry?: string | null
           id?: string
           insurance_date?: string | null
           insurance_note?: string | null
@@ -368,6 +373,7 @@ export type Database = {
           stk_date?: string | null
           stk_note?: string | null
           type?: string
+          vin?: string | null
         }
         Relationships: []
       }
