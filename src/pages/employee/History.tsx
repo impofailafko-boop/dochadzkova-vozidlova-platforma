@@ -34,7 +34,7 @@ import {
 } from '@/components/ui/pagination';
 
 const History = () => {
-  const { user } = useAuth();
+  const { user, role } = useAuth();
   const [selectedLog, setSelectedLog] = useState<any>(null);
   const [editingFuelLog, setEditingFuelLog] = useState<any>(null);
   
@@ -108,9 +108,12 @@ const History = () => {
   };
 
   const canEditFuelLog = (fuelLogDate: string) => {
+    // Admin môže pridať fotku kedykoľvek
+    if (role === 'admin') return true;
+    
     const today = new Date().toISOString().split('T')[0];
     
-    // Môže editovať len tankovania z dnešného dňa
+    // Zamestnanec môže editovať len tankovania z dnešného dňa
     if (fuelLogDate !== today) return false;
     
     // Skontrolovať či už neodišiel z práce
