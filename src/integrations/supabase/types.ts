@@ -145,6 +145,7 @@ export type Database = {
             | null
           full_name: string
           id: string
+          job_position: Database["public"]["Enums"]["job_position"] | null
           phone: string | null
           user_id: string
         }
@@ -157,6 +158,7 @@ export type Database = {
             | null
           full_name: string
           id?: string
+          job_position?: Database["public"]["Enums"]["job_position"] | null
           phone?: string | null
           user_id: string
         }
@@ -169,6 +171,7 @@ export type Database = {
             | null
           full_name?: string
           id?: string
+          job_position?: Database["public"]["Enums"]["job_position"] | null
           phone?: string | null
           user_id?: string
         }
@@ -400,6 +403,12 @@ export type Database = {
         | "dohoda_50"
         | "tpp"
         | "administrativa"
+      job_position:
+        | "pilcik"
+        | "strojnik"
+        | "elektrikar"
+        | "sofer"
+        | "administrativa"
       project_status: "planned" | "active" | "completed"
     }
     CompositeTypes: {
@@ -535,6 +544,13 @@ export const Constants = {
         "dohoda_25",
         "dohoda_50",
         "tpp",
+        "administrativa",
+      ],
+      job_position: [
+        "pilcik",
+        "strojnik",
+        "elektrikar",
+        "sofer",
         "administrativa",
       ],
       project_status: ["planned", "active", "completed"],

@@ -51,7 +51,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 const Employees = () => {
-  const { employees, isLoading, createEmployee, deleteEmployee, updateEmployeeType, updateEmployeeRole, updateEmployeeProfile, isCreating, isUpdatingProfile } = useEmployees();
+  const { employees, isLoading, createEmployee, deleteEmployee, updateEmployeeType, updateEmployeeRole, updateEmployeeProfile, updateEmployeePosition, isCreating, isUpdatingProfile } = useEmployees();
   const [open, setOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<any>(null);
@@ -88,6 +88,14 @@ const Employees = () => {
 
   const handleRoleChange = (userId: string, role: string) => {
     updateEmployeeRole({ userId, role: role as 'admin' | 'employee' });
+  };
+
+  const handlePositionChange = (userId: string, jobPosition: string | null) => {
+    if (jobPosition === 'unset') {
+      updateEmployeePosition({ userId, jobPosition: null });
+    } else {
+      updateEmployeePosition({ userId, jobPosition: jobPosition as 'pilcik' | 'strojnik' | 'elektrikar' | 'sofer' | 'administrativa' | null });
+    }
   };
 
   return (
@@ -182,6 +190,7 @@ const Employees = () => {
                     <TableHead className="whitespace-nowrap">Email</TableHead>
                     <TableHead className="whitespace-nowrap">Telefón</TableHead>
                     <TableHead className="whitespace-nowrap">Typ pracovného vzťahu</TableHead>
+                    <TableHead className="whitespace-nowrap">Pracovná pozícia</TableHead>
                     <TableHead className="text-right whitespace-nowrap">Akcie</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -206,6 +215,24 @@ const Employees = () => {
                         <SelectItem value="dohoda_25">Dohoda 25%</SelectItem>
                         <SelectItem value="dohoda_50">Dohoda 50%</SelectItem>
                         <SelectItem value="tpp">TPP</SelectItem>
+                        <SelectItem value="administrativa">Administratíva</SelectItem>
+                      </SelectContent>
+                    </Select>
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap">
+                    <Select 
+                      value={employee.job_position || 'unset'} 
+                      onValueChange={(value) => handlePositionChange(employee.user_id, value === 'unset' ? null : value)}
+                    >
+                      <SelectTrigger className="w-[200px] bg-background">
+                        <SelectValue placeholder="Vyberte pozíciu" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-popover z-50">
+                        <SelectItem value="unset">Nezaznamenané</SelectItem>
+                        <SelectItem value="pilcik">Pilčík</SelectItem>
+                        <SelectItem value="strojnik">Strojník</SelectItem>
+                        <SelectItem value="elektrikar">Elektrikár</SelectItem>
+                        <SelectItem value="sofer">Šofér</SelectItem>
                         <SelectItem value="administrativa">Administratíva</SelectItem>
                       </SelectContent>
                     </Select>
@@ -256,7 +283,7 @@ const Employees = () => {
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={4} className="text-center text-muted-foreground">
+                      <TableCell colSpan={6} className="text-center text-muted-foreground">
                         Žiadni zamestnanci
                       </TableCell>
                     </TableRow>

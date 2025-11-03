@@ -9,6 +9,8 @@ interface EmployeeInput {
   phone: string;
 }
 
+type JobPosition = 'pilcik' | 'strojnik' | 'elektrikar' | 'sofer' | 'administrativa' | null;
+
 export function useEmployees() {
   const queryClient = useQueryClient();
 
@@ -158,6 +160,24 @@ export function useEmployees() {
     },
   });
 
+  const updateEmployeePosition = useMutation({
+    mutationFn: async ({ userId, jobPosition }: { userId: string; jobPosition: JobPosition }) => {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ job_position: jobPosition })
+        .eq('user_id', userId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['employees'] });
+      toast.success('Pracovná pozícia aktualizovaná');
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Chyba pri aktualizácii pozície');
+    },
+  });
+
   return {
     employees,
     isLoading,
@@ -167,10 +187,12 @@ export function useEmployees() {
     updateEmployeeType: updateEmployeeType.mutate,
     updateEmployeeRole: updateEmployeeRole.mutate,
     updateEmployeeProfile: updateEmployeeProfile.mutate,
+    updateEmployeePosition: updateEmployeePosition.mutate,
     isCreating: createEmployee.isPending,
     isDeleting: deleteEmployee.isPending,
     isUpdatingProject: updateEmployeeProject.isPending,
     isUpdatingType: updateEmployeeType.isPending,
     isUpdatingProfile: updateEmployeeProfile.isPending,
+    isUpdatingPosition: updateEmployeePosition.isPending,
   };
 }
