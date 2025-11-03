@@ -19,7 +19,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Loader2, AlertCircle } from 'lucide-react';
+import { Loader2, AlertCircle, Camera, ImageIcon, X } from 'lucide-react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -49,6 +50,7 @@ const Fueling = () => {
   const { data: projects, isLoading: loadingProjects } = useProjects();
   const { createLog, isCreating } = useFuelLogs(user?.id);
   const { todayAttendance, isLoading: loadingAttendance } = useAttendance(user?.id);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
   const form = useForm<FuelLogFormData>({
     resolver: zodResolver(fuelLogSchema),
@@ -65,6 +67,35 @@ const Fueling = () => {
   // Persist form data in localStorage (exclude photo file)
   const { clearPersistedData } = useFormPersistence(form, 'fueling-form', ['photo_receipt']);
 
+  const handlePhotoChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    onChange: (file: File | undefined) => void
+  ) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file size (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error('Súbor je príliš veľký. Maximálna veľkosť je 10MB.');
+        return;
+      }
+      
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        toast.error('Neplatný formát súboru. Nahrajte obrázok.');
+        return;
+      }
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+      
+      onChange(file);
+    }
+  };
+
   const handleSubmit = (data: FuelLogFormData) => {
     createLog(
       {
@@ -80,6 +111,7 @@ const Fueling = () => {
         onSuccess: () => {
           clearPersistedData();
           clearLastFormRoute();
+          setPhotoPreview(null);
           form.reset({
             vehicle_id: '',
             project_id: '',
@@ -264,15 +296,73 @@ const Fueling = () => {
                         <FormItem>
                           <FormLabel>Foto účtenky - voliteľné</FormLabel>
                           <FormControl>
-                            <Input 
-                              type="file" 
-                              accept="image/*"
-                              onChange={(e) => {
-                                const file = e.target.files?.[0];
-                                if (file) onChange(file);
-                              }}
-                              {...field}
-                            />
+                            <div className="space-y-4">
+                              {/* Preview section */}
+                              {photoPreview && (
+                                <div className="relative w-full max-w-sm mx-auto">
+                                  <img 
+                                    src={photoPreview} 
+                                    alt="Náhľad účtenky" 
+                                    className="w-full h-auto rounded-lg border-2 border-primary"
+                                  />
+                                  <Button
+                                    type="button"
+                                    variant="destructive"
+                                    size="sm"
+                                    className="absolute top-2 right-2"
+                                    onClick={() => {
+                                      setPhotoPreview(null);
+                                      onChange(undefined);
+                                    }}
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              )}
+                              
+                              {/* Upload buttons */}
+                              {!photoPreview && (
+                                <div className="flex flex-col sm:flex-row gap-2">
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    className="flex-1"
+                                    onClick={() => document.getElementById('photo-gallery')?.click()}
+                                  >
+                                    <ImageIcon className="mr-2 h-4 w-4" />
+                                    Vybrať z galérie
+                                  </Button>
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    className="flex-1"
+                                    onClick={() => document.getElementById('photo-camera')?.click()}
+                                  >
+                                    <Camera className="mr-2 h-4 w-4" />
+                                    Odfotiť
+                                  </Button>
+                                </div>
+                              )}
+                              
+                              {/* Hidden inputs */}
+                              <input
+                                id="photo-gallery"
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={(e) => handlePhotoChange(e, onChange)}
+                                {...field}
+                              />
+                              <input
+                                id="photo-camera"
+                                type="file"
+                                accept="image/*"
+                                capture="environment"
+                                className="hidden"
+                                onChange={(e) => handlePhotoChange(e, onChange)}
+                                {...field}
+                              />
+                            </div>
                           </FormControl>
                           <FormMessage />
                         </FormItem>
