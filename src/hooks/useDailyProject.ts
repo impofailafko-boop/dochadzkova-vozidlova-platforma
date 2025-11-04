@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useEffect, useRef } from 'react';
 
 /**
  * Hook for managing the user's daily project selection.
@@ -10,9 +11,10 @@ import { toast } from 'sonner';
  */
 export function useDailyProject(userId: string | undefined) {
   const queryClient = useQueryClient();
+  const hasCheckedTodayRef = useRef<string | null>(null);
 
-  // Fetch current project from profile and check if it's from today
-  const { data: currentProjectId, isLoading } = useQuery({
+  // Fetch current project from profile (PURE READ-ONLY)
+  const { data: projectData, isLoading } = useQuery({
     queryKey: ['daily-project', userId],
     queryFn: async () => {
       if (!userId) return null;
@@ -25,26 +27,18 @@ export function useDailyProject(userId: string | undefined) {
 
       if (error) throw error;
       
-      // Check if the project was selected today
-      const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
-      const selectedDate = profile?.project_selected_date;
-      
-      // If project was selected on a different day, clear it
-      if (selectedDate && selectedDate !== today && profile?.current_project_id) {
-        // Clear the old project selection
-        await supabase
-          .from('profiles')
-          .update({ current_project_id: null, project_selected_date: null })
-          .eq('user_id', userId);
-        
-        return null;
-      }
-      
-      return profile?.current_project_id || null;
+      return {
+        projectId: profile?.current_project_id || null,
+        selectedDate: profile?.project_selected_date || null,
+      };
     },
     enabled: !!userId,
-    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+    staleTime: 0, // Always fetch fresh data to detect day changes immediately
+    refetchOnWindowFocus: true, // Refetch when user returns to app
   });
+
+  // Extract current project ID from query data
+  const currentProjectId = projectData?.projectId || null;
 
   // Update current project with today's date
   const setDailyProject = useMutation({
@@ -64,8 +58,14 @@ export function useDailyProject(userId: string | undefined) {
       if (error) throw error;
     },
     onSuccess: (_, projectId) => {
-      // Update cache immediately
-      queryClient.setQueryData(['daily-project', userId], projectId);
+      const today = new Date().toISOString().split('T')[0];
+      // Update cache immediately with new structure
+      queryClient.setQueryData(['daily-project', userId], { 
+        projectId, 
+        selectedDate: today 
+      });
+      // Mark today as checked
+      hasCheckedTodayRef.current = today;
       // Also invalidate profile cache
       queryClient.invalidateQueries({ queryKey: ['profile', userId] });
     },
@@ -91,13 +91,35 @@ export function useDailyProject(userId: string | undefined) {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.setQueryData(['daily-project', userId], null);
+      queryClient.setQueryData(['daily-project', userId], { projectId: null, selectedDate: null });
       queryClient.invalidateQueries({ queryKey: ['profile', userId] });
     },
     onError: (error: any) => {
       console.error('Failed to clear daily project:', error);
     },
   });
+
+  // Auto-reset project at the start of a new day (useEffect handles side effects)
+  useEffect(() => {
+    if (!projectData || !userId) return;
+
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+    const { projectId, selectedDate } = projectData;
+
+    // Check if we already processed today's reset
+    if (hasCheckedTodayRef.current === today) {
+      return; // Already checked today, skip
+    }
+
+    // If project exists but was selected on a different day, clear it
+    if (selectedDate && selectedDate !== today && projectId) {
+      hasCheckedTodayRef.current = today; // Mark as checked for today
+      clearDailyProject.mutate();
+    } else if (selectedDate === today || !projectId) {
+      // Project is from today or no project exists - mark as checked
+      hasCheckedTodayRef.current = today;
+    }
+  }, [projectData, userId]); // Removed clearDailyProject from deps to prevent loop
 
   return {
     currentProjectId,
