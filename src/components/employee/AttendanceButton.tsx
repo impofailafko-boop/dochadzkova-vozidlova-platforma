@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Clock, LogIn, LogOut, Loader2, MapPin, WifiOff, AlertCircle } from 'lucide-react';
 import { OfflineIndicator } from './OfflineIndicator';
-import { savePendingAttendance } from '@/lib/offlineStorage';
+import { savePendingMutation } from '@/lib/offlineStorage';
 import { toast } from 'sonner';
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
@@ -78,13 +78,20 @@ const AttendanceButton = () => {
         // Get GPS location using centralized hook
         const location = await getLocation();
 
-        await savePendingAttendance({
+        await savePendingMutation({
           id: `${user?.id}-arrival-${now.getTime()}`,
-          type: 'arrival',
+          entityType: 'attendance',
+          action: 'create',
+          data: {
+            type: 'arrival',
+            timestamp: now.toISOString(),
+            latitude: location?.latitude,
+            longitude: location?.longitude,
+            userId: user?.id || '',
+          },
           timestamp: now.toISOString(),
-          latitude: location?.latitude,
-          longitude: location?.longitude,
           synced: false,
+          retries: 0,
           userId: user?.id || '',
         });
 
@@ -117,13 +124,20 @@ const AttendanceButton = () => {
         // Get GPS location using centralized hook
         const location = await getLocation();
 
-        await savePendingAttendance({
+        await savePendingMutation({
           id: `${user?.id}-departure-${now.getTime()}`,
-          type: 'departure',
+          entityType: 'attendance',
+          action: 'create',
+          data: {
+            type: 'departure',
+            timestamp: now.toISOString(),
+            latitude: location?.latitude,
+            longitude: location?.longitude,
+            userId: user?.id || '',
+          },
           timestamp: now.toISOString(),
-          latitude: location?.latitude,
-          longitude: location?.longitude,
           synced: false,
+          retries: 0,
           userId: user?.id || '',
         });
 

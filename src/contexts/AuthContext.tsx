@@ -3,6 +3,7 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { setupAutoSync } from '@/lib/syncManager';
 
 type UserRole = 'admin' | 'employee' | null;
 
@@ -24,6 +25,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [role, setRole] = useState<UserRole>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+
+  // Set up auto-sync on mount
+  useEffect(() => {
+    setupAutoSync();
+  }, []);
 
   // Fetch user role from user_roles table
   const fetchUserRole = async (userId: string): Promise<UserRole> => {
