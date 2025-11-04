@@ -17,9 +17,9 @@ export function PhotoUpload({ value, onChange, disabled, label }: PhotoUploadPro
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('Súbor je príliš veľký. Maximálna veľkosť je 5MB.');
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('Súbor je príliš veľký. Maximálna veľkosť je 10MB.');
       return;
     }
 

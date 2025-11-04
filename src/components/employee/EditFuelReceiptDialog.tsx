@@ -11,7 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormMessage } from '@/component
 const editFuelReceiptSchema = z.object({
   photo: z
     .instanceof(File)
-    .refine((file) => file.size <= 5 * 1024 * 1024, 'Súbor je príliš veľký. Maximálna veľkosť je 5MB.')
+    .refine((file) => file.size <= 10 * 1024 * 1024, 'Súbor je príliš veľký. Maximálna veľkosť je 10MB.')
     .refine((file) => file.type.startsWith('image/'), 'Neplatný formát súboru. Nahrajte obrázok.'),
 });
 
