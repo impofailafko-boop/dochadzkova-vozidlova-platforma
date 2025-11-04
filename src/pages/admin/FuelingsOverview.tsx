@@ -26,6 +26,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Download, Edit, Trash2, Plus, ImageIcon } from 'lucide-react';
+import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { EditFuelingDialog } from '@/components/admin/EditFuelingDialog';
 import { CreateFuelingDialog } from '@/components/admin/CreateFuelingDialog';
@@ -333,8 +334,17 @@ const FuelingsOverview = () => {
                                 const { data, error } = await supabase.storage
                                   .from('vehicle-photos')
                                   .createSignedUrl(record.photo_receipt, 3600); // 1 hour expiry
+                                
+                                if (error) {
+                                  console.error('Error creating signed URL:', error);
+                                  toast.error('Nepodarilo sa načítať fotku účtenky');
+                                  return;
+                                }
+                                
                                 if (data?.signedUrl) {
                                   window.open(data.signedUrl, '_blank');
+                                } else {
+                                  toast.error('Účtenka nebola nájdená');
                                 }
                               }}
                             >

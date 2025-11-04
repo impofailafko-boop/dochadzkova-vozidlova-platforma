@@ -27,6 +27,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Download, CheckCircle2, AlertCircle, MapPin, Edit, Trash2, Image as ImageIcon } from 'lucide-react';
+import { toast } from 'sonner';
 import { EditDriveDialog } from '@/components/admin/EditDriveDialog';
 import { supabase } from '@/integrations/supabase/client';
 import { CompleteDriveDialog } from '@/components/admin/CompleteDriveDialog';
@@ -389,8 +390,17 @@ const DrivesOverview = () => {
                                 const { data, error } = await supabase.storage
                                   .from('vehicle-photos')
                                   .createSignedUrl(record.photo_km_start, 3600); // 1 hour expiry
+                                
+                                if (error) {
+                                  console.error('Error creating signed URL:', error);
+                                  toast.error('Nepodarilo sa načítať fotku');
+                                  return;
+                                }
+                                
                                 if (data?.signedUrl) {
                                   window.open(data.signedUrl, '_blank');
+                                } else {
+                                  toast.error('Fotka nebola nájdená');
                                 }
                               }}
                             >
@@ -410,8 +420,17 @@ const DrivesOverview = () => {
                                 const { data, error } = await supabase.storage
                                   .from('vehicle-photos')
                                   .createSignedUrl(record.photo_km_end, 3600); // 1 hour expiry
+                                
+                                if (error) {
+                                  console.error('Error creating signed URL:', error);
+                                  toast.error('Nepodarilo sa načítať fotku');
+                                  return;
+                                }
+                                
                                 if (data?.signedUrl) {
                                   window.open(data.signedUrl, '_blank');
+                                } else {
+                                  toast.error('Fotka nebola nájdená');
                                 }
                               }}
                             >

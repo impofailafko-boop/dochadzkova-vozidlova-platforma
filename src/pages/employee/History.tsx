@@ -18,6 +18,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Clock, Car, Fuel, CheckCircle2, AlertCircle, CalendarIcon, X, ImageIcon, Camera } from 'lucide-react';
+import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { CompleteDriveDialog } from '@/components/employee/CompleteDriveDialog';
 import { EditFuelReceiptDialog } from '@/components/employee/EditFuelReceiptDialog';
@@ -374,8 +375,17 @@ const History = () => {
                                     const { data, error } = await supabase.storage
                                       .from('vehicle-photos')
                                       .createSignedUrl(log.photo_km_start, 3600); // 1 hour expiry
+                                    
+                                    if (error) {
+                                      console.error('Error creating signed URL:', error);
+                                      toast.error('Nepodarilo sa načítať fotku');
+                                      return;
+                                    }
+                                    
                                     if (data?.signedUrl) {
                                       window.open(data.signedUrl, '_blank');
+                                    } else {
+                                      toast.error('Fotka nebola nájdená');
                                     }
                                   }}
                                 >
@@ -395,8 +405,17 @@ const History = () => {
                                     const { data, error } = await supabase.storage
                                       .from('vehicle-photos')
                                       .createSignedUrl(log.photo_km_end, 3600); // 1 hour expiry
+                                    
+                                    if (error) {
+                                      console.error('Error creating signed URL:', error);
+                                      toast.error('Nepodarilo sa načítať fotku');
+                                      return;
+                                    }
+                                    
                                     if (data?.signedUrl) {
                                       window.open(data.signedUrl, '_blank');
+                                    } else {
+                                      toast.error('Fotka nebola nájdená');
                                     }
                                   }}
                                 >
@@ -547,8 +566,17 @@ const History = () => {
                                     const { data, error } = await supabase.storage
                                       .from('vehicle-photos')
                                       .createSignedUrl(log.photo_receipt, 3600); // 1 hour expiry
+                                    
+                                    if (error) {
+                                      console.error('Error creating signed URL:', error);
+                                      toast.error('Nepodarilo sa načítať fotku účtenky');
+                                      return;
+                                    }
+                                    
                                     if (data?.signedUrl) {
                                       window.open(data.signedUrl, '_blank');
+                                    } else {
+                                      toast.error('Účtenka nebola nájdená');
                                     }
                                   }}
                                 >
