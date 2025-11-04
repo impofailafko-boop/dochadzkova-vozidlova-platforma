@@ -2,12 +2,13 @@ import { useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { PhotoUpload } from '@/components/common/PhotoUpload';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { optionalPhotoFileSchema } from '@/lib/photoSchemas';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 
 const editFuelLogSchema = z.object({
@@ -24,6 +25,7 @@ const editFuelLogSchema = z.object({
   note: z.string()
     .max(500, 'Poznámka môže mať maximálne 500 znakov')
     .optional(),
+  photo_receipt: optionalPhotoFileSchema,
 });
 
 type EditFuelLogFormData = z.infer<typeof editFuelLogSchema>;
@@ -172,6 +174,24 @@ export function EditFuelingDialog({ open, onOpenChange, fueling, vehicles, proje
                 </FormItem>
               )}
             />
+
+            <FormField
+              control={form.control}
+              name="photo_receipt"
+              render={({ field: { value, onChange } }) => (
+                <FormItem>
+                  <FormLabel>Foto účtenky - voliteľné</FormLabel>
+                  <FormControl>
+                    <PhotoUpload
+                      value={value}
+                      onChange={onChange}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <div className="flex justify-end gap-2">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Zrušiť

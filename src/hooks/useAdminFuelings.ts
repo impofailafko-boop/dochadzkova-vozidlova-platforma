@@ -57,10 +57,30 @@ export function useAdminFuelings(filters?: {
   });
 
   const updateFueling = useMutation({
-    mutationFn: async ({ id, ...data }: { id: string; liters?: number; price?: number; note?: string; date?: string; vehicle_id?: string; project_id?: string }) => {
+    mutationFn: async ({ id, photo_receipt, ...data }: { id: string; liters?: number; price?: number; note?: string; date?: string; vehicle_id?: string; project_id?: string; photo_receipt?: File }) => {
+      let photoUrl = undefined;
+      
+      // Upload photo if provided
+      if (photo_receipt) {
+        const fileExt = photo_receipt.name.split('.').pop();
+        const fileName = `admin/${Date.now()}_receipt.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('vehicle-photos')
+          .upload(fileName, photo_receipt);
+
+        if (uploadError) {
+          console.error('Storage upload error:', uploadError);
+          throw new Error(`Nahrávanie fotky zlyhalo: ${uploadError.message}`);
+        }
+        photoUrl = fileName;
+      }
+
+      const updateData = photoUrl ? { ...data, photo_receipt: photoUrl } : data;
+
       const { error } = await supabase
         .from('fuel_logs')
-        .update(data)
+        .update(updateData)
         .eq('id', id);
 
       if (error) throw error;
@@ -93,10 +113,28 @@ export function useAdminFuelings(filters?: {
   });
 
   const createFueling = useMutation({
-    mutationFn: async (data: { user_id: string; vehicle_id: string; project_id: string; date: string; liters: number; price?: number; note?: string }) => {
+    mutationFn: async ({ photo_receipt, ...data }: { user_id: string; vehicle_id: string; project_id: string; date: string; liters: number; price?: number; note?: string; photo_receipt?: File }) => {
+      let photoUrl = null;
+      
+      // Upload photo if provided
+      if (photo_receipt) {
+        const fileExt = photo_receipt.name.split('.').pop();
+        const fileName = `admin/${Date.now()}_receipt.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('vehicle-photos')
+          .upload(fileName, photo_receipt);
+
+        if (uploadError) {
+          console.error('Storage upload error:', uploadError);
+          throw new Error(`Nahrávanie fotky zlyhalo: ${uploadError.message}`);
+        }
+        photoUrl = fileName;
+      }
+
       const { error } = await supabase
         .from('fuel_logs')
-        .insert(data);
+        .insert({ ...data, photo_receipt: photoUrl });
 
       if (error) throw error;
     },

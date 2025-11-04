@@ -5,9 +5,11 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DatePicker } from '@/components/ui/date-picker';
+import { PhotoUpload } from '@/components/common/PhotoUpload';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { optionalPhotoFileSchema } from '@/lib/photoSchemas';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 
 const adminFuelLogSchema = z.object({
@@ -31,6 +33,7 @@ const adminFuelLogSchema = z.object({
   note: z.string()
     .max(500, 'Poznámka je príliš dlhá (max 500 znakov)')
     .optional(),
+  photo_receipt: optionalPhotoFileSchema,
 });
 
 type AdminFuelLogFormData = z.infer<typeof adminFuelLogSchema>;
@@ -193,6 +196,23 @@ export function CreateFuelingDialog({ open, onOpenChange, vehicles, projects, cu
                   <FormLabel>Poznámka - voliteľné</FormLabel>
                   <FormControl>
                     <Textarea rows={3} placeholder="Tankovanie na diaľnici..." {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="photo_receipt"
+              render={({ field: { value, onChange } }) => (
+                <FormItem>
+                  <FormLabel>Foto účtenky - voliteľné</FormLabel>
+                  <FormControl>
+                    <PhotoUpload
+                      value={value}
+                      onChange={onChange}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
