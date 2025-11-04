@@ -5,6 +5,17 @@ export interface GeolocationCoords {
   longitude: number;
 }
 
+// Validate GPS coordinates are within valid ranges
+export function validateGPSCoordinates(coords: GeolocationCoords | null): boolean {
+  if (!coords) return true; // null is acceptable
+  return (
+    coords.latitude >= -90 && 
+    coords.latitude <= 90 && 
+    coords.longitude >= -180 && 
+    coords.longitude <= 180
+  );
+}
+
 export interface GeolocationError {
   code: number;
   message: string;
@@ -54,10 +65,18 @@ export function useGeolocation() {
         );
       });
 
-      return {
+      const coords = {
         latitude: position.coords.latitude,
         longitude: position.coords.longitude,
       };
+      
+      // Validate coordinates before returning
+      if (!validateGPSCoordinates(coords)) {
+        console.warn('Invalid GPS coordinates received:', coords);
+        return null;
+      }
+      
+      return coords;
     } catch (error) {
       // GPS nie je dostupné - môže byť z viacerých dôvodov:
       // 1. Používateľ odmietol povolenie
