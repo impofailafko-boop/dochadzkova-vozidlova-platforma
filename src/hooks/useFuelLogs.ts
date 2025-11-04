@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { savePendingMutation } from '@/lib/offlineStorage';
+import { fileToBase64 } from '@/lib/fileUtils';
 
 interface FuelLogInput {
   vehicle_id: string;
@@ -60,6 +62,42 @@ export function useFuelLogs(userId: string | undefined, params?: { limit?: numbe
     mutationFn: async (input: FuelLogInput) => {
       if (!userId) throw new Error('User not authenticated');
 
+      // Check if online
+      const isOnline = navigator.onLine;
+      
+      if (!isOnline) {
+        // Convert photo to Base64 for offline storage
+        let photoBase64 = null;
+        if (input.photo_receipt) {
+          photoBase64 = await fileToBase64(input.photo_receipt);
+        }
+        
+        // Save to IndexedDB for later sync
+        await savePendingMutation({
+          id: `fuel_log_create_${Date.now()}`,
+          entityType: 'fuel_log',
+          action: 'create',
+          data: {
+            vehicle_id: input.vehicle_id,
+            project_id: input.project_id,
+            date: input.date,
+            liters: input.liters,
+            price: input.price,
+            note: input.note,
+            photo_receipt_base64: photoBase64,
+            user_id: userId,
+          },
+          timestamp: new Date().toISOString(),
+          synced: false,
+          retries: 0,
+          userId: userId,
+        });
+        
+        toast.info('Offline - tankovanie bude synchronizované neskôr');
+        return;
+      }
+
+      // Online flow - same as before
       let photoUrl = null;
       
       // Upload photo if provided

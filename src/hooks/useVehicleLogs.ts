@@ -2,6 +2,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useGeolocation } from './useGeolocation';
+import { savePendingMutation } from '@/lib/offlineStorage';
+import { fileToBase64 } from '@/lib/fileUtils';
 
 interface VehicleLogInput {
   vehicle_id: string;
@@ -87,7 +89,43 @@ export function useVehicleLogs(userId: string | undefined, params?: { limit?: nu
 
       // Get GPS location using centralized hook
       const location = await getLocation();
+      
+      // Check if online
+      const isOnline = navigator.onLine;
+      
+      if (!isOnline) {
+        // Convert photo to Base64 for offline storage
+        let photoBase64 = null;
+        if (input.photo_km_start) {
+          photoBase64 = await fileToBase64(input.photo_km_start);
+        }
+        
+        // Save to IndexedDB for later sync
+        await savePendingMutation({
+          id: `vehicle_log_create_${Date.now()}`,
+          entityType: 'vehicle_log',
+          action: 'create',
+          data: {
+            vehicle_id: input.vehicle_id,
+            project_id: input.project_id,
+            date: input.date,
+            km_start: input.km_start,
+            photo_km_start_base64: photoBase64,
+            start_latitude: location?.latitude || null,
+            start_longitude: location?.longitude || null,
+            user_id: userId,
+          },
+          timestamp: new Date().toISOString(),
+          synced: false,
+          retries: 0,
+          userId: userId,
+        });
+        
+        toast.info('Offline - jazda bude synchronizovaná neskôr');
+        return location;
+      }
 
+      // Online flow - same as before
       let photoUrl = null;
       
       // Upload photo if provided
@@ -188,7 +226,41 @@ export function useVehicleLogs(userId: string | undefined, params?: { limit?: nu
 
       // Get GPS location using centralized hook
       const location = await getLocation();
+      
+      // Check if online
+      const isOnline = navigator.onLine;
+      
+      if (!isOnline) {
+        // Convert photo to Base64 for offline storage
+        let photoBase64 = null;
+        if (input.photo_km_end) {
+          photoBase64 = await fileToBase64(input.photo_km_end);
+        }
+        
+        // Save to IndexedDB for later sync
+        await savePendingMutation({
+          id: `vehicle_log_complete_${Date.now()}`,
+          entityType: 'vehicle_log',
+          action: 'update',
+          data: {
+            id: input.logId,
+            km_end: input.km_end,
+            photo_km_end_base64: photoBase64,
+            end_latitude: location?.latitude || null,
+            end_longitude: location?.longitude || null,
+            is_completed: true,
+          },
+          timestamp: new Date().toISOString(),
+          synced: false,
+          retries: 0,
+          userId: userId,
+        });
+        
+        toast.info('Offline - ukončenie jazdy bude synchronizované neskôr');
+        return location;
+      }
 
+      // Online flow - same as before
       let photoUrl = null;
       
       // Upload photo if provided

@@ -2,6 +2,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { getPendingMutations, markMutationSynced, deleteSyncedMutations, incrementRetries, PendingMutation } from './offlineStorage';
 import { toast } from 'sonner';
 import { formatDateToISO, calculateWorkHours } from './utils';
+import { base64ToFile } from './fileUtils';
 
 const MAX_RETRIES = 3;
 
@@ -70,15 +71,73 @@ async function syncVehicleLog(mutation: PendingMutation): Promise<boolean> {
     const { action, data } = mutation;
     
     if (action === 'create') {
+      // Convert Base64 to File and upload if exists
+      let photoUrl = null;
+      if (data.photo_km_start_base64) {
+        const photoFile = base64ToFile(
+          data.photo_km_start_base64,
+          `${data.user_id}/${Date.now()}_start.jpg`
+        );
+        
+        const fileExt = photoFile.name.split('.').pop();
+        const fileName = `${data.user_id}/${Date.now()}_start.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('vehicle-photos')
+          .upload(fileName, photoFile);
+        
+        if (uploadError) throw uploadError;
+        photoUrl = fileName;
+      }
+      
+      // Remove Base64 from data and add uploaded URL
+      const { photo_km_start_base64, ...insertData } = data;
+      
       const { error } = await supabase
         .from('vehicle_logs')
-        .insert(data);
+        .insert({
+          ...insertData,
+          photo_km_start: photoUrl,
+          is_completed: false,
+        });
       if (error) throw error;
+      
+      // Update last used vehicle
+      if (data.user_id && data.vehicle_id) {
+        await supabase
+          .from('profiles')
+          .update({ last_used_vehicle_id: data.vehicle_id })
+          .eq('user_id', data.user_id);
+      }
     } else if (action === 'update') {
-      const { id, ...updateData } = data;
+      // Convert Base64 to File and upload if exists
+      let photoUrl = null;
+      if (data.photo_km_end_base64) {
+        const photoFile = base64ToFile(
+          data.photo_km_end_base64,
+          `${mutation.userId}/${Date.now()}_end.jpg`
+        );
+        
+        const fileExt = photoFile.name.split('.').pop();
+        const fileName = `${mutation.userId}/${Date.now()}_end.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('vehicle-photos')
+          .upload(fileName, photoFile);
+        
+        if (uploadError) throw uploadError;
+        photoUrl = fileName;
+      }
+      
+      // Remove Base64 from data and add uploaded URL
+      const { id, photo_km_end_base64, ...updateData } = data;
+      
       const { error } = await supabase
         .from('vehicle_logs')
-        .update(updateData)
+        .update({
+          ...updateData,
+          photo_km_end: photoUrl,
+        })
         .eq('id', id);
       if (error) throw error;
     }
@@ -97,15 +156,64 @@ async function syncFuelLog(mutation: PendingMutation): Promise<boolean> {
     const { action, data } = mutation;
     
     if (action === 'create') {
+      // Convert Base64 to File and upload if exists
+      let photoUrl = null;
+      if (data.photo_receipt_base64) {
+        const photoFile = base64ToFile(
+          data.photo_receipt_base64,
+          `${data.user_id}/${Date.now()}_receipt.jpg`
+        );
+        
+        const fileExt = photoFile.name.split('.').pop();
+        const fileName = `${data.user_id}/${Date.now()}_receipt.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('vehicle-photos')
+          .upload(fileName, photoFile);
+        
+        if (uploadError) throw uploadError;
+        photoUrl = fileName;
+      }
+      
+      // Remove Base64 from data and add uploaded URL
+      const { photo_receipt_base64, ...insertData } = data;
+      
       const { error } = await supabase
         .from('fuel_logs')
-        .insert(data);
+        .insert({
+          ...insertData,
+          photo_receipt: photoUrl,
+        });
       if (error) throw error;
     } else if (action === 'update') {
-      const { id, ...updateData } = data;
+      // Convert Base64 to File and upload if exists
+      let photoUrl = null;
+      if (data.photo_receipt_base64) {
+        const photoFile = base64ToFile(
+          data.photo_receipt_base64,
+          `${mutation.userId}/${Date.now()}_receipt.jpg`
+        );
+        
+        const fileExt = photoFile.name.split('.').pop();
+        const fileName = `${mutation.userId}/${Date.now()}_receipt.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('vehicle-photos')
+          .upload(fileName, photoFile);
+        
+        if (uploadError) throw uploadError;
+        photoUrl = fileName;
+      }
+      
+      // Remove Base64 from data and add uploaded URL
+      const { id, photo_receipt_base64, ...updateData } = data;
+      
       const { error } = await supabase
         .from('fuel_logs')
-        .update(updateData)
+        .update({
+          ...updateData,
+          photo_receipt: photoUrl,
+        })
         .eq('id', id);
       if (error) throw error;
     }
