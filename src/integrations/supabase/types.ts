@@ -396,6 +396,28 @@ export type Database = {
     }
     Functions: {
       delete_user_account: { Args: never; Returns: undefined }
+      get_monthly_vehicle_summary: {
+        Args: {
+          _include_inactive?: boolean
+          _month: number
+          _project_id?: string
+          _vehicle_id?: string
+          _year: number
+        }
+        Returns: {
+          avg_consumption: number
+          drive_count: number
+          fueling_count: number
+          is_active: boolean
+          total_fuel_cost: number
+          total_fuel_liters: number
+          total_km: number
+          vehicle_brand: string
+          vehicle_id: string
+          vehicle_spz: string
+          vehicle_type: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
