@@ -53,6 +53,7 @@ export function useEmployees() {
     },
   });
 
+  // Create a new employee (regular employee account)
   const createEmployee = useMutation({
     mutationFn: async (input: EmployeeInput) => {
       // Validate input
@@ -91,6 +92,56 @@ export function useEmployees() {
         toast.error(firstError.message);
       } else {
         toast.error(error.message || 'Chyba pri vytváraní zamestnanca');
+      }
+    },
+  });
+
+  // Create a new admin account using secure edge function
+  const createAdminAccount = useMutation({
+    mutationFn: async (input: EmployeeInput) => {
+      // Validate input
+      const validatedInput = createEmployeeSchema.parse(input);
+
+      // Get current session token
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        throw new Error('No active session');
+      }
+
+      // Call edge function to create admin account securely
+      const { data, error } = await supabase.functions.invoke('create-admin-account', {
+        body: {
+          email: validatedInput.email,
+          password: validatedInput.password,
+          fullName: validatedInput.full_name.trim(),
+          phone: validatedInput.phone || null,
+        },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (!data?.success) {
+        throw new Error(data?.error || 'Nepodarilo sa vytvoriť administrátora');
+      }
+
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['employees'] });
+      toast.success('Administrátor vytvorený');
+    },
+    onError: (error: any) => {
+      if (error instanceof z.ZodError) {
+        const firstError = error.errors[0];
+        toast.error(firstError.message);
+      } else {
+        toast.error(error.message || 'Chyba pri vytváraní administrátora');
       }
     },
   });
@@ -209,6 +260,7 @@ export function useEmployees() {
     employees,
     isLoading,
     createEmployee: createEmployee.mutate,
+    createAdminAccount: createAdminAccount.mutate,
     deleteEmployee: deleteEmployee.mutate,
     updateEmployeeProject: updateEmployeeProject.mutate,
     updateEmployeeType: updateEmployeeType.mutate,
@@ -216,6 +268,7 @@ export function useEmployees() {
     updateEmployeeProfile: updateEmployeeProfile.mutate,
     updateEmployeePosition: updateEmployeePosition.mutate,
     isCreating: createEmployee.isPending,
+    isCreatingAdmin: createAdminAccount.isPending,
     isDeleting: deleteEmployee.isPending,
     isUpdatingProject: updateEmployeeProject.isPending,
     isUpdatingType: updateEmployeeType.isPending,

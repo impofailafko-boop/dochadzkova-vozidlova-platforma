@@ -395,15 +395,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      create_admin_account: {
-        Args: {
-          p_email: string
-          p_full_name: string
-          p_password: string
-          p_phone: string
-        }
-        Returns: string
-      }
       delete_user_account: { Args: never; Returns: undefined }
       has_role: {
         Args: {
