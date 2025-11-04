@@ -33,7 +33,7 @@ const AttendanceButton = () => {
 
   const { data: activeLogs, isLoading: isLoadingActiveLogs } = useActiveVehicleLogs(user?.id);
   const { getLocation } = useGeolocation();
-  const { setDailyProject } = useDailyProject(user?.id);
+  const { currentProjectId, setDailyProject } = useDailyProject(user?.id);
 
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [shouldNavigateBack, setShouldNavigateBack] = useState(false);
@@ -68,7 +68,13 @@ const AttendanceButton = () => {
   const hasDeparted = todayAttendance?.departure_time;
 
   const handleArrivalClick = () => {
-    setShowProjectDialog(true);
+    // If project already selected today, use it directly without showing dialog
+    if (currentProjectId) {
+      handleProjectSelectCore(currentProjectId);
+    } else {
+      // Show dialog only if no project selected today
+      setShowProjectDialog(true);
+    }
   };
 
   const handleProjectSelectCore = useCallback(async (projectId: string | null) => {

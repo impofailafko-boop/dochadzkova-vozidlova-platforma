@@ -8,7 +8,7 @@ import ProtectedRoute from '@/components/common/ProtectedRoute';
 import RoleGuard from '@/components/common/RoleGuard';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
 import { useRouteTracking, getAndClearLastFormRoute } from '@/hooks/useRouteTracking';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 // Layouts
 import EmployeeLayout from '@/components/layouts/EmployeeLayout';
@@ -46,19 +46,21 @@ const queryClient = new QueryClient();
 const AppContent = () => {
   const navigate = useNavigate();
   const { user, loading, role } = useAuth();
+  const hasRestoredRoute = useRef(false);
   
   // Track current route for form persistence
   useRouteTracking();
 
-  // Restore last form route on app load (one-time check)
+  // Restore last form route on app load (ONE-TIME ONLY - fixes tab switch issue)
   useEffect(() => {
-    if (!loading && user && role) {
+    if (!loading && user && role && !hasRestoredRoute.current) {
+      hasRestoredRoute.current = true;
       const lastFormRoute = getAndClearLastFormRoute();
       if (lastFormRoute && window.location.pathname !== lastFormRoute) {
         navigate(lastFormRoute, { replace: true });
       }
     }
-  }, [loading, user, role]); // Don't add navigate to deps to avoid re-running
+  }, [loading, user, role, navigate]);
 
   return (
     <Routes>
