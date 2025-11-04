@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,12 +9,15 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { PhotoUpload } from '@/components/common/PhotoUpload';
+import { optionalPhotoFileSchema } from '@/lib/photoSchemas';
 
 const completeDriveSchema = z.object({
   km_end: z.number()
     .int('Kilómetre musia byť celé číslo')
     .min(0, 'Kilómetre nemôžu byť záporné')
     .max(9999999, 'Kilómetre nemôžu byť väčšie ako 9,999,999'),
+  photo_km_end: optionalPhotoFileSchema,
 });
 
 type CompleteDriveFormData = z.infer<typeof completeDriveSchema>;
@@ -32,12 +35,12 @@ interface CompleteDriveDialogProps {
 export function CompleteDriveDialog({ open, onOpenChange, log }: CompleteDriveDialogProps) {
   const { user } = useAuth();
   const { completeLog, isCompleting } = useVehicleLogs(user?.id);
-  const [photo, setPhoto] = useState<File | null>(null);
 
   const form = useForm<CompleteDriveFormData>({
     resolver: zodResolver(completeDriveSchema),
     defaultValues: {
       km_end: log.km_start,
+      photo_km_end: undefined,
     },
   });
 
@@ -45,8 +48,8 @@ export function CompleteDriveDialog({ open, onOpenChange, log }: CompleteDriveDi
     if (log) {
       form.reset({
         km_end: log.km_start,
+        photo_km_end: undefined,
       });
-      setPhoto(null);
     }
   }, [log, form]);
 
@@ -64,7 +67,7 @@ export function CompleteDriveDialog({ open, onOpenChange, log }: CompleteDriveDi
       {
         logId: log.id,
         km_end: data.km_end,
-        photo_km_end: photo || undefined,
+        photo_km_end: data.photo_km_end,
       },
       {
         onSuccess: () => {
@@ -108,15 +111,22 @@ export function CompleteDriveDialog({ open, onOpenChange, log }: CompleteDriveDi
               )}
             />
 
-            <div className="space-y-2">
-              <FormLabel>Foto konečného stavu (voliteľné)</FormLabel>
-              <Input
-                id="photo"
-                type="file"
-                accept="image/*"
-                onChange={(e) => setPhoto(e.target.files?.[0] || null)}
-              />
-            </div>
+            <FormField
+              control={form.control}
+              name="photo_km_end"
+              render={({ field: { value, onChange } }) => (
+                <FormItem>
+                  <FormLabel>Foto konečného stavu - voliteľné</FormLabel>
+                  <FormControl>
+                    <PhotoUpload
+                      value={value}
+                      onChange={onChange}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <div className="flex gap-2">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="flex-1">
