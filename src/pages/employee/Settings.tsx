@@ -55,8 +55,8 @@ const Settings = () => {
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (newPassword.length < 6) {
-      toast.error('Heslo musí mať aspoň 6 znakov');
+    if (newPassword.length < 8) {
+      toast.error('Heslo musí mať aspoň 8 znakov');
       return;
     }
 
@@ -185,9 +185,9 @@ const Settings = () => {
                 onChange={(e) => setNewPassword(e.target.value)}
                 placeholder="Zadajte nové heslo"
                 required
-                minLength={6}
+                minLength={8}
               />
-              <p className="text-xs text-muted-foreground">Minimálne 6 znakov</p>
+              <p className="text-xs text-muted-foreground">Minimálne 8 znakov</p>
             </div>
 
             <div className="space-y-2">
@@ -199,7 +199,7 @@ const Settings = () => {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Zopakujte nové heslo"
                 required
-                minLength={6}
+                minLength={8}
               />
             </div>
 
