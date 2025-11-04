@@ -6,6 +6,7 @@ import { useAttendance } from '@/hooks/useAttendance';
 import { useFormPersistence } from '@/hooks/useFormPersistence';
 import { clearLastFormRoute } from '@/hooks/useRouteTracking';
 import { useDebounce } from '@/hooks/useDebounce';
+import { OfflineIndicator } from '@/components/employee/OfflineIndicator';
 import { formatDateToLocalString, getTodayLocalString, parseDateString } from '@/lib/utils';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -147,6 +148,8 @@ const Fueling = () => {
           Zaznamenajte údaje o tankovaní služobného vozidla
         </p>
       </div>
+
+      <OfflineIndicator />
 
       <Card>
         <CardHeader>

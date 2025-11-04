@@ -8,6 +8,7 @@ import { clearLastFormRoute } from '@/hooks/useRouteTracking';
 import { useProfile } from '@/hooks/useProfile';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useMemo, useCallback } from 'react';
+import { OfflineIndicator } from '@/components/employee/OfflineIndicator';
 import { formatDateToLocalString, getTodayLocalString, parseDateString } from '@/lib/utils';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -126,6 +127,8 @@ const VehicleUse = () => {
           Zaznamenajte údaje o jazde služobným vozidlom
         </p>
       </div>
+
+      <OfflineIndicator />
 
       <Card>
         <CardHeader>
