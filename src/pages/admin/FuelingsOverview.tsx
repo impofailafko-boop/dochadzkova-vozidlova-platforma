@@ -329,11 +329,13 @@ const FuelingsOverview = () => {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => {
-                                const url = supabase.storage
+                              onClick={async () => {
+                                const { data, error } = await supabase.storage
                                   .from('vehicle-photos')
-                                  .getPublicUrl(record.photo_receipt).data.publicUrl;
-                                window.open(url, '_blank');
+                                  .createSignedUrl(record.photo_receipt, 3600); // 1 hour expiry
+                                if (data?.signedUrl) {
+                                  window.open(data.signedUrl, '_blank');
+                                }
                               }}
                             >
                               <ImageIcon className="h-4 w-4 mr-2" />

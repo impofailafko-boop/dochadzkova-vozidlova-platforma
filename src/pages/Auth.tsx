@@ -7,6 +7,21 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Car } from 'lucide-react';
+import { z } from 'zod';
+import { toast } from 'sonner';
+
+// Validation schema for signup form
+const signupSchema = z.object({
+  email: z.string().trim().email({ message: 'Neplatný email' }).max(255, { message: 'Email musí byť kratší ako 255 znakov' }),
+  password: z.string().min(8, { message: 'Heslo musí mať minimálne 8 znakov' }),
+  fullName: z.string().trim().min(2, { message: 'Meno musí mať minimálne 2 znaky' }).max(100, { message: 'Meno musí byť kratšie ako 100 znakov' }),
+  phone: z.string().trim().regex(/^(\+421|00421)?[0-9]{9,10}$/, { message: 'Neplatné telefónne číslo (použite formát +421XXXXXXXXX)' }),
+});
+
+const loginSchema = z.object({
+  email: z.string().trim().email({ message: 'Neplatný email' }),
+  password: z.string().min(1, { message: 'Heslo je povinné' }),
+});
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -21,20 +36,36 @@ const Auth = () => {
     e.preventDefault();
     setLoading(true);
 
-    if (isLogin) {
-      await signIn(email, password);
-      // Navigation will be handled by AuthContext
-    } else {
-      if (!fullName.trim() || !phone.trim()) {
-        setLoading(false);
-        return;
+    try {
+      if (isLogin) {
+        // Validate login inputs
+        const loginValidation = loginSchema.safeParse({ email, password });
+        if (!loginValidation.success) {
+          toast.error(loginValidation.error.errors[0].message);
+          setLoading(false);
+          return;
+        }
+        
+        await signIn(email, password);
+        // Navigation will be handled by AuthContext
+      } else {
+        // Validate signup inputs
+        const signupValidation = signupSchema.safeParse({ email, password, fullName, phone });
+        if (!signupValidation.success) {
+          toast.error(signupValidation.error.errors[0].message);
+          setLoading(false);
+          return;
+        }
+        
+        const { error } = await signUp(email, password, fullName, phone);
+        if (!error) {
+          setIsLogin(true);
+          setPassword('');
+          setPhone('');
+        }
       }
-      const { error } = await signUp(email, password, fullName, phone);
-      if (!error) {
-        setIsLogin(true);
-        setPassword('');
-        setPhone('');
-      }
+    } catch (error) {
+      toast.error('Nastala neočakávaná chyba');
     }
 
     setLoading(false);
@@ -133,10 +164,10 @@ const Auth = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    minLength={6}
+                    minLength={8}
                   />
                   <p className="text-xs text-muted-foreground">
-                    Minimálne 6 znakov
+                    Minimálne 8 znakov
                   </p>
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>

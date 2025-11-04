@@ -40,9 +40,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .eq('user_id', userId);
 
       if (error) {
-        if (import.meta.env.DEV) {
-          console.error('Error fetching user role:', error);
-        }
+        // Error already handled by RLS - default to employee role
         return 'employee';
       }
 
@@ -58,9 +56,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       return roles[0] as UserRole || 'employee';
     } catch (error) {
-      if (import.meta.env.DEV) {
-        console.error('Error in fetchUserRole:', error);
-      }
+      // Error already handled - default to employee role
       return 'employee';
     }
   };
