@@ -7,8 +7,10 @@ import { useFormPersistence } from '@/hooks/useFormPersistence';
 import { clearLastFormRoute } from '@/hooks/useRouteTracking';
 import { useDebounce } from '@/hooks/useDebounce';
 import { OfflineIndicator } from '@/components/employee/OfflineIndicator';
+import { PhotoUpload } from '@/components/common/PhotoUpload';
 import { useDailyProject } from '@/hooks/useDailyProject';
 import { formatDateToLocalString, getTodayLocalString, parseDateString } from '@/lib/utils';
+import { optionalPhotoFileSchema } from '@/lib/photoSchemas';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,8 +24,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Loader2, AlertCircle, Camera, ImageIcon, X } from 'lucide-react';
-import { useState, useCallback, useEffect } from 'react';
+import { Loader2, AlertCircle } from 'lucide-react';
+import { useCallback, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -42,7 +44,7 @@ const fuelLogSchema = z.object({
   liters: z.coerce.number().positive('Počet litrov musí byť kladné číslo').max(500, 'Počet litrov je príliš vysoký'),
   price: z.coerce.number().positive('Cena musí byť kladné číslo').max(10000, 'Cena je príliš vysoká').optional().or(z.literal(0)),
   note: z.string().max(500, 'Poznámka je príliš dlhá').optional(),
-  photo_receipt: z.instanceof(File).optional(),
+  photo_receipt: optionalPhotoFileSchema,
 });
 
 type FuelLogFormData = z.infer<typeof fuelLogSchema>;
@@ -54,7 +56,6 @@ const Fueling = () => {
   const { createLog, isCreating } = useFuelLogs(user?.id);
   const { todayAttendance, isLoading: loadingAttendance } = useAttendance(user?.id);
   const { currentProjectId, isLoading: isLoadingDailyProject } = useDailyProject(user?.id);
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
   const form = useForm<FuelLogFormData>({
     resolver: zodResolver(fuelLogSchema),
@@ -78,35 +79,6 @@ const Fueling = () => {
   // Persist form data in localStorage (exclude photo file)
   const { clearPersistedData } = useFormPersistence(form, 'fueling-form', ['photo_receipt']);
 
-  const handlePhotoChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    onChange: (file: File | undefined) => void
-  ) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      // Validate file size (max 10MB)
-      if (file.size > 10 * 1024 * 1024) {
-        toast.error('Súbor je príliš veľký. Maximálna veľkosť je 10MB.');
-        return;
-      }
-      
-      // Validate file type
-      if (!file.type.startsWith('image/')) {
-        toast.error('Neplatný formát súboru. Nahrajte obrázok.');
-        return;
-      }
-      
-      // Create preview
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPhotoPreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-      
-      onChange(file);
-    }
-  };
-
   const handleSubmitCore = useCallback((data: FuelLogFormData) => {
     createLog(
       {
@@ -122,7 +94,6 @@ const Fueling = () => {
         onSuccess: () => {
           clearPersistedData();
           clearLastFormRoute();
-          setPhotoPreview(null);
           form.reset({
             vehicle_id: '',
             project_id: '',
@@ -311,77 +282,15 @@ const Fueling = () => {
                     <FormField
                       control={form.control}
                       name="photo_receipt"
-                      render={({ field: { value, onChange, ...field } }) => (
+                      render={({ field: { value, onChange } }) => (
                         <FormItem>
                           <FormLabel>Foto účtenky - voliteľné</FormLabel>
                           <FormControl>
-                            <div className="space-y-4">
-                              {/* Preview section */}
-                              {photoPreview && (
-                                <div className="relative w-full max-w-sm mx-auto">
-                                  <img 
-                                    src={photoPreview} 
-                                    alt="Náhľad účtenky" 
-                                    className="w-full h-auto rounded-lg border-2 border-primary"
-                                  />
-                                  <Button
-                                    type="button"
-                                    variant="destructive"
-                                    size="sm"
-                                    className="absolute top-2 right-2"
-                                    onClick={() => {
-                                      setPhotoPreview(null);
-                                      onChange(undefined);
-                                    }}
-                                  >
-                                    <X className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                              )}
-                              
-                              {/* Upload buttons */}
-                              {!photoPreview && (
-                                <div className="flex flex-col sm:flex-row gap-2">
-                                  <Button
-                                    type="button"
-                                    variant="outline"
-                                    className="flex-1"
-                                    onClick={() => document.getElementById('photo-gallery')?.click()}
-                                  >
-                                    <ImageIcon className="mr-2 h-4 w-4" />
-                                    Vybrať z galérie
-                                  </Button>
-                                  <Button
-                                    type="button"
-                                    variant="outline"
-                                    className="flex-1"
-                                    onClick={() => document.getElementById('photo-camera')?.click()}
-                                  >
-                                    <Camera className="mr-2 h-4 w-4" />
-                                    Odfotiť
-                                  </Button>
-                                </div>
-                              )}
-                              
-                              {/* Hidden inputs */}
-                              <input
-                                id="photo-gallery"
-                                type="file"
-                                accept="image/*"
-                                className="hidden"
-                                onChange={(e) => handlePhotoChange(e, onChange)}
-                                {...field}
-                              />
-                              <input
-                                id="photo-camera"
-                                type="file"
-                                accept="image/*"
-                                capture="environment"
-                                className="hidden"
-                                onChange={(e) => handlePhotoChange(e, onChange)}
-                                {...field}
-                              />
-                            </div>
+                            <PhotoUpload
+                              value={value}
+                              onChange={onChange}
+                              disabled={!hasCheckedIn}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>

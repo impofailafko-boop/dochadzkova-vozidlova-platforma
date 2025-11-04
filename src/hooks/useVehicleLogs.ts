@@ -137,7 +137,10 @@ export function useVehicleLogs(userId: string | undefined, params?: { limit?: nu
           .from('vehicle-photos')
           .upload(fileName, input.photo_km_start);
 
-        if (uploadError) throw uploadError;
+        if (uploadError) {
+          console.error('Storage upload error:', uploadError);
+          throw new Error(`Nahrávanie fotky zlyhalo: ${uploadError.message}`);
+        }
         photoUrl = fileName;
       }
 
@@ -272,7 +275,10 @@ export function useVehicleLogs(userId: string | undefined, params?: { limit?: nu
           .from('vehicle-photos')
           .upload(fileName, input.photo_km_end);
 
-        if (uploadError) throw uploadError;
+        if (uploadError) {
+          console.error('Storage upload error:', uploadError);
+          throw new Error(`Nahrávanie fotky zlyhalo: ${uploadError.message}`);
+        }
         photoUrl = fileName;
       }
 

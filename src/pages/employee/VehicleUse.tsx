@@ -9,12 +9,13 @@ import { useProfile } from '@/hooks/useProfile';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useMemo, useCallback, useEffect } from 'react';
 import { OfflineIndicator } from '@/components/employee/OfflineIndicator';
+import { PhotoUpload } from '@/components/common/PhotoUpload';
 import { useDailyProject } from '@/hooks/useDailyProject';
 import { formatDateToLocalString, getTodayLocalString, parseDateString } from '@/lib/utils';
+import { optionalPhotoFileSchema } from '@/lib/photoSchemas';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { DatePicker } from '@/components/ui/date-picker';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import {
@@ -41,7 +42,7 @@ const vehicleLogSchema = z.object({
     return selectedDate <= today;
   }, 'Dátum nemôže byť v budúcnosti'),
   km_start: z.coerce.number().positive('Kilometre musia byť kladné číslo').int('Kilometre musia byť celé číslo'),
-  photo_km_start: z.instanceof(File).optional(),
+  photo_km_start: optionalPhotoFileSchema,
 });
 
 type VehicleLogFormData = z.infer<typeof vehicleLogSchema>;
@@ -264,18 +265,14 @@ const VehicleUse = () => {
                       <FormField
                         control={form.control}
                         name="photo_km_start"
-                        render={({ field: { value, onChange, ...field } }) => (
-                          <FormItem>
-                            <FormLabel>Foto stavu kilometrov</FormLabel>
+                        render={({ field: { value, onChange } }) => (
+                          <FormItem className="sm:col-span-2">
+                            <FormLabel>Foto stavu kilometrov - voliteľné</FormLabel>
                             <FormControl>
-                              <Input 
-                                type="file" 
-                                accept="image/*"
-                                onChange={(e) => {
-                                  const file = e.target.files?.[0];
-                                  if (file) onChange(file);
-                                }}
-                                {...field}
+                              <PhotoUpload
+                                value={value}
+                                onChange={onChange}
+                                disabled={!hasCheckedIn}
                               />
                             </FormControl>
                             <FormMessage />

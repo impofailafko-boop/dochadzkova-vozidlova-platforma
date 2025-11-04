@@ -109,7 +109,10 @@ export function useFuelLogs(userId: string | undefined, params?: { limit?: numbe
           .from('vehicle-photos')
           .upload(fileName, input.photo_receipt);
 
-        if (uploadError) throw uploadError;
+        if (uploadError) {
+          console.error('Storage upload error:', uploadError);
+          throw new Error(`Nahrávanie fotky zlyhalo: ${uploadError.message}`);
+        }
         photoUrl = fileName;
       }
 
