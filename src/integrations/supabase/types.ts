@@ -148,6 +148,7 @@ export type Database = {
           job_position: Database["public"]["Enums"]["job_position"] | null
           last_used_vehicle_id: string | null
           phone: string | null
+          project_selected_date: string | null
           user_id: string
         }
         Insert: {
@@ -162,6 +163,7 @@ export type Database = {
           job_position?: Database["public"]["Enums"]["job_position"] | null
           last_used_vehicle_id?: string | null
           phone?: string | null
+          project_selected_date?: string | null
           user_id: string
         }
         Update: {
@@ -176,6 +178,7 @@ export type Database = {
           job_position?: Database["public"]["Enums"]["job_position"] | null
           last_used_vehicle_id?: string | null
           phone?: string | null
+          project_selected_date?: string | null
           user_id?: string
         }
         Relationships: [
