@@ -62,8 +62,14 @@ export function useAdminFuelings(filters?: {
       
       // Upload photo if provided
       if (photo_receipt) {
+        // Get authenticated user
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        if (userError || !user) {
+          throw new Error('Používateľ nie je autentifikovaný');
+        }
+
         const fileExt = photo_receipt.name.split('.').pop();
-        const fileName = `admin/${Date.now()}_receipt.${fileExt}`;
+        const fileName = `${user.id}/${Date.now()}_receipt.${fileExt}`;
         
         const { error: uploadError } = await supabase.storage
           .from('vehicle-photos')
@@ -118,8 +124,14 @@ export function useAdminFuelings(filters?: {
       
       // Upload photo if provided
       if (photo_receipt) {
+        // Get authenticated user
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        if (userError || !user) {
+          throw new Error('Používateľ nie je autentifikovaný');
+        }
+
         const fileExt = photo_receipt.name.split('.').pop();
-        const fileName = `admin/${Date.now()}_receipt.${fileExt}`;
+        const fileName = `${user.id}/${Date.now()}_receipt.${fileExt}`;
         
         const { error: uploadError } = await supabase.storage
           .from('vehicle-photos')
