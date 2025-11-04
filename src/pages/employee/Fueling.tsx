@@ -7,6 +7,7 @@ import { useFormPersistence } from '@/hooks/useFormPersistence';
 import { clearLastFormRoute } from '@/hooks/useRouteTracking';
 import { useDebounce } from '@/hooks/useDebounce';
 import { OfflineIndicator } from '@/components/employee/OfflineIndicator';
+import { useDailyProject } from '@/hooks/useDailyProject';
 import { formatDateToLocalString, getTodayLocalString, parseDateString } from '@/lib/utils';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -22,7 +23,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Loader2, AlertCircle, Camera, ImageIcon, X } from 'lucide-react';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -52,6 +53,7 @@ const Fueling = () => {
   const { data: projects, isLoading: loadingProjects } = useProjects();
   const { createLog, isCreating } = useFuelLogs(user?.id);
   const { todayAttendance, isLoading: loadingAttendance } = useAttendance(user?.id);
+  const { currentProjectId, isLoading: isLoadingDailyProject } = useDailyProject(user?.id);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
   const form = useForm<FuelLogFormData>({
@@ -65,6 +67,13 @@ const Fueling = () => {
       note: '',
     },
   });
+
+  // Auto-fill project from daily selection
+  useEffect(() => {
+    if (currentProjectId && !form.getValues('project_id')) {
+      form.setValue('project_id', currentProjectId);
+    }
+  }, [currentProjectId, form]);
 
   // Persist form data in localStorage (exclude photo file)
   const { clearPersistedData } = useFormPersistence(form, 'fueling-form', ['photo_receipt']);

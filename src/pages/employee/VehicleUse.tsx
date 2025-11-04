@@ -7,8 +7,9 @@ import { useFormPersistence } from '@/hooks/useFormPersistence';
 import { clearLastFormRoute } from '@/hooks/useRouteTracking';
 import { useProfile } from '@/hooks/useProfile';
 import { useDebounce } from '@/hooks/useDebounce';
-import { useMemo, useCallback } from 'react';
+import { useMemo, useCallback, useEffect } from 'react';
 import { OfflineIndicator } from '@/components/employee/OfflineIndicator';
+import { useDailyProject } from '@/hooks/useDailyProject';
 import { formatDateToLocalString, getTodayLocalString, parseDateString } from '@/lib/utils';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -53,6 +54,7 @@ const VehicleUse = () => {
   const { data: projects, isLoading: loadingProjects } = useProjects();
   const { createLog, isCreating } = useVehicleLogs(user?.id);
   const { todayAttendance, isLoading: loadingAttendance } = useAttendance(user?.id);
+  const { currentProjectId, isLoading: isLoadingDailyProject } = useDailyProject(user?.id);
 
   const form = useForm<VehicleLogFormData>({
     resolver: zodResolver(vehicleLogSchema),
@@ -63,6 +65,13 @@ const VehicleUse = () => {
       km_start: 0,
     },
   });
+
+  // Auto-fill project from daily selection
+  useEffect(() => {
+    if (currentProjectId && !form.getValues('project_id')) {
+      form.setValue('project_id', currentProjectId);
+    }
+  }, [currentProjectId, form]);
 
   // Persist form data in localStorage (exclude photo file)
   const { clearPersistedData } = useFormPersistence(form, 'vehicle-use-form', ['photo_km_start']);
