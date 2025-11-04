@@ -62,6 +62,10 @@
 - [x] **vehicle_logs.km_driven nullable** - Počíta sa až pri ukončení (km_end - km_start)
 - [x] **GPS tracking fields pre jazdy** - vehicle_logs.start_latitude/longitude a end_latitude/longitude pre sledovanie polohy pri začatí a ukončení jazdy
 
+### Edge Functions (Backend Logic)
+- [x] **create-admin-account** - Secure server-side admin account creation (JWT + role verification, rollback, audit log)
+- [x] **ai-reports** - AI-powered reports pre adminov (Lovable AI integration, streaming responses)
+
 ### UI/UX
 - [x] **Sidebar navigácia** - AdminSidebar + EmployeeSidebar (shadcn/ui sidebar)
 - [x] **Navbar** - Top navigation s logout tlačidlom + PIKOLO logo, responsive (logo menší na mobile, text skrytý na malých obrazovkách)
@@ -86,6 +90,9 @@
 - [x] **Validácia kilometrov** - ✅ OPRAVENÉ: Zod validácia `km_end > km_start` + pozitívne km
 - [x] **Validácia tankovania** - ✅ OPRAVENÉ: Zod validácia `liters > 0` a `price >= 0`
 - [x] **Input validácie** - ✅ OPRAVENÉ: Zod schémy pre VehicleUse a Fueling formuláre
+- [x] **Auth validácie** - ✅ OPRAVENÉ: Zod schémy pre email (max 255), telefón (slovenský regex), heslo (min 8)
+- [x] **Form validácie** - ✅ VŠETKY FORMULÁRE: Admin dialógy + Employee formuláre používajú Zod + react-hook-form
+- [x] **Signed URLs security** - ✅ IMPLEMENTOVANÉ: Private bucket + 1-hodinová expirácia pre všetky fotky
 - [ ] **Obmedzenie času dochádzky** - CHÝBA pravidlo pre max hodiny/deň
 
 ### Features
@@ -259,6 +266,9 @@ Všetky bugy opravené! ✅
 - **Tailwind** - Design system používa semantic tokens z `index.css`
 - **React Query** - Všetky data fetching cez TanStack Query ✅
 - **Branding** - PIKOLO s.r.o. logo + zelená firemná farba (HSL: 150 30% 25%) implementované
+- **Console Logs** - Production-ready (DEV-only logy + audit logy v edge functions) ✅
+- **Signed URLs** - Všetky fotky v private bucket s 1-hodinovou expiráciou ✅
+- **Edge Functions Deployed** - create-admin-account + ai-reports aktívne ✅
 
 ## 🎨 DESIGN SYSTEM
 

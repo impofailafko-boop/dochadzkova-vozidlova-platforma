@@ -434,8 +434,9 @@ ALL: has_role(auth.uid(), 'admin')
 - sonner (toast notifications)
 
 ### Forms & Validation
-- react-hook-form
-- zod (validation - nie je zatiaľ použitý!)
+- react-hook-form (formulárová logika)
+- @hookform/resolvers (Zod integrácia)
+- zod (✅ AKTÍVNE POUŽÍVANÉ - všetky admin a employee formuláre)
 
 ---
 
@@ -465,6 +466,111 @@ ALL: has_role(auth.uid(), 'admin')
 1. **Unique email** - Email je primary key v auth.users
 2. **Default role: employee** - Každý nový user dostane employee rolu
 3. **Admin nemožno vymazať** - CHÝBA ochrana (by sa malo checknúť pred deletom)
+
+### Input Validácia (Zod Schémy)
+
+**Auth.tsx:**
+- Email: max 255 znakov, valid email format
+- Phone: slovenský regex (+421 alebo 0), 9-13 znakov
+- Password: min 8 znakov
+- Full name: min 2 znaky
+
+**VehicleUse (useVehicleLogs):**
+- km_start: pozitívne celé číslo
+- km_end: pozitívne celé číslo, MUSÍ byť > km_start
+- photo_km_start: POVINNÁ (File object)
+- photo_km_end: voliteľná (File object)
+
+**Fueling (useFuelLogs):**
+- liters: pozitívne číslo > 0, max 500
+- price: pozitívne číslo >= 0, max 10000
+- note: max 500 znakov (voliteľné)
+
+**Admin Forms:**
+- Všetky admin dialógy (Employees, Vehicles, Projects, Attendance, Drives, Fuelings) používajú Zod schémy pre validáciu
+
+---
+
+## 🔌 EDGE FUNCTIONS
+
+### 1. `create-admin-account`
+
+**Účel:** Bezpečné vytvorenie admin účtu (iba admin môže volať)
+
+**Endpoint:** `POST /functions/v1/create-admin-account`
+
+**Auth:** Required (JWT token)
+
+**Request Body:**
+```typescript
+{
+  email: string;
+  password: string;
+  fullName: string;
+  phone: string;
+}
+```
+
+**Bezpečnosť:**
+- JWT token verifikácia
+- Server-side admin role check cez `has_role()`
+- Používa Admin API (nie raw SQL)
+- Auto-email confirmation
+- Rollback pri zlyhaní
+- Audit logging
+
+**Response:**
+```typescript
+{
+  success: boolean;
+  userId: string;
+  message: string;
+}
+```
+
+**Error Handling:**
+- 401: Unauthorized (chýbajúci/neplatný token alebo nie admin)
+- 400: Chýbajúce polia alebo duplicitný email
+- 500: Nepodarilo sa vytvoriť účet
+
+---
+
+### 2. `ai-reports`
+
+**Účel:** AI-powered reporty pre adminov (používa Lovable AI)
+
+**Endpoint:** `POST /functions/v1/ai-reports`
+
+**Auth:** Required (JWT token + admin role)
+
+**Request Body:**
+```typescript
+{
+  question: string; // Otázka pre AI (napr. "Koľko hodín odpracoval employee X tento mesiac?")
+}
+```
+
+**Bezpečnosť:**
+- JWT token verifikácia
+- Server-side admin role check
+- Fetch všetky dáta z DB (attendance, vehicle_logs, fuel_logs, projects, vehicles, profiles)
+- Volá Lovable AI API s kontextom
+
+**Response:**
+- Streaming response (text/event-stream)
+- AI generované odpovede v reálnom čase
+
+**Context poskytovaný AI:**
+- Attendance records (current month)
+- Vehicle logs (current month)
+- Fuel logs (current month)
+- All projects
+- All vehicles
+- All employee profiles
+
+**Použitie v UI:**
+- Admin → `/admin/ai-reports` stránka
+- Real-time streaming výstupu z AI
 
 ---
 
@@ -521,6 +627,38 @@ const { error } = await supabase
   .update({ field: value })
   .eq('id', id);
 ```
+
+### Signed URLs Pattern
+```typescript
+// Private storage bucket access (security best practice)
+// Vehicle photos sú private, prístup len cez signed URLs
+
+// ❌ NESPRÁVNE: getPublicUrl pre private bucket
+const { data } = supabase.storage
+  .from('vehicle-photos')
+  .getPublicUrl(path);
+// → Vráti URL, ale browser dostane 403 Forbidden
+
+// ✅ SPRÁVNE: createSignedUrl s expiráciou
+const { data, error } = await supabase.storage
+  .from('vehicle-photos')
+  .createSignedUrl(path, 3600); // 1 hour expiry
+
+if (data?.signedUrl) {
+  window.open(data.signedUrl, '_blank'); // Funguje!
+}
+```
+
+**Použitie v projekte:**
+- `DrivesOverview.tsx` - photo_km_start, photo_km_end
+- `FuelingsOverview.tsx` - photo_receipt  
+- `History.tsx` - všetky tri typy fotiek
+
+**Prečo signed URLs:**
+- 🔒 Security: Private bucket = kontrolovaný prístup
+- ⏱️ Temporary access: URL expiruje po 1 hodine
+- 👤 User-specific: RLS kontroluje ownership
+- 📊 Audit trail: Každý download je trackovateľný
 
 ### Auth Context Pattern
 ```typescript

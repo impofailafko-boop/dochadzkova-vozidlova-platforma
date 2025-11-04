@@ -496,6 +496,98 @@ vehicle-photos/550e8400-e29b-41d4-a716-446655440000/1737377940123_start.jpg
 - ✅ Employee môže nahrať fotku len do svojho folderu (`user_id`)
 - ✅ Employee môže vidieť len svoje fotky
 - ✅ Admin môže vidieť všetky fotky
+
+---
+
+## 🔌 EDGE FUNCTIONS
+
+### `create-admin-account`
+
+**Typ:** Authenticated endpoint (JWT required)
+
+**Účel:** Server-side vytvorenie admin účtu s bezpečnostnými kontrolami
+
+**Prečo Edge Function (nie client-side signup):**
+1. **Security:** Overenie admin role na serveri (nie dôvera client-side kódu)
+2. **Audit:** Centralizovaný logging kto vytvoril koho
+3. **Rollback:** Automatické rollback pri zlyhaní (delete user ak role assignment fails)
+4. **Admin API:** Používa Supabase Admin API s Service Role Key (nie dostupný na client-side)
+
+**Input:**
+```typescript
+{
+  email: string,
+  password: string,
+  fullName: string,
+  phone: string
+}
+```
+
+**Output:**
+```typescript
+{
+  success: boolean,
+  userId: string,
+  message: string
+}
+```
+
+**Flow:**
+1. Verify JWT token from request header
+2. Check if requesting user has admin role via `has_role()`
+3. Create user via `supabaseAdmin.auth.admin.createUser()` (auto-confirm email)
+4. Update profile with phone number
+5. Assign admin role in `user_roles` table
+6. If role assignment fails → rollback (delete created user)
+7. Log audit trail with creator + created user IDs
+
+**Security Features:**
+- ✅ JWT verification
+- ✅ Server-side role check (obchádza client-side bypassy)
+- ✅ Uses Admin API (secure)
+- ✅ Rollback mechanism
+- ✅ Audit logging
+- ✅ CORS headers správne nastavené
+
+---
+
+### `ai-reports`
+
+**Typ:** Authenticated endpoint (JWT required + admin only)
+
+**Účel:** AI-powered analýza dát pre adminov
+
+**Auth Flow:**
+1. Verify JWT token
+2. Check admin role via `has_role()`
+3. Fetch current month data (attendance, vehicle_logs, fuel_logs, projects, vehicles, profiles)
+4. Send data + user question to Lovable AI API
+5. Stream AI response back to client
+
+**Input:**
+```typescript
+{
+  question: string; // "Koľko km najazdil employee X tento mesiac?"
+}
+```
+
+**Output:**
+- Streaming response (Server-Sent Events)
+- Real-time AI generated answers
+
+**Data Context:**
+- Attendance records (current month)
+- Vehicle logs (current month)
+- Fuel logs (current month)
+- All projects
+- All vehicles  
+- All profiles
+
+**Security:**
+- ✅ Admin-only access
+- ✅ JWT verification
+- ✅ Rate limiting handled by Lovable AI API
+- ✅ No raw data exposure to client (processed by AI)
 - ✅ Fotky sú súčasťou workflow začatia/ukončenia jazdy
 - ⚠️ **CHÝBA:** Validácia file size (max 5MB odporúčané)
 - ⚠️ **CHÝBA:** Validácia file type (len JPG/PNG/WEBP)
