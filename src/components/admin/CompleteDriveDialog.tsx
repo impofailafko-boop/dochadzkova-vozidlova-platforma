@@ -6,12 +6,15 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { PhotoUpload } from '@/components/common/PhotoUpload';
+import { optionalPhotoFileSchema } from '@/lib/photoSchemas';
 
 const completeDriveSchema = z.object({
   km_end: z.number()
     .int('Kilómetre musia byť celé číslo')
     .min(0, 'Kilómetre nemôžu byť záporné')
     .max(9999999, 'Kilómetre nemôžu byť väčšie ako 9,999,999'),
+  photo_km_end: optionalPhotoFileSchema,
 });
 
 type CompleteDriveFormData = z.infer<typeof completeDriveSchema>;
@@ -20,7 +23,7 @@ interface CompleteDriveDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   drive: any;
-  onComplete: (id: string, km_end: number) => void;
+  onComplete: (id: string, km_end: number, photo_km_end?: File) => void;
   isCompleting: boolean;
 }
 
@@ -36,6 +39,7 @@ export function CompleteDriveDialog({ open, onOpenChange, drive, onComplete, isC
     if (drive) {
       form.reset({
         km_end: drive.km_start || 0,
+        photo_km_end: undefined,
       });
     }
   }, [drive, form]);
@@ -49,13 +53,13 @@ export function CompleteDriveDialog({ open, onOpenChange, drive, onComplete, isC
       });
       return;
     }
-    onComplete(drive.id, data.km_end);
+    onComplete(drive.id, data.km_end, data.photo_km_end);
     onOpenChange(false);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Dokončiť jazdu</DialogTitle>
           <DialogDescription>
@@ -89,6 +93,23 @@ export function CompleteDriveDialog({ open, onOpenChange, drive, onComplete, isC
             <div className="text-sm text-muted-foreground">
               Prejdené km: {kmEnd - (drive?.km_start || 0)}
             </div>
+            <FormField
+              control={form.control}
+              name="photo_km_end"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Foto konečného stavu - voliteľné</FormLabel>
+                  <FormControl>
+                    <PhotoUpload
+                      value={field.value}
+                      onChange={field.onChange}
+                      label="Foto tachometra na konci"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <div className="flex justify-end gap-2">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Zrušiť

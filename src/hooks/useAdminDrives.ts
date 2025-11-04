@@ -57,8 +57,53 @@ export function useAdminDrives(filters?: {
   });
 
   const updateDrive = useMutation({
-    mutationFn: async ({ id, ...data }: { id: string; km_start?: number; km_end?: number; date?: string; vehicle_id?: string; project_id?: string }) => {
+    mutationFn: async ({ id, photo_km_start, photo_km_end, ...data }: { 
+      id: string; 
+      km_start?: number; 
+      km_end?: number; 
+      date?: string; 
+      vehicle_id?: string; 
+      project_id?: string;
+      photo_km_start?: File | string;
+      photo_km_end?: File | string;
+    }) => {
       const updateData: any = { ...data };
+      
+      // Get current user ID for photo naming
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      // Handle photo_km_start upload
+      if (photo_km_start instanceof File) {
+        const timestamp = Date.now();
+        const fileName = `${user.id}_${timestamp}_km_start.jpg`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('vehicle-photos')
+          .upload(fileName, photo_km_start, {
+            cacheControl: '3600',
+            upsert: false
+          });
+
+        if (uploadError) throw uploadError;
+        updateData.photo_km_start = fileName;
+      }
+
+      // Handle photo_km_end upload
+      if (photo_km_end instanceof File) {
+        const timestamp = Date.now();
+        const fileName = `${user.id}_${timestamp}_km_end.jpg`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('vehicle-photos')
+          .upload(fileName, photo_km_end, {
+            cacheControl: '3600',
+            upsert: false
+          });
+
+        if (uploadError) throw uploadError;
+        updateData.photo_km_end = fileName;
+      }
       
       // Recalculate km_driven if both km_start and km_end are present
       if (data.km_start !== undefined && data.km_end !== undefined) {
@@ -100,23 +145,41 @@ export function useAdminDrives(filters?: {
   });
 
   const completeDrive = useMutation({
-    mutationFn: async ({ id, km_end }: { id: string; km_end: number }) => {
+    mutationFn: async ({ id, km_end, photo_km_end }: { id: string; km_end: number; photo_km_end?: File }) => {
       // Get the drive to calculate km_driven
       const { data: drive, error: fetchError } = await supabase
         .from('vehicle_logs')
-        .select('km_start')
+        .select('km_start, user_id')
         .eq('id', id)
         .single();
 
       if (fetchError) throw fetchError;
 
+      const updateData: any = {
+        km_end,
+        km_driven: km_end - drive.km_start,
+        is_completed: true,
+      };
+
+      // Handle photo_km_end upload if provided
+      if (photo_km_end) {
+        const timestamp = Date.now();
+        const fileName = `${drive.user_id}_${timestamp}_km_end.jpg`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('vehicle-photos')
+          .upload(fileName, photo_km_end, {
+            cacheControl: '3600',
+            upsert: false
+          });
+
+        if (uploadError) throw uploadError;
+        updateData.photo_km_end = fileName;
+      }
+
       const { error } = await supabase
         .from('vehicle_logs')
-        .update({
-          km_end,
-          km_driven: km_end - drive.km_start,
-          is_completed: true,
-        })
+        .update(updateData)
         .eq('id', id);
 
       if (error) throw error;

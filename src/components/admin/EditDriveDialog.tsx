@@ -7,6 +7,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { PhotoUpload } from '@/components/common/PhotoUpload';
+import { optionalPhotoFileSchema } from '@/lib/photoSchemas';
 
 const editDriveSchema = z.object({
   vehicle_id: z.string().min(1, 'Vyberte vozidlo'),
@@ -21,6 +23,8 @@ const editDriveSchema = z.object({
     .max(9999999, 'Kilómetre nemôžu byť väčšie ako 9,999,999')
     .nullable()
     .optional(),
+  photo_km_start: optionalPhotoFileSchema,
+  photo_km_end: optionalPhotoFileSchema,
 }).refine((data) => {
   if (data.km_end !== null && data.km_end !== undefined) {
     return data.km_end >= data.km_start;
@@ -61,6 +65,8 @@ export function EditDriveDialog({ open, onOpenChange, drive, vehicles, projects,
         km_end: drive.km_end || null,
         vehicle_id: drive.vehicle_id || '',
         project_id: drive.project_id || '',
+        photo_km_start: undefined,
+        photo_km_end: undefined,
       });
     }
   }, [drive, form]);
@@ -72,7 +78,7 @@ export function EditDriveDialog({ open, onOpenChange, drive, vehicles, projects,
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Upraviť jazdu</DialogTitle>
         </DialogHeader>
@@ -155,6 +161,42 @@ export function EditDriveDialog({ open, onOpenChange, drive, vehicles, projects,
                         type="number"
                         value={field.value ?? ''}
                         onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : null)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+            <FormField
+              control={form.control}
+              name="photo_km_start"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Foto stavu kilometrov (štart) - voliteľné</FormLabel>
+                  <FormControl>
+                    <PhotoUpload
+                      value={field.value}
+                      onChange={field.onChange}
+                      label="Foto tachometra na začiatku"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            {drive?.is_completed && (
+              <FormField
+                control={form.control}
+                name="photo_km_end"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Foto stavu kilometrov (koniec) - voliteľné</FormLabel>
+                    <FormControl>
+                      <PhotoUpload
+                        value={field.value}
+                        onChange={field.onChange}
+                        label="Foto tachometra na konci"
                       />
                     </FormControl>
                     <FormMessage />

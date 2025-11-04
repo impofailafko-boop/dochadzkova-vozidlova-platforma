@@ -101,8 +101,8 @@ const DrivesOverview = () => {
     updateDrive({ id, ...data });
   };
 
-  const handleCompleteDrive = (id: string, km_end: number) => {
-    completeDrive({ id, km_end });
+  const handleCompleteDrive = (id: string, km_end: number, photo_km_end?: File) => {
+    completeDrive({ id, km_end, photo_km_end });
   };
 
   const filteredDrivesForStats = statsProjectFilter === 'all' 
