@@ -45,20 +45,20 @@ const queryClient = new QueryClient();
 
 const AppContent = () => {
   const navigate = useNavigate();
-  const { user, loading } = useAuth();
+  const { user, loading, role } = useAuth();
   
   // Track current route for form persistence
   useRouteTracking();
 
-  // Restore last form route on app load
+  // Restore last form route on app load (one-time check)
   useEffect(() => {
-    if (!loading && user) {
+    if (!loading && user && role) {
       const lastFormRoute = getAndClearLastFormRoute();
-      if (lastFormRoute) {
+      if (lastFormRoute && window.location.pathname !== lastFormRoute) {
         navigate(lastFormRoute, { replace: true });
       }
     }
-  }, [loading, user, navigate]);
+  }, [loading, user, role]); // Don't add navigate to deps to avoid re-running
 
   return (
     <Routes>

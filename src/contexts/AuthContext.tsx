@@ -71,15 +71,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setTimeout(async () => {
             const userRole = await fetchUserRole(currentSession.user.id);
             setRole(userRole);
-            
-            // Redirect on sign in
-            if (event === 'SIGNED_IN' && userRole) {
-              if (userRole === 'admin') {
-                navigate('/admin');
-              } else {
-                navigate('/dashboard');
-              }
-            }
           }, 0);
         } else {
           setRole(null);
@@ -139,7 +130,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
@@ -147,6 +138,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error) {
         toast.error('Nesprávne prihlasovacie údaje');
         return { error };
+      }
+
+      // Redirect only on explicit sign in
+      if (data.user) {
+        const userRole = await fetchUserRole(data.user.id);
+        if (userRole === 'admin') {
+          navigate('/admin');
+        } else {
+          navigate('/dashboard');
+        }
       }
 
       toast.success('Úspešne prihlásený!');

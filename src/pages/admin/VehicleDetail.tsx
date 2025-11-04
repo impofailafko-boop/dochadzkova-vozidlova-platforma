@@ -143,7 +143,7 @@ const VehicleDetail = () => {
     <div className="p-4 sm:p-6 space-y-6">
       <div className="space-y-4">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate('/admin/vehicles')}>
+          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
