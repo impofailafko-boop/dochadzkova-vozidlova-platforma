@@ -12,6 +12,7 @@ interface AuthContextType {
   session: Session | null;
   role: UserRole;
   loading: boolean;
+  isInitialized: boolean;
   signUp: (email: string, password: string, fullName: string, phone: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
@@ -24,6 +25,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [role, setRole] = useState<UserRole>(null);
   const [loading, setLoading] = useState(true);
+  const [isInitialized, setIsInitialized] = useState(false);
   const navigate = useNavigate();
 
   // Set up auto-sync on mount
@@ -62,44 +64,56 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
+    let isMounted = true;
+
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
+        if (!isMounted) return;
+
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
 
         // Fetch role after setting user
         if (currentSession?.user) {
           setTimeout(async () => {
+            if (!isMounted) return;
             const userRole = await fetchUserRole(currentSession.user.id);
             setRole(userRole);
+            setLoading(false);
+            setIsInitialized(true);
           }, 0);
         } else {
           setRole(null);
+          setLoading(false);
+          setIsInitialized(true);
         }
-
-        setLoading(false);
       }
     );
 
     // THEN check for existing session
     supabase.auth.getSession().then(async ({ data: { session: currentSession } }) => {
+      if (!isMounted) return;
+
       setSession(currentSession);
       setUser(currentSession?.user ?? null);
 
       if (currentSession?.user) {
         const userRole = await fetchUserRole(currentSession.user.id);
         setRole(userRole);
-        setLoading(false);
       } else {
-        setLoading(false);
+        setRole(null);
       }
+      
+      setLoading(false);
+      setIsInitialized(true);
     });
 
     return () => {
+      isMounted = false;
       subscription.unsubscribe();
     };
-  }, [navigate]);
+  }, []);
 
   const signUp = async (email: string, password: string, fullName: string, phone: string) => {
     try {
@@ -178,6 +192,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     session,
     role,
     loading,
+    isInitialized,
     signUp,
     signIn,
     signOut,
