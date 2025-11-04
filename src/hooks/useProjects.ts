@@ -18,9 +18,6 @@ export function useProjects() {
         throw error;
       }
       
-      if (import.meta.env.DEV) {
-        console.log('Loaded projects:', data);
-      }
       return data;
     },
   });

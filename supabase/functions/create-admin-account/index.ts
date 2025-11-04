@@ -62,8 +62,6 @@ serve(async (req) => {
       );
     }
 
-    console.log('Create Admin Account: Admin user verified, proceeding with account creation');
-
     // Create user using Admin API (secure method)
     const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
       email,
@@ -89,8 +87,6 @@ serve(async (req) => {
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-
-    console.log('Create Admin Account: User created successfully, adding admin role');
 
     // Update phone in profiles (triggers will create the profile)
     const { error: profileError } = await supabaseAdmin
