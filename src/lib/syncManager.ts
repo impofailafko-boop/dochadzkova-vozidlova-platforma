@@ -33,7 +33,7 @@ async function syncAttendance(mutation: PendingMutation): Promise<boolean> {
         .is('departure_time', null)
         .order('created_at', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
       if (fetchError) throw fetchError;
 
