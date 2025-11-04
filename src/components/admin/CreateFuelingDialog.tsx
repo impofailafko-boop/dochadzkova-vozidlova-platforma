@@ -86,7 +86,7 @@ export function CreateFuelingDialog({ open, onOpenChange, vehicles, projects, cu
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Pridať tankovanie</DialogTitle>
         </DialogHeader>
