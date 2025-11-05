@@ -25,12 +25,18 @@ const items = [
 ];
 
 export function EmployeeSidebar() {
-  const { state } = useSidebar();
+  const { state, isMobile, setOpenMobile } = useSidebar();
   const location = useLocation();
   const currentPath = location.pathname;
   const collapsed = state === 'collapsed';
 
   const isActive = (path: string) => currentPath === path;
+
+  const handleNavClick = () => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  };
 
   return (
     <Sidebar 
@@ -50,7 +56,7 @@ export function EmployeeSidebar() {
                 return (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild isActive={active}>
-                      <NavLink to={item.url}>
+                      <NavLink to={item.url} onClick={handleNavClick}>
                         <Icon className="h-4 w-4" />
                         <span>{item.title}</span>
                       </NavLink>
