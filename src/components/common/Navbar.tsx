@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { LogOut, User } from 'lucide-react';
 import { SidebarTrigger } from '@/components/ui/sidebar';
-import pikoloLogo from '@/assets/pikolo-logo.png';
+import pikoloLogo from '@/assets/logo-pikolo.webp';
 
 const Navbar = () => {
   const { user, signOut, role } = useAuth();
@@ -21,7 +21,7 @@ const Navbar = () => {
         <SidebarTrigger className="mr-4" />
         
         <div className="flex items-center gap-3">
-          <img src={pikoloLogo} alt="PIKOLO s.r.o." className="h-8 w-auto md:h-10" />
+          <img src={pikoloLogo} alt="PIKOLO s.r.o." className="h-10 w-auto md:h-12" />
           <h1 className="hidden sm:block text-lg font-semibold">Dochádzková platforma</h1>
         </div>
 

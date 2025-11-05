@@ -6,9 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Car } from 'lucide-react';
 import { z } from 'zod';
 import { toast } from 'sonner';
+import pikoloLogo from '@/assets/logo-pikolo.webp';
 
 // Validation schema for signup form
 const signupSchema = z.object({
@@ -75,8 +75,8 @@ const Auth = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-accent/5 p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-3 text-center">
-          <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-            <Car className="w-6 h-6 text-primary" />
+          <div className="mx-auto flex items-center justify-center">
+            <img src={pikoloLogo} alt="PIKOLO s.r.o." className="h-24 w-auto" />
           </div>
           <CardTitle className="text-2xl">Dochádzková platforma</CardTitle>
           <CardDescription>
