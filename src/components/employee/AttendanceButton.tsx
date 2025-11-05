@@ -33,7 +33,7 @@ const AttendanceButton = () => {
 
   const { data: activeLogs, isLoading: isLoadingActiveLogs } = useActiveVehicleLogs(user?.id);
   const { getLocation } = useGeolocation();
-  const { currentProjectId, setDailyProject } = useDailyProject(user?.id);
+  const { currentProjectId, setDailyProject, clearDailyProject } = useDailyProject(user?.id);
 
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [shouldNavigateBack, setShouldNavigateBack] = useState(false);
@@ -161,7 +161,11 @@ const AttendanceButton = () => {
         toast.error('Nepodarilo sa uložiť odchod offline');
       }
     } else {
-      recordDeparture();
+      recordDeparture(undefined, {
+        onSuccess: () => {
+          clearDailyProject();
+        }
+      });
     }
   }, [isOnline, getLocation, user?.id, recordDeparture]);
 
