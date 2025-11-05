@@ -31,7 +31,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { toast } from 'sonner';
-import { Link } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 const fuelLogSchema = z.object({
   vehicle_id: z.string().min(1, 'Vyberte vozidlo'),
@@ -51,6 +51,7 @@ type FuelLogFormData = z.infer<typeof fuelLogSchema>;
 
 const Fueling = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { data: vehicles, isLoading: loadingVehicles } = useVehicles();
   const { data: projects, isLoading: loadingProjects } = useProjects();
   const { createLog, isCreating } = useFuelLogs(user?.id);
@@ -103,6 +104,7 @@ const Fueling = () => {
             note: '',
           });
           toast.success('Záznam o tankovaní bol úspešne uložený');
+          navigate('/dashboard');
         },
         onError: (error) => {
           toast.error('Chyba pri ukladaní záznamu: ' + error.message);
