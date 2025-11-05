@@ -150,7 +150,14 @@ export function CreateFuelingDialog({ open, onOpenChange, vehicles, projects, cu
                     <SelectContent className="bg-popover z-50">
                       {projects?.map((project: any) => (
                         <SelectItem key={project.id} value={project.id}>
-                          {project.name}
+                          <div className="flex flex-col gap-1 py-1">
+                            <span className="font-medium">{project.name}</span>
+                            {project.description && (
+                              <span className="text-xs text-muted-foreground line-clamp-2">
+                                {project.description}
+                              </span>
+                            )}
+                          </div>
                         </SelectItem>
                       ))}
                     </SelectContent>
