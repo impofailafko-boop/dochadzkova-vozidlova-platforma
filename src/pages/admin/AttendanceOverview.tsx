@@ -255,13 +255,13 @@ const AttendanceOverview = () => {
                           {record.total_hours ? formatHoursToReadable(record.total_hours) : '-'}
                         </TableCell>
                         <TableCell className="text-right whitespace-nowrap">
-                          <DropdownMenu>
+                          <DropdownMenu modal={false}>
                             <DropdownMenuTrigger asChild>
                               <Button variant="ghost" size="sm">
                                 •••
                               </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent className="bg-popover z-50" align="end">
+                            <DropdownMenuContent align="end">
                               <DropdownMenuItem onClick={() => handleEdit(record)}>
                                 <Edit className="mr-2 h-4 w-4" />
                                 Upraviť
