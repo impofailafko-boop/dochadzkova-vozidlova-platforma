@@ -334,15 +334,15 @@ const Calendar = () => {
                       <Table>
                         <TableHeader>
                           <TableRow>
-                            <TableHead className="text-xs">Meno</TableHead>
-                            <TableHead className="text-xs text-right">Hodiny</TableHead>
+                            <TableHead className="text-xs whitespace-nowrap">Meno</TableHead>
+                            <TableHead className="text-xs text-right whitespace-nowrap">Hodiny</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
                           {selectedDayData.attendance.records.map((record: any) => (
                             <TableRow key={record.id}>
-                              <TableCell className="text-xs py-2">{record.profiles?.full_name || '-'}</TableCell>
-                              <TableCell className="text-xs text-right py-2">{formatHoursToReadable(record.total_hours)}</TableCell>
+                              <TableCell className="text-xs py-2 whitespace-nowrap">{record.profiles?.full_name || '-'}</TableCell>
+                              <TableCell className="text-xs text-right py-2 whitespace-nowrap">{formatHoursToReadable(record.total_hours)}</TableCell>
                             </TableRow>
                           ))}
                         </TableBody>
@@ -363,8 +363,8 @@ const Calendar = () => {
                       <Table>
                         <TableHeader>
                           <TableRow>
-                            <TableHead className="text-xs">SPZ</TableHead>
-                            <TableHead className="text-xs text-right">Km</TableHead>
+                            <TableHead className="text-xs whitespace-nowrap">SPZ</TableHead>
+                            <TableHead className="text-xs text-right whitespace-nowrap">Km</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -384,8 +384,8 @@ const Calendar = () => {
                             
                             return Array.from(vehicleMap.values()).map((vehicle, index) => (
                               <TableRow key={index}>
-                                <TableCell className="text-xs py-2">{vehicle.spz}</TableCell>
-                                <TableCell className="text-xs text-right py-2">{vehicle.km.toLocaleString()} km</TableCell>
+                                <TableCell className="text-xs py-2 whitespace-nowrap">{vehicle.spz}</TableCell>
+                                <TableCell className="text-xs text-right py-2 whitespace-nowrap">{vehicle.km.toLocaleString()} km</TableCell>
                               </TableRow>
                             ));
                           })()}
@@ -407,17 +407,17 @@ const Calendar = () => {
                       <Table>
                         <TableHeader>
                           <TableRow>
-                            <TableHead className="text-xs">SPZ</TableHead>
-                            <TableHead className="text-xs text-right">Litre</TableHead>
-                            <TableHead className="text-xs text-right">Cena</TableHead>
+                            <TableHead className="text-xs whitespace-nowrap">SPZ</TableHead>
+                            <TableHead className="text-xs text-right whitespace-nowrap">Litre</TableHead>
+                            <TableHead className="text-xs text-right whitespace-nowrap">Cena</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
                           {selectedDayData.fuelings.records.map((record: any) => (
                             <TableRow key={record.id}>
-                              <TableCell className="text-xs py-2">{record.vehicles?.spz || '-'}</TableCell>
-                              <TableCell className="text-xs text-right py-2">{record.liters?.toFixed(2) || '0.00'} L</TableCell>
-                              <TableCell className="text-xs text-right py-2">{record.price?.toFixed(2) || '0.00'} €</TableCell>
+                              <TableCell className="text-xs py-2 whitespace-nowrap">{record.vehicles?.spz || '-'}</TableCell>
+                              <TableCell className="text-xs text-right py-2 whitespace-nowrap">{record.liters?.toFixed(2) || '0.00'} L</TableCell>
+                              <TableCell className="text-xs text-right py-2 whitespace-nowrap">{record.price?.toFixed(2) || '0.00'} €</TableCell>
                             </TableRow>
                           ))}
                         </TableBody>
