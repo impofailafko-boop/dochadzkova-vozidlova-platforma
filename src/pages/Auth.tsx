@@ -15,7 +15,19 @@ const signupSchema = z.object({
   email: z.string().trim().email({ message: 'Neplatný email' }).max(255, { message: 'Email musí byť kratší ako 255 znakov' }),
   password: z.string().min(8, { message: 'Heslo musí mať minimálne 8 znakov' }),
   fullName: z.string().trim().min(2, { message: 'Meno musí mať minimálne 2 znaky' }).max(100, { message: 'Meno musí byť kratšie ako 100 znakov' }),
-  phone: z.string().trim().regex(/^(\+421|00421)?[0-9]{9,10}$/, { message: 'Neplatné telefónne číslo (použite formát +421XXXXXXXXX)' }),
+  phone: z.string()
+    .trim()
+    .regex(/^(\+421|0)?[0-9]{9}$/, { message: 'Neplatné telefónne číslo (použite formát +421XXXXXXXXX alebo 0XXXXXXXXX)' })
+    .transform((val) => {
+      // Normalize to +421 format
+      val = val.replace(/[\s\-]/g, ''); // Remove spaces and dashes
+      if (val.startsWith('0')) {
+        return '+421' + val.slice(1);
+      } else if (!val.startsWith('+')) {
+        return '+421' + val;
+      }
+      return val;
+    }),
 });
 
 const loginSchema = z.object({

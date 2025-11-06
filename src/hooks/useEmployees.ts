@@ -16,7 +16,18 @@ const createEmployeeSchema = z.object({
     .max(100, 'Meno je príliš dlhé'),
   phone: z.string()
     .trim()
-    .regex(/^\+?[1-9]\d{1,14}$/, 'Neplatné telefónne číslo')
+    .regex(/^(\+421|0)?[0-9]{9}$/, 'Neplatné telefónne číslo (použite formát +421XXXXXXXXX alebo 0XXXXXXXXX)')
+    .transform((val) => {
+      if (!val) return '';
+      // Normalize to +421 format
+      val = val.replace(/[\s\-]/g, ''); // Remove spaces and dashes
+      if (val.startsWith('0')) {
+        return '+421' + val.slice(1);
+      } else if (!val.startsWith('+')) {
+        return '+421' + val;
+      }
+      return val;
+    })
     .optional()
     .or(z.literal('')),
 });
