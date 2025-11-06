@@ -24,6 +24,14 @@ serve(async (req) => {
       );
     }
 
+    // Normalize phone number to +421XXXXXXXXX format
+    let normalizedPhone = phone.replace(/[\s\-]/g, ''); // Remove spaces and dashes
+    if (normalizedPhone.startsWith('0')) {
+      normalizedPhone = '+421' + normalizedPhone.slice(1);
+    } else if (!normalizedPhone.startsWith('+')) {
+      normalizedPhone = '+421' + normalizedPhone;
+    }
+
     // Initialize Supabase clients
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -69,7 +77,7 @@ serve(async (req) => {
       email_confirm: true, // Auto-confirm email for admin-created accounts
       user_metadata: {
         full_name: fullName,
-        phone: phone,
+        phone: normalizedPhone,
       },
     });
 
@@ -91,7 +99,7 @@ serve(async (req) => {
     // Update phone in profiles (triggers will create the profile)
     const { error: profileError } = await supabaseAdmin
       .from('profiles')
-      .update({ phone })
+      .update({ phone: normalizedPhone })
       .eq('user_id', newUser.user.id);
 
     if (profileError) {
