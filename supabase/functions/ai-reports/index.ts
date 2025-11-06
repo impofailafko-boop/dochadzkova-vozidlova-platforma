@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.75.1';
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -13,14 +14,23 @@ serve(async (req) => {
   }
 
   try {
-    const { question } = await req.json();
+    const body = await req.json();
     
-    if (!question) {
+    // Input validation schema
+    const questionSchema = z.object({
+      question: z.string().trim().min(1, 'Otázka nemôže byť prázdna').max(1000, 'Otázka je príliš dlhá'),
+    });
+
+    const validation = questionSchema.safeParse(body);
+    if (!validation.success) {
+      const errorMessage = validation.error.errors[0]?.message || 'Neplatná otázka';
       return new Response(
-        JSON.stringify({ error: 'Missing question' }),
+        JSON.stringify({ error: errorMessage }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    const { question } = validation.data;
 
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -174,7 +184,7 @@ Ak dáta chýbajú alebo sú neúplné, povedz to používateľovi a pracuj s t�
   } catch (error) {
     console.error('Error in ai-reports function:', error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
+      JSON.stringify({ error: 'Vyskytla sa chyba pri spracovaní požiadavky. Skúste to znova.' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

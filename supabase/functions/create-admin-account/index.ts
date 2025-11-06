@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.75.1';
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -14,15 +15,27 @@ serve(async (req) => {
   }
 
   try {
-    const { email, password, fullName, phone } = await req.json();
+    const body = await req.json();
     
+    // Input validation schema
+    const createAdminSchema = z.object({
+      email: z.string().email('Neplatný email').max(255, 'Email je príliš dlhý'),
+      password: z.string().min(8, 'Heslo musí mať minimálne 8 znakov').max(100, 'Heslo je príliš dlhé'),
+      fullName: z.string().trim().min(2, 'Meno musí mať minimálne 2 znaky').max(100, 'Meno je príliš dlhé'),
+      phone: z.string().regex(/^(\+421|0)?[0-9]{9}$/, 'Neplatné telefónne číslo'),
+    });
+
     // Validate inputs
-    if (!email || !password || !fullName || !phone) {
+    const validation = createAdminSchema.safeParse(body);
+    if (!validation.success) {
+      const errorMessage = validation.error.errors[0]?.message || 'Neplatné vstupné údaje';
       return new Response(
-        JSON.stringify({ error: 'Všetky polia sú povinné' }),
+        JSON.stringify({ error: errorMessage }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    const { email, password, fullName, phone } = validation.data;
 
     // Normalize phone number to +421XXXXXXXXX format
     let normalizedPhone = phone.replace(/[\s\-]/g, ''); // Remove spaces and dashes
@@ -30,6 +43,14 @@ serve(async (req) => {
       normalizedPhone = '+421' + normalizedPhone.slice(1);
     } else if (!normalizedPhone.startsWith('+')) {
       normalizedPhone = '+421' + normalizedPhone;
+    }
+    
+    // Validate final phone format
+    if (!/^\+421[0-9]{9}$/.test(normalizedPhone)) {
+      return new Response(
+        JSON.stringify({ error: 'Neplatný formát telefónneho čísla' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     // Initialize Supabase clients
@@ -82,9 +103,18 @@ serve(async (req) => {
     });
 
     if (createError) {
-      console.log('Create Admin Account: Failed to create user:', createError.message);
+      console.error('Create Admin Account: Failed to create user:', createError);
+      
+      // Map errors to user-friendly messages
+      let userMessage = 'Nepodarilo sa vytvoriť používateľa';
+      if (createError.message?.includes('already registered')) {
+        userMessage = 'Používateľ s týmto emailom už existuje';
+      } else if (createError.message?.includes('password')) {
+        userMessage = 'Slabé heslo. Použite silnejšie heslo.';
+      }
+      
       return new Response(
-        JSON.stringify({ error: createError.message }),
+        JSON.stringify({ error: userMessage }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -103,7 +133,7 @@ serve(async (req) => {
       .eq('user_id', newUser.user.id);
 
     if (profileError) {
-      console.log('Create Admin Account: Failed to update profile:', profileError.message);
+      console.error('Create Admin Account: Failed to update profile:', profileError);
     }
 
     // Add admin role
@@ -112,13 +142,13 @@ serve(async (req) => {
       .insert({ user_id: newUser.user.id, role: 'admin' });
 
     if (roleError) {
-      console.log('Create Admin Account: Failed to assign admin role:', roleError.message);
+      console.error('Create Admin Account: Failed to assign admin role:', roleError);
       
       // Rollback: delete the created user
       await supabaseAdmin.auth.admin.deleteUser(newUser.user.id);
       
       return new Response(
-        JSON.stringify({ error: 'Nepodarilo sa priradiť administrátorskú rolu' }),
+        JSON.stringify({ error: 'Nepodarilo sa vytvoriť administrátorský účet. Skúste to znova.' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -136,9 +166,9 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.log('Create Admin Account: Unexpected error:', error);
+    console.error('Create Admin Account: Unexpected error:', error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Neznáma chyba' }),
+      JSON.stringify({ error: 'Vyskytla sa chyba pri vytváraní účtu. Skúste to znova.' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
