@@ -153,7 +153,7 @@ const Vehicles = () => {
 
   return (
     <div className="p-4 sm:p-6 space-y-6">
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold mb-2">Vozidlá</h1>
           <p className="text-muted-foreground">Správa služobných vozidiel</p>
@@ -182,7 +182,7 @@ const Vehicles = () => {
           }
         }}>
           <DialogTrigger asChild>
-            <Button className="w-full sm:w-auto">
+            <Button className="w-full md:w-auto">
               <Plus className="mr-2 h-4 w-4" />
               Nové vozidlo
             </Button>
