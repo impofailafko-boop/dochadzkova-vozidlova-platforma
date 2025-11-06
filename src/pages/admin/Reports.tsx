@@ -232,21 +232,19 @@ const Reports = () => {
 
   return (
     <div className="p-4 sm:p-6 space-y-6">
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold mb-2">Reporty</h1>
           <p className="text-muted-foreground">Komplexné reporty a štatistiky</p>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <Button onClick={handleExportExcel} disabled={isLoading} variant="default" className="flex-1 sm:flex-none">
+        <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+          <Button onClick={handleExportExcel} disabled={isLoading} variant="default" className="w-full sm:w-auto">
             <FileSpreadsheet className="mr-2 h-4 w-4" />
-            <span className="hidden sm:inline">Export Excel</span>
-            <span className="sm:hidden">Excel</span>
+            Export Excel
           </Button>
-          <Button onClick={handleExportCSV} disabled={isLoading} variant="outline" className="flex-1 sm:flex-none">
+          <Button onClick={handleExportCSV} disabled={isLoading} variant="outline" className="w-full sm:w-auto">
             <FileDown className="mr-2 h-4 w-4" />
-            <span className="hidden sm:inline">Export CSV</span>
-            <span className="sm:hidden">CSV</span>
+            Export CSV
           </Button>
         </div>
       </div>
