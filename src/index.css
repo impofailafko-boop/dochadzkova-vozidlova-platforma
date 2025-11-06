@@ -106,4 +106,9 @@ All colors MUST be HSL.
   .overflow-auto, .overflow-y-auto {
     -webkit-overflow-scrolling: touch;
   }
+  
+  /* ScrollArea touch support for mobile */
+  [data-radix-scroll-area-viewport] {
+    touch-action: pan-x pan-y;
+  }
 }
