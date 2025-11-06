@@ -310,16 +310,16 @@ const DrivesOverview = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Dátum</TableHead>
-                    <TableHead>Zamestnanec</TableHead>
-                    <TableHead>Vozidlo</TableHead>
-                    <TableHead>Projekt</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>GPS</TableHead>
-                    <TableHead className="text-right">Km</TableHead>
-                    <TableHead>Tachometer (Štart)</TableHead>
-                    <TableHead>Tachometer (Koniec)</TableHead>
-                    <TableHead className="text-right">Akcie</TableHead>
+                    <TableHead className="whitespace-nowrap">Dátum</TableHead>
+                    <TableHead className="whitespace-nowrap">Zamestnanec</TableHead>
+                    <TableHead className="whitespace-nowrap">Vozidlo</TableHead>
+                    <TableHead className="whitespace-nowrap">Projekt</TableHead>
+                    <TableHead className="whitespace-nowrap">Status</TableHead>
+                    <TableHead className="whitespace-nowrap">GPS</TableHead>
+                    <TableHead className="text-right whitespace-nowrap">Km</TableHead>
+                    <TableHead className="whitespace-nowrap">Tachometer (Štart)</TableHead>
+                    <TableHead className="whitespace-nowrap">Tachometer (Koniec)</TableHead>
+                    <TableHead className="text-right whitespace-nowrap">Akcie</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -332,7 +332,7 @@ const DrivesOverview = () => {
                         <TableCell className="whitespace-nowrap">{record.profiles?.full_name || '-'}</TableCell>
                         <TableCell className="whitespace-nowrap">{record.vehicles?.spz || '-'}</TableCell>
                         <TableCell className="whitespace-nowrap">{record.projects?.name || '-'}</TableCell>
-                        <TableCell>
+                        <TableCell className="whitespace-nowrap">
                           {record.is_completed ? (
                             <Badge variant="default" className="gap-1 whitespace-nowrap">
                               <CheckCircle2 className="h-3 w-3" />
@@ -345,7 +345,7 @@ const DrivesOverview = () => {
                             </Badge>
                           )}
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="whitespace-nowrap">
                           <div className="flex gap-1">
                             {record.start_latitude && record.start_longitude ? (
                               <a
