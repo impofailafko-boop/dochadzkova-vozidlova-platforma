@@ -7,9 +7,9 @@ import { PendingSyncBadge } from '@/components/common/PendingSyncBadge';
 const EmployeeLayout = () => {
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full">
+      <div className="min-h-screen flex w-full overflow-x-clip">
         <EmployeeSidebar />
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col min-w-0">
           <Navbar />
           <main className="flex-1 flex flex-col overflow-hidden">
             <div className="flex-1 overflow-y-auto">

@@ -93,13 +93,14 @@ All colors MUST be HSL.
     @apply border-border;
   }
 
-  html, body {
-    overflow-x: hidden;
+  html {
+    overflow-x: clip;
     height: 100%;
   }
-
+  
   body {
     @apply bg-background text-foreground;
+    height: 100%;
     -webkit-overflow-scrolling: touch;
   }
   
