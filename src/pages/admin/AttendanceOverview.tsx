@@ -115,17 +115,17 @@ const AttendanceOverview = () => {
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold mb-2">Prehľad dochádzky</h1>
           <p className="text-muted-foreground">Dochádzka všetkých zamestnancov</p>
         </div>
-        <div className="flex gap-2">
-          <Button onClick={() => setCreateDialogOpen(true)} variant="outline">
+        <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+          <Button onClick={() => setCreateDialogOpen(true)} variant="outline" className="w-full sm:w-auto">
             <Plus className="mr-2 h-4 w-4" />
             Pridať dochádzku
           </Button>
-          <Button onClick={handleExport} disabled={!attendance || attendance.length === 0}>
+          <Button onClick={handleExport} disabled={!attendance || attendance.length === 0} className="w-full sm:w-auto">
             <Download className="mr-2 h-4 w-4" />
             Export CSV
           </Button>

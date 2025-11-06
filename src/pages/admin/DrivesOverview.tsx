@@ -145,12 +145,12 @@ const DrivesOverview = () => {
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold mb-2">Prehľad jázd</h1>
           <p className="text-muted-foreground">Všetky jazdy služobnými vozidlami</p>
         </div>
-        <Button onClick={handleExport} disabled={!drives || drives.length === 0}>
+        <Button onClick={handleExport} disabled={!drives || drives.length === 0} className="w-full md:w-auto">
           <Download className="mr-2 h-4 w-4" />
           Export CSV
         </Button>
