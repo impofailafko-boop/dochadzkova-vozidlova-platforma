@@ -30,6 +30,7 @@ import Settings from '@/pages/employee/Settings';
 // Admin Pages
 import AdminDashboard from '@/pages/admin/AdminDashboard';
 import Employees from '@/pages/admin/Employees';
+import EmployeeDetail from '@/pages/admin/EmployeeDetail';
 import Vehicles from '@/pages/admin/Vehicles';
 import VehicleDetail from '@/pages/admin/VehicleDetail';
 import Projects from '@/pages/admin/Projects';
@@ -82,6 +83,7 @@ const AppContent = () => {
       <Route element={<ProtectedRoute><RoleGuard allowedRole='admin'><AdminLayout /></RoleGuard></ProtectedRoute>}>
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/admin/employees" element={<Employees />} />
+        <Route path="/admin/employees/:id" element={<EmployeeDetail />} />
         <Route path="/admin/projects" element={<Projects />} />
         <Route path="/admin/vehicles" element={<Vehicles />} />
         <Route path="/admin/vehicles/:id" element={<VehicleDetail />} />

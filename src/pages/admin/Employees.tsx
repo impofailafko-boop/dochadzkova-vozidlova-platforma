@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useAdminProjects } from '@/hooks/useAdminProjects';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -30,7 +31,7 @@ import {
 } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { Plus, Trash2, Edit } from 'lucide-react';
+import { Plus, Trash2, Edit, Eye } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -51,6 +52,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 const Employees = () => {
+  const navigate = useNavigate();
   const { employees, isLoading, createEmployee, deleteEmployee, updateEmployeeType, updateEmployeeRole, updateEmployeeProfile, updateEmployeePosition, isCreating, isUpdatingProfile } = useEmployees();
   const [open, setOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -245,6 +247,10 @@ const Employees = () => {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => navigate(`/admin/employees/${employee.user_id}`)}>
+                                <Eye className="mr-2 h-4 w-4" />
+                                Skontrolovať
+                              </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => handleEdit(employee)}>
                                 <Edit className="mr-2 h-4 w-4" />
                                 Upraviť profil
