@@ -181,7 +181,7 @@ const Employees = () => {
           <CardTitle>Zoznam zamestnancov</CardTitle>
           <CardDescription>Všetci registrovaní používatelia</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="overflow-x-auto">
           {isLoading ? (
             <div className="space-y-2">
               <Skeleton className="h-10 w-full" />
@@ -189,86 +189,89 @@ const Employees = () => {
               <Skeleton className="h-10 w-full" />
             </div>
           ) : (
-            <ScrollArea className="w-full">
+            <div className="min-w-[1200px]">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="whitespace-nowrap">Meno</TableHead>
-                    <TableHead className="whitespace-nowrap">Email</TableHead>
-                    <TableHead className="whitespace-nowrap">Telefón</TableHead>
-                    <TableHead className="whitespace-nowrap">Typ pracovného vzťahu</TableHead>
-                    <TableHead className="whitespace-nowrap">Pracovná pozícia</TableHead>
-                    <TableHead className="whitespace-nowrap">Hodinová sadzba</TableHead>
-                    <TableHead className="text-right whitespace-nowrap">Akcie</TableHead>
+                    <TableHead className="w-[180px]">Meno</TableHead>
+                    <TableHead className="w-[200px]">Email</TableHead>
+                    <TableHead className="w-[140px]">Telefón</TableHead>
+                    <TableHead className="w-[180px]">Typ vzťahu</TableHead>
+                    <TableHead className="w-[160px]">Pozícia</TableHead>
+                    <TableHead className="w-[140px]">Sadzba</TableHead>
+                    <TableHead className="w-[100px] text-right">Akcie</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {employees && employees.length > 0 ? (
                     employees.map((employee: any) => (
                       <TableRow key={employee.id}>
-                        <TableCell className="font-medium whitespace-nowrap">{employee.full_name}</TableCell>
-                        <TableCell className="whitespace-nowrap">{employee.email || '-'}</TableCell>
-                        <TableCell className="whitespace-nowrap">{employee.phone || '-'}</TableCell>
-                        <TableCell className="whitespace-nowrap">
-                    <Select 
-                      value={employee.employment_type || 'unset'} 
-                      onValueChange={(value) => handleTypeChange(employee.user_id, value === 'unset' ? null : value)}
-                    >
-                      <SelectTrigger className="w-[200px] bg-background">
-                        <SelectValue placeholder="Vyberte typ" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-popover z-50">
-                        <SelectItem value="unset">Nezaznamenané</SelectItem>
-                        <SelectItem value="zivnost">Živnosť</SelectItem>
-                        <SelectItem value="dohoda_25">Dohoda 25%</SelectItem>
-                        <SelectItem value="dohoda_50">Dohoda 50%</SelectItem>
-                        <SelectItem value="tpp">TPP</SelectItem>
-                        <SelectItem value="administrativa">Administratíva</SelectItem>
-                      </SelectContent>
-                    </Select>
+                        <TableCell className="font-medium">{employee.full_name}</TableCell>
+                        <TableCell className="text-sm">{employee.email || '-'}</TableCell>
+                        <TableCell className="text-sm">{employee.phone || '-'}</TableCell>
+                        <TableCell>
+                          <Select 
+                            value={employee.employment_type || 'unset'} 
+                            onValueChange={(value) => handleTypeChange(employee.user_id, value === 'unset' ? null : value)}
+                          >
+                            <SelectTrigger className="h-9 bg-background">
+                              <SelectValue placeholder="Typ" />
+                            </SelectTrigger>
+                            <SelectContent className="bg-popover z-50">
+                              <SelectItem value="unset">-</SelectItem>
+                              <SelectItem value="zivnost">Živnosť</SelectItem>
+                              <SelectItem value="dohoda_25">Dohoda 25%</SelectItem>
+                              <SelectItem value="dohoda_50">Dohoda 50%</SelectItem>
+                              <SelectItem value="tpp">TPP</SelectItem>
+                              <SelectItem value="administrativa">Admin</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </TableCell>
-                        <TableCell className="whitespace-nowrap">
-                    <Select 
-                      value={employee.job_position || 'unset'} 
-                      onValueChange={(value) => handlePositionChange(employee.user_id, value === 'unset' ? null : value)}
-                    >
-                      <SelectTrigger className="w-[200px] bg-background">
-                        <SelectValue placeholder="Vyberte pozíciu" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-popover z-50">
-                        <SelectItem value="unset">Nezaznamenané</SelectItem>
-                        <SelectItem value="pilcik">Pilčík</SelectItem>
-                        <SelectItem value="strojnik">Strojník</SelectItem>
-                        <SelectItem value="elektrikar">Elektrikár</SelectItem>
-                        <SelectItem value="sofer">Šofér</SelectItem>
-                        <SelectItem value="administrativa">Administratíva</SelectItem>
-                      </SelectContent>
-                    </Select>
+                        <TableCell>
+                          <Select 
+                            value={employee.job_position || 'unset'} 
+                            onValueChange={(value) => handlePositionChange(employee.user_id, value === 'unset' ? null : value)}
+                          >
+                            <SelectTrigger className="h-9 bg-background">
+                              <SelectValue placeholder="Pozícia" />
+                            </SelectTrigger>
+                            <SelectContent className="bg-popover z-50">
+                              <SelectItem value="unset">-</SelectItem>
+                              <SelectItem value="pilcik">Pilčík</SelectItem>
+                              <SelectItem value="strojnik">Strojník</SelectItem>
+                              <SelectItem value="elektrikar">Elektrikár</SelectItem>
+                              <SelectItem value="sofer">Šofér</SelectItem>
+                              <SelectItem value="administrativa">Admin</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </TableCell>
-                        <TableCell className="whitespace-nowrap">
-                          <Input
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            max="999.99"
-                            placeholder="€/h"
-                            value={employee.hourly_rate || ''}
-                            onChange={(e) => handleHourlyRateChange(employee.user_id, e.target.value)}
-                            onBlur={(e) => {
-                              if (e.target.value !== '') {
-                                const value = parseFloat(e.target.value);
-                                if (!isNaN(value)) {
-                                  e.target.value = value.toFixed(2);
+                        <TableCell>
+                          <div className="flex items-center gap-1">
+                            <Input
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              max="999.99"
+                              placeholder="0.00"
+                              value={employee.hourly_rate || ''}
+                              onChange={(e) => handleHourlyRateChange(employee.user_id, e.target.value)}
+                              onBlur={(e) => {
+                                if (e.target.value !== '') {
+                                  const value = parseFloat(e.target.value);
+                                  if (!isNaN(value)) {
+                                    e.target.value = value.toFixed(2);
+                                  }
                                 }
-                              }
-                            }}
-                            className="w-[120px]"
-                          />
+                              }}
+                              className="h-9 w-[85px]"
+                            />
+                            <span className="text-xs text-muted-foreground">€/h</span>
+                          </div>
                         </TableCell>
-                        <TableCell className="text-right whitespace-nowrap">
+                        <TableCell className="text-right">
                           <DropdownMenu modal={false}>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm">
+                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                                 •••
                               </Button>
                             </DropdownMenuTrigger>
@@ -315,15 +318,14 @@ const Employees = () => {
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center text-muted-foreground">
+                      <TableCell colSpan={7} className="text-center text-muted-foreground h-24">
                         Žiadni zamestnanci
                       </TableCell>
                     </TableRow>
                   )}
                 </TableBody>
               </Table>
-              <ScrollBar orientation="horizontal" />
-            </ScrollArea>
+            </div>
           )}
         </CardContent>
       </Card>
