@@ -111,7 +111,10 @@ const EmployeeDetail = () => {
 
       const summary = summaryMap.get(monthKey)!;
       if (record.total_hours) {
-        summary.totalHours += parseFloat(record.total_hours.toString());
+        const hoursWorked = parseFloat(record.total_hours.toString());
+        // Odrátať 30 minút (0.5 hodiny) prestávky
+        const hoursWithBreak = Math.max(0, hoursWorked - 0.5);
+        summary.totalHours += hoursWithBreak;
         summary.workDays += 1;
       }
       if ((record as any).projects?.name) {
@@ -193,7 +196,9 @@ const EmployeeDetail = () => {
       const activity = activityMap.get(dateKey)!;
       activity.attendance = record;
       if (record.total_hours) {
-        activity.totalHours = parseFloat(record.total_hours.toString());
+        const hoursWorked = parseFloat(record.total_hours.toString());
+        // Odrátať 30 minút (0.5 hodiny) prestávky
+        activity.totalHours = Math.max(0, hoursWorked - 0.5);
         if (hourlyRate !== null) {
           activity.payment = activity.totalHours * hourlyRate;
         }
