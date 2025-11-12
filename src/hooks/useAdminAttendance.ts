@@ -15,6 +15,9 @@ export function useAdminAttendance(filters?: { startDate?: string; endDate?: str
           profiles!inner (
             full_name,
             user_id
+          ),
+          projects (
+            name
           )
         `)
         .order('date', { ascending: false });

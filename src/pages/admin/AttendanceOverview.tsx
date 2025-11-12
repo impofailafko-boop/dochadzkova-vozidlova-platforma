@@ -93,10 +93,11 @@ const AttendanceOverview = () => {
     if (!attendance || attendance.length === 0) return;
 
     const csv = [
-      ['Dátum', 'Zamestnanec', 'Príchod', 'Odchod', 'Hodiny', 'GPS Latitude', 'GPS Longitude'].join(','),
+      ['Dátum', 'Zamestnanec', 'Projekt', 'Príchod', 'Odchod', 'Hodiny', 'GPS Latitude', 'GPS Longitude'].join(','),
       ...attendance.map((record: any) => [
         record.date,
         record.profiles?.full_name || '-',
+        record.projects?.name || '-',
         record.arrival_time || '-',
         record.departure_time || '-',
         record.total_hours || '-',
@@ -203,6 +204,7 @@ const AttendanceOverview = () => {
                   <TableRow>
                     <TableHead className="whitespace-nowrap">Dátum</TableHead>
                     <TableHead className="whitespace-nowrap">Zamestnanec</TableHead>
+                    <TableHead className="whitespace-nowrap">Projekt</TableHead>
                     <TableHead className="whitespace-nowrap">Príchod</TableHead>
                     <TableHead className="whitespace-nowrap">Odchod</TableHead>
                     <TableHead className="whitespace-nowrap">Poloha</TableHead>
@@ -228,6 +230,7 @@ const AttendanceOverview = () => {
                           {new Date(record.date).toLocaleDateString('sk-SK')}
                         </TableCell>
                         <TableCell className="whitespace-nowrap">{record.profiles?.full_name || '-'}</TableCell>
+                        <TableCell className="whitespace-nowrap">{record.projects?.name || '-'}</TableCell>
                         <TableCell className="whitespace-nowrap">{record.arrival_time || '-'}</TableCell>
                         <TableCell className="whitespace-nowrap">{record.departure_time || '-'}</TableCell>
                         <TableCell className="whitespace-nowrap">
@@ -288,7 +291,7 @@ const AttendanceOverview = () => {
                     })
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center text-muted-foreground">
+                      <TableCell colSpan={8} className="text-center text-muted-foreground">
                         Žiadne záznamy
                       </TableCell>
                     </TableRow>
