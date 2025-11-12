@@ -34,13 +34,15 @@ interface MonthlySummary {
   monthNumber: number;
   totalHours: number;
   workDays: number;
+  hourlyRate: number | null;
+  totalPayment: number | null;
 }
 
 const EmployeeDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { employee, attendance, isLoading } = useEmployeeDetail(id);
-  const { updateEmployeeProfile, updateEmployeeType, updateEmployeePosition, isUpdatingProfile } = useEmployees();
+  const { updateEmployeeProfile, updateEmployeeType, updateEmployeePosition, updateEmployeeHourlyRate, isUpdatingProfile } = useEmployees();
   const [isEditing, setIsEditing] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
   
@@ -49,6 +51,7 @@ const EmployeeDetail = () => {
     phone: '',
     employment_type: 'unset',
     job_position: 'unset',
+    hourly_rate: '',
   });
 
   useEffect(() => {
@@ -58,6 +61,7 @@ const EmployeeDetail = () => {
         phone: employee.phone || '',
         employment_type: employee.employment_type || 'unset',
         job_position: employee.job_position || 'unset',
+        hourly_rate: employee.hourly_rate ? employee.hourly_rate.toString() : '',
       });
     }
   }, [employee]);
@@ -67,6 +71,7 @@ const EmployeeDetail = () => {
     if (!attendance || attendance.length === 0) return [];
 
     const summaryMap = new Map<string, MonthlySummary>();
+    const hourlyRate = employee?.hourly_rate ? parseFloat(employee.hourly_rate.toString()) : null;
 
     attendance.forEach((record) => {
       if (!record.total_hours) return;
@@ -84,6 +89,8 @@ const EmployeeDetail = () => {
           monthNumber,
           totalHours: 0,
           workDays: 0,
+          hourlyRate,
+          totalPayment: null,
         });
       }
 
@@ -92,11 +99,18 @@ const EmployeeDetail = () => {
       summary.workDays += 1;
     });
 
+    // Calculate payments
+    summaryMap.forEach((summary) => {
+      if (summary.hourlyRate !== null) {
+        summary.totalPayment = summary.totalHours * summary.hourlyRate;
+      }
+    });
+
     return Array.from(summaryMap.values()).sort((a, b) => {
       if (a.year !== b.year) return b.year - a.year;
       return b.monthNumber - a.monthNumber;
     });
-  }, [attendance]);
+  }, [attendance, employee?.hourly_rate]);
 
   // Filter attendance by selected month
   const filteredAttendance = useMemo(() => {
@@ -153,6 +167,16 @@ const EmployeeDetail = () => {
       });
     }
 
+    const newHourlyRate = formData.hourly_rate === '' ? null : parseFloat(formData.hourly_rate);
+    const currentHourlyRate = employee.hourly_rate ? parseFloat(employee.hourly_rate.toString()) : null;
+    
+    if (newHourlyRate !== currentHourlyRate) {
+      updateEmployeeHourlyRate({
+        userId: id,
+        hourlyRate: newHourlyRate,
+      });
+    }
+
     setIsEditing(false);
   };
 
@@ -162,6 +186,7 @@ const EmployeeDetail = () => {
       phone: employee.phone || '',
       employment_type: employee.employment_type || 'unset',
       job_position: employee.job_position || 'unset',
+      hourly_rate: employee.hourly_rate ? employee.hourly_rate.toString() : '',
     });
     setIsEditing(false);
   };
@@ -309,6 +334,32 @@ const EmployeeDetail = () => {
                 </p>
               )}
             </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="hourly_rate">Hodinová sadzba</Label>
+              {isEditing ? (
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="hourly_rate"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    max="999.99"
+                    value={formData.hourly_rate}
+                    onChange={(e) => setFormData({ ...formData, hourly_rate: e.target.value })}
+                    placeholder="0.00"
+                    className="flex-1"
+                  />
+                  <span className="text-muted-foreground">€/h</span>
+                </div>
+              ) : (
+                <p className={`text-lg font-medium ${!employee.hourly_rate ? 'text-orange-600' : ''}`}>
+                  {employee.hourly_rate 
+                    ? `${parseFloat(employee.hourly_rate.toString()).toFixed(2)} €/h`
+                    : 'Nenastavené'}
+                </p>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -329,6 +380,7 @@ const EmployeeDetail = () => {
                     <TableHead className="whitespace-nowrap">Mesiac</TableHead>
                     <TableHead className="whitespace-nowrap">Pracovné dni</TableHead>
                     <TableHead className="whitespace-nowrap">Celkové hodiny</TableHead>
+                    <TableHead className="whitespace-nowrap">Výplata</TableHead>
                     <TableHead className="text-right whitespace-nowrap">Akcie</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -343,6 +395,15 @@ const EmployeeDetail = () => {
                         <TableCell className="whitespace-nowrap">{summary.workDays}</TableCell>
                         <TableCell className="whitespace-nowrap">
                           {formatHoursToReadable(summary.totalHours)}
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap">
+                          {summary.totalPayment !== null ? (
+                            <span className="text-green-600 font-medium">
+                              {summary.totalPayment.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' ')} €
+                            </span>
+                          ) : (
+                            <span className="text-orange-600">- (chýba sadzba)</span>
+                          )}
                         </TableCell>
                         <TableCell className="text-right whitespace-nowrap">
                           <Button
@@ -360,6 +421,23 @@ const EmployeeDetail = () => {
               </Table>
               <ScrollBar orientation="horizontal" />
             </ScrollArea>
+          )}
+          
+          {monthlySummaries.length > 0 && monthlySummaries.some(s => s.totalPayment !== null) && (
+            <div className="mt-6 p-4 bg-muted rounded-lg">
+              <div className="flex justify-between items-center">
+                <span className="text-lg font-medium">Celková výplata:</span>
+                <span className="text-2xl font-bold text-green-600">
+                  {monthlySummaries
+                    .reduce((sum, s) => sum + (s.totalPayment || 0), 0)
+                    .toFixed(2)
+                    .replace(/\B(?=(\d{3})+(?!\d))/g, ' ')} €
+                </span>
+              </div>
+              <p className="text-sm text-muted-foreground mt-1">
+                Za všetky mesiace s nastavenou sadzbou
+              </p>
+            </div>
           )}
         </CardContent>
       </Card>

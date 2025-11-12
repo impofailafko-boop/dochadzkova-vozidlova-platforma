@@ -144,6 +144,7 @@ export type Database = {
             | Database["public"]["Enums"]["employment_type_new"]
             | null
           full_name: string
+          hourly_rate: number | null
           id: string
           job_position: Database["public"]["Enums"]["job_position"] | null
           last_used_vehicle_id: string | null
@@ -159,6 +160,7 @@ export type Database = {
             | Database["public"]["Enums"]["employment_type_new"]
             | null
           full_name: string
+          hourly_rate?: number | null
           id?: string
           job_position?: Database["public"]["Enums"]["job_position"] | null
           last_used_vehicle_id?: string | null
@@ -174,6 +176,7 @@ export type Database = {
             | Database["public"]["Enums"]["employment_type_new"]
             | null
           full_name?: string
+          hourly_rate?: number | null
           id?: string
           job_position?: Database["public"]["Enums"]["job_position"] | null
           last_used_vehicle_id?: string | null

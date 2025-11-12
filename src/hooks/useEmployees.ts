@@ -267,6 +267,30 @@ export function useEmployees() {
     },
   });
 
+  const updateEmployeeHourlyRate = useMutation({
+    mutationFn: async ({ userId, hourlyRate }: { userId: string; hourlyRate: number | null }) => {
+      // Validácia
+      if (hourlyRate !== null && (hourlyRate < 0 || hourlyRate > 999.99)) {
+        throw new Error('Hodinová sadzba musí byť medzi 0 a 999,99 €');
+      }
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({ hourly_rate: hourlyRate })
+        .eq('user_id', userId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['employees'] });
+      queryClient.invalidateQueries({ queryKey: ['employee-detail'] });
+      toast.success('Hodinová sadzba aktualizovaná');
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Chyba pri aktualizácii hodinovej sadzby');
+    },
+  });
+
   return {
     employees,
     isLoading,
@@ -278,6 +302,7 @@ export function useEmployees() {
     updateEmployeeRole: updateEmployeeRole.mutate,
     updateEmployeeProfile: updateEmployeeProfile.mutate,
     updateEmployeePosition: updateEmployeePosition.mutate,
+    updateEmployeeHourlyRate: updateEmployeeHourlyRate.mutate,
     isCreating: createEmployee.isPending,
     isCreatingAdmin: createAdminAccount.isPending,
     isDeleting: deleteEmployee.isPending,
@@ -285,5 +310,6 @@ export function useEmployees() {
     isUpdatingType: updateEmployeeType.isPending,
     isUpdatingProfile: updateEmployeeProfile.isPending,
     isUpdatingPosition: updateEmployeePosition.isPending,
+    isUpdatingHourlyRate: updateEmployeeHourlyRate.isPending,
   };
 }

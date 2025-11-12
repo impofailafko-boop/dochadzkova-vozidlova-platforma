@@ -53,7 +53,7 @@ import {
 
 const Employees = () => {
   const navigate = useNavigate();
-  const { employees, isLoading, createEmployee, deleteEmployee, updateEmployeeType, updateEmployeeRole, updateEmployeeProfile, updateEmployeePosition, isCreating, isUpdatingProfile } = useEmployees();
+  const { employees, isLoading, createEmployee, deleteEmployee, updateEmployeeType, updateEmployeeRole, updateEmployeeProfile, updateEmployeePosition, updateEmployeeHourlyRate, isCreating, isUpdatingProfile } = useEmployees();
   const [open, setOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<any>(null);
@@ -98,6 +98,11 @@ const Employees = () => {
     } else {
       updateEmployeePosition({ userId, jobPosition: jobPosition as 'pilcik' | 'strojnik' | 'elektrikar' | 'sofer' | 'administrativa' | null });
     }
+  };
+
+  const handleHourlyRateChange = (userId: string, value: string) => {
+    const hourlyRate = value === '' ? null : parseFloat(value);
+    updateEmployeeHourlyRate({ userId, hourlyRate });
   };
 
   return (
@@ -193,6 +198,7 @@ const Employees = () => {
                     <TableHead className="whitespace-nowrap">Telefón</TableHead>
                     <TableHead className="whitespace-nowrap">Typ pracovného vzťahu</TableHead>
                     <TableHead className="whitespace-nowrap">Pracovná pozícia</TableHead>
+                    <TableHead className="whitespace-nowrap">Hodinová sadzba</TableHead>
                     <TableHead className="text-right whitespace-nowrap">Akcie</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -238,6 +244,26 @@ const Employees = () => {
                         <SelectItem value="administrativa">Administratíva</SelectItem>
                       </SelectContent>
                     </Select>
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap">
+                          <Input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            max="999.99"
+                            placeholder="€/h"
+                            value={employee.hourly_rate || ''}
+                            onChange={(e) => handleHourlyRateChange(employee.user_id, e.target.value)}
+                            onBlur={(e) => {
+                              if (e.target.value !== '') {
+                                const value = parseFloat(e.target.value);
+                                if (!isNaN(value)) {
+                                  e.target.value = value.toFixed(2);
+                                }
+                              }
+                            }}
+                            className="w-[120px]"
+                          />
                         </TableCell>
                         <TableCell className="text-right whitespace-nowrap">
                           <DropdownMenu modal={false}>
@@ -289,7 +315,7 @@ const Employees = () => {
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center text-muted-foreground">
+                      <TableCell colSpan={7} className="text-center text-muted-foreground">
                         Žiadni zamestnanci
                       </TableCell>
                     </TableRow>
