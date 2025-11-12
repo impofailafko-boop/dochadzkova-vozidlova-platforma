@@ -15,6 +15,7 @@ interface ActiveVehicle {
   };
   projects?: {
     name: string;
+    description?: string;
   };
 }
 
@@ -66,8 +67,15 @@ export function ActiveVehicleCard({ activeVehicles }: ActiveVehicleCardProps) {
               <div className="text-sm text-muted-foreground">
                 {vehicle.vehicles?.brand} {vehicle.vehicles?.type}
               </div>
-              <div className="text-xs text-muted-foreground">
-                Projekt: {vehicle.projects?.name || 'N/A'}
+              <div className="space-y-0.5">
+                <div className="text-xs text-muted-foreground">
+                  Projekt: {vehicle.projects?.name || 'N/A'}
+                </div>
+                {vehicle.projects?.description && (
+                  <div className="text-xs text-muted-foreground/80 line-clamp-1">
+                    {vehicle.projects.description}
+                  </div>
+                )}
               </div>
               <div className="text-xs text-muted-foreground">
                 Začiatok: {vehicle.km_start} km

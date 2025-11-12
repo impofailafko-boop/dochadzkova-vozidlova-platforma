@@ -333,7 +333,16 @@ const FuelingsOverview = () => {
                         </TableCell>
                         <TableCell className="whitespace-nowrap">{record.profiles?.full_name || '-'}</TableCell>
                         <TableCell className="whitespace-nowrap">{record.vehicles?.spz || '-'}</TableCell>
-                        <TableCell className="whitespace-nowrap">{record.projects?.name || '-'}</TableCell>
+                        <TableCell className="max-w-[200px]">
+                          <div className="flex flex-col gap-0.5">
+                            <span className="font-medium">{record.projects?.name || '-'}</span>
+                            {record.projects?.description && (
+                              <span className="text-xs text-muted-foreground line-clamp-1">
+                                {record.projects.description}
+                              </span>
+                            )}
+                          </div>
+                        </TableCell>
                         <TableCell className="text-right whitespace-nowrap">{record.liters} L</TableCell>
                         <TableCell className="text-right whitespace-nowrap">
                           {record.price ? `${record.price}€` : '-'}

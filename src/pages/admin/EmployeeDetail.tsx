@@ -477,8 +477,15 @@ const EmployeeDetail = () => {
                       <TableCell className="whitespace-nowrap">
                         {record.total_hours ? formatHoursToReadable(parseFloat(record.total_hours.toString())) : '-'}
                       </TableCell>
-                      <TableCell className="whitespace-nowrap">
-                        {(record as any).projects?.name || '-'}
+                      <TableCell className="max-w-[200px]">
+                        <div className="flex flex-col gap-0.5">
+                          <span className="font-medium">{(record as any).projects?.name || '-'}</span>
+                          {(record as any).projects?.description && (
+                            <span className="text-xs text-muted-foreground line-clamp-1">
+                              {(record as any).projects.description}
+                            </span>
+                          )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}

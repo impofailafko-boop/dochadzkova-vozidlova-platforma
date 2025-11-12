@@ -349,7 +349,16 @@ const History = () => {
                               {new Date(log.date).toLocaleDateString('sk-SK')}
                             </TableCell>
                             <TableCell className="whitespace-nowrap">{log.vehicles?.spz}</TableCell>
-                            <TableCell className="whitespace-nowrap">{log.projects?.name}</TableCell>
+                            <TableCell className="max-w-[200px]">
+                              <div className="flex flex-col gap-0.5">
+                                <span className="font-medium">{log.projects?.name}</span>
+                                {log.projects?.description && (
+                                  <span className="text-xs text-muted-foreground line-clamp-1">
+                                    {log.projects.description}
+                                  </span>
+                                )}
+                              </div>
+                            </TableCell>
                             <TableCell className="whitespace-nowrap">
                               {log.is_completed ? (
                                 <Badge variant="default" className="gap-1">
@@ -550,7 +559,16 @@ const History = () => {
                               {new Date(log.date).toLocaleDateString('sk-SK')}
                             </TableCell>
                             <TableCell className="whitespace-nowrap">{log.vehicles?.spz}</TableCell>
-                            <TableCell className="whitespace-nowrap">{log.projects?.name || '-'}</TableCell>
+                            <TableCell className="max-w-[200px]">
+                              <div className="flex flex-col gap-0.5">
+                                <span className="font-medium">{log.projects?.name || '-'}</span>
+                                {log.projects?.description && (
+                                  <span className="text-xs text-muted-foreground line-clamp-1">
+                                    {log.projects.description}
+                                  </span>
+                                )}
+                              </div>
+                            </TableCell>
                             <TableCell className="text-right whitespace-nowrap">
                               {log.liters} L
                             </TableCell>
