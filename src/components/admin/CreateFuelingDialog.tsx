@@ -11,6 +11,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { optionalPhotoFileSchema } from '@/lib/photoSchemas';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { formatDateToLocalString, getTodayLocalString, parseDateString } from '@/lib/utils';
 
 const adminFuelLogSchema = z.object({
   date: z.string().refine((date) => {
@@ -52,7 +53,7 @@ export function CreateFuelingDialog({ open, onOpenChange, vehicles, projects, cu
   const form = useForm<AdminFuelLogFormData>({
     resolver: zodResolver(adminFuelLogSchema),
     defaultValues: {
-      date: new Date().toISOString().split('T')[0],
+      date: getTodayLocalString(),
       vehicle_id: '',
       project_id: '',
       liters: 0,
@@ -64,7 +65,7 @@ export function CreateFuelingDialog({ open, onOpenChange, vehicles, projects, cu
   useEffect(() => {
     if (!open) {
       form.reset({
-        date: new Date().toISOString().split('T')[0],
+        date: getTodayLocalString(),
         vehicle_id: '',
         project_id: '',
         liters: 0,
@@ -100,8 +101,8 @@ export function CreateFuelingDialog({ open, onOpenChange, vehicles, projects, cu
                   <FormLabel>Dátum</FormLabel>
                   <FormControl>
                     <DatePicker
-                      date={field.value ? new Date(field.value) : undefined}
-                      onDateChange={(date) => field.onChange(date ? date.toISOString().split('T')[0] : '')}
+                      date={field.value ? parseDateString(field.value) : undefined}
+                      onDateChange={(date) => field.onChange(date ? formatDateToLocalString(date) : '')}
                       placeholder="Vyberte dátum"
                     />
                   </FormControl>

@@ -15,7 +15,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { DatePicker } from '@/components/ui/date-picker';
-import { formatHoursToReadable } from '@/lib/utils';
+import { formatHoursToReadable, formatDateToLocalString } from '@/lib/utils';
 
 const Attendance = () => {
   const { user } = useAuth();
@@ -26,8 +26,8 @@ const Attendance = () => {
   const { getHistory } = useAttendance(user?.id);
   const { data, isLoading } = getHistory({ 
     limit,
-    startDate: startDate?.toISOString().split('T')[0],
-    endDate: endDate?.toISOString().split('T')[0]
+    startDate: startDate ? formatDateToLocalString(startDate) : undefined,
+    endDate: endDate ? formatDateToLocalString(endDate) : undefined
   });
   
   const history = data?.data || [];

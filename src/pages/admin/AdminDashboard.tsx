@@ -6,6 +6,7 @@ import { Users, Car, FolderKanban, Clock, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { CalendarWidget } from '@/components/admin/CalendarWidget';
 import { AlertsWidget } from '@/components/admin/AlertsWidget';
+import { getTodayLocalString } from '@/lib/utils';
 
 const AdminDashboard = () => {
   const { user } = useAuth();
@@ -34,7 +35,7 @@ const AdminDashboard = () => {
         supabase.from('profiles').select('id', { count: 'exact', head: true }),
         supabase.from('vehicles').select('id', { count: 'exact', head: true }).eq('is_active', true),
         supabase.from('projects').select('id', { count: 'exact', head: true }).eq('status', 'active'),
-        supabase.from('attendance').select('id', { count: 'exact', head: true }).eq('date', new Date().toISOString().split('T')[0]),
+        supabase.from('attendance').select('id', { count: 'exact', head: true }).eq('date', getTodayLocalString()),
       ]);
 
       return {

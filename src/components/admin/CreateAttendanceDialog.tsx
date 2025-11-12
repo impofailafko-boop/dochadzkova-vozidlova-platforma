@@ -8,6 +8,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { formatDateToLocalString, getTodayLocalString, parseDateString } from '@/lib/utils';
 
 const createAttendanceSchema = z.object({
   user_id: z.string().min(1, 'Vyberte zamestnanca'),
@@ -44,7 +45,7 @@ export function CreateAttendanceDialog({ open, onOpenChange, employees, onCreate
     resolver: zodResolver(createAttendanceSchema),
     defaultValues: {
       user_id: '',
-      date: new Date().toISOString().split('T')[0],
+      date: getTodayLocalString(),
       arrival_time: '',
       departure_time: '',
     },
@@ -54,7 +55,7 @@ export function CreateAttendanceDialog({ open, onOpenChange, employees, onCreate
     if (!open) {
       form.reset({
         user_id: '',
-        date: new Date().toISOString().split('T')[0],
+        date: getTodayLocalString(),
         arrival_time: '',
         departure_time: '',
       });
@@ -105,9 +106,9 @@ export function CreateAttendanceDialog({ open, onOpenChange, employees, onCreate
                 <FormItem>
                   <FormLabel>Dátum</FormLabel>
                   <DatePicker
-                    date={field.value ? new Date(field.value) : undefined}
+                    date={field.value ? parseDateString(field.value) : undefined}
                     onDateChange={(date) => {
-                      field.onChange(date ? date.toISOString().split('T')[0] : '');
+                      field.onChange(date ? formatDateToLocalString(date) : '');
                     }}
                     placeholder="Vyberte dátum"
                   />

@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { DatePicker } from '@/components/ui/date-picker';
+import { formatDateToLocalString } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Download, FileText, FileSpreadsheet, FileDown } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -19,8 +20,8 @@ import { formatHoursToReadable } from '@/lib/utils';
 
 const Reports = () => {
   const [dateRange, setDateRange] = useState({
-    startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    endDate: new Date().toISOString().split('T')[0],
+    startDate: formatDateToLocalString(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)),
+    endDate: formatDateToLocalString(new Date()),
   });
   const [selectedProject, setSelectedProject] = useState<string>('all');
 
@@ -259,9 +260,9 @@ const Reports = () => {
             <div className="space-y-2">
               <Label>Od dátumu</Label>
               <DatePicker
-                date={dateRange.startDate ? new Date(dateRange.startDate) : undefined}
+                date={dateRange.startDate ? new Date(dateRange.startDate + 'T00:00:00') : undefined}
                 onDateChange={(date) => {
-                  setDateRange({ ...dateRange, startDate: date ? date.toISOString().split('T')[0] : '' });
+                  setDateRange({ ...dateRange, startDate: date ? formatDateToLocalString(date) : '' });
                 }}
                 placeholder="Od dátumu"
               />
@@ -269,9 +270,9 @@ const Reports = () => {
             <div className="space-y-2">
               <Label>Do dátumu</Label>
               <DatePicker
-                date={dateRange.endDate ? new Date(dateRange.endDate) : undefined}
+                date={dateRange.endDate ? new Date(dateRange.endDate + 'T00:00:00') : undefined}
                 onDateChange={(date) => {
-                  setDateRange({ ...dateRange, endDate: date ? date.toISOString().split('T')[0] : '' });
+                  setDateRange({ ...dateRange, endDate: date ? formatDateToLocalString(date) : '' });
                 }}
                 placeholder="Do dátumu"
               />

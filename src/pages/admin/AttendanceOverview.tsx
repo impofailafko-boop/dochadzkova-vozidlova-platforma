@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { useAdminAttendance } from '@/hooks/useAdminAttendance';
 import { useEmployees } from '@/hooks/useEmployees';
+import { useAdminProjects } from '@/hooks/useAdminProjects';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { DatePicker } from '@/components/ui/date-picker';
+import { formatDateToLocalString } from '@/lib/utils';
 import {
   Select,
   SelectContent,
@@ -143,9 +145,9 @@ const AttendanceOverview = () => {
             <div className="space-y-2">
               <Label>Od dátumu</Label>
               <DatePicker
-                date={filters.startDate ? new Date(filters.startDate) : undefined}
+                date={filters.startDate ? new Date(filters.startDate + 'T00:00:00') : undefined}
                 onDateChange={(date) => {
-                  setFilters({ ...filters, startDate: date ? date.toISOString().split('T')[0] : '' });
+                  setFilters({ ...filters, startDate: date ? formatDateToLocalString(date) : '' });
                 }}
                 placeholder="Od dátumu"
               />
@@ -153,9 +155,9 @@ const AttendanceOverview = () => {
             <div className="space-y-2">
               <Label>Do dátumu</Label>
               <DatePicker
-                date={filters.endDate ? new Date(filters.endDate) : undefined}
+                date={filters.endDate ? new Date(filters.endDate + 'T00:00:00') : undefined}
                 onDateChange={(date) => {
-                  setFilters({ ...filters, endDate: date ? date.toISOString().split('T')[0] : '' });
+                  setFilters({ ...filters, endDate: date ? formatDateToLocalString(date) : '' });
                 }}
                 placeholder="Do dátumu"
               />
