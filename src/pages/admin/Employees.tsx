@@ -206,7 +206,14 @@ const Employees = () => {
                   {employees && employees.length > 0 ? (
                     employees.map((employee: any) => (
                       <TableRow key={employee.id}>
-                        <TableCell className="font-medium">{employee.full_name}</TableCell>
+                        <TableCell className="font-medium">
+                          <button
+                            onClick={() => navigate(`/admin/employees/${employee.user_id}`)}
+                            className="text-primary hover:underline cursor-pointer text-left"
+                          >
+                            {employee.full_name}
+                          </button>
+                        </TableCell>
                         <TableCell className="text-sm">{employee.email || '-'}</TableCell>
                         <TableCell className="text-sm">{employee.phone || '-'}</TableCell>
                         <TableCell>

@@ -38,13 +38,23 @@ interface MonthlySummary {
   totalPayment: number | null;
 }
 
+interface MonthlyDriveSummary {
+  month: string;
+  year: number;
+  monthNumber: number;
+  totalDrives: number;
+  totalKm: number;
+  vehicles: Set<string>;
+}
+
 const EmployeeDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { employee, attendance, isLoading } = useEmployeeDetail(id);
+  const { employee, attendance, vehicleLogs, isLoading } = useEmployeeDetail(id);
   const { updateEmployeeProfile, updateEmployeeType, updateEmployeePosition, updateEmployeeHourlyRate, isUpdatingProfile } = useEmployees();
   const [isEditing, setIsEditing] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
+  const [selectedDriveMonth, setSelectedDriveMonth] = useState<string | null>(null);
   
   const [formData, setFormData] = useState({
     full_name: '',
@@ -122,6 +132,55 @@ const EmployeeDetail = () => {
       return monthKey === selectedMonth;
     });
   }, [attendance, selectedMonth]);
+
+  // Calculate monthly drive summaries
+  const monthlyDriveSummaries = useMemo<MonthlyDriveSummary[]>(() => {
+    if (!vehicleLogs || vehicleLogs.length === 0) return [];
+
+    const summaryMap = new Map<string, MonthlyDriveSummary>();
+
+    vehicleLogs.forEach((log) => {
+      const date = parseISO(log.date);
+      const monthKey = format(date, 'yyyy-MM');
+      const monthName = format(date, 'LLLL yyyy', { locale: sk });
+      const year = date.getFullYear();
+      const monthNumber = date.getMonth() + 1;
+
+      if (!summaryMap.has(monthKey)) {
+        summaryMap.set(monthKey, {
+          month: monthName,
+          year,
+          monthNumber,
+          totalDrives: 0,
+          totalKm: 0,
+          vehicles: new Set<string>(),
+        });
+      }
+
+      const summary = summaryMap.get(monthKey)!;
+      summary.totalDrives += 1;
+      summary.totalKm += log.km_driven || 0;
+      if ((log as any).vehicles?.spz) {
+        summary.vehicles.add((log as any).vehicles.spz);
+      }
+    });
+
+    return Array.from(summaryMap.values()).sort((a, b) => {
+      if (a.year !== b.year) return b.year - a.year;
+      return b.monthNumber - a.monthNumber;
+    });
+  }, [vehicleLogs]);
+
+  // Filter vehicle logs by selected month
+  const filteredVehicleLogs = useMemo(() => {
+    if (!selectedDriveMonth || !vehicleLogs) return [];
+
+    return vehicleLogs.filter((log) => {
+      const date = parseISO(log.date);
+      const monthKey = format(date, 'yyyy-MM');
+      return monthKey === selectedDriveMonth;
+    });
+  }, [vehicleLogs, selectedDriveMonth]);
 
   if (isLoading) {
     return (
@@ -486,6 +545,149 @@ const EmployeeDetail = () => {
                             </span>
                           )}
                         </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              <ScrollBar orientation="horizontal" />
+            </ScrollArea>
+          </CardContent>
+        </Card>
+      )}
+
+      <Card>
+        <CardHeader>
+          <CardTitle>História použitých áut</CardTitle>
+          <CardDescription>Prehľad jázd a použitých vozidiel</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {monthlyDriveSummaries.length === 0 ? (
+            <p className="text-center text-muted-foreground py-4">Žiadne záznamy o jazdách</p>
+          ) : (
+            <ScrollArea className="w-full">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="whitespace-nowrap">Mesiac</TableHead>
+                    <TableHead className="whitespace-nowrap">Počet jázd</TableHead>
+                    <TableHead className="whitespace-nowrap">Celkové km</TableHead>
+                    <TableHead className="whitespace-nowrap">Použité vozidlá</TableHead>
+                    <TableHead className="text-right whitespace-nowrap">Akcie</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {monthlyDriveSummaries.map((summary) => {
+                    const monthKey = `${summary.year}-${summary.monthNumber.toString().padStart(2, '0')}`;
+                    return (
+                      <TableRow key={monthKey}>
+                        <TableCell className="font-medium whitespace-nowrap capitalize">
+                          {summary.month}
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap">{summary.totalDrives}</TableCell>
+                        <TableCell className="whitespace-nowrap">
+                          {summary.totalKm.toLocaleString()} km
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap">
+                          <div className="flex flex-wrap gap-1">
+                            {Array.from(summary.vehicles).map((spz) => (
+                              <span key={spz} className="inline-flex items-center px-2 py-0.5 rounded-md bg-secondary text-xs font-medium">
+                                {spz}
+                              </span>
+                            ))}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right whitespace-nowrap">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setSelectedDriveMonth(selectedDriveMonth === monthKey ? null : monthKey)}
+                          >
+                            {selectedDriveMonth === monthKey ? 'Skryť detail' : 'Zobraziť detail'}
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+              <ScrollBar orientation="horizontal" />
+            </ScrollArea>
+          )}
+        </CardContent>
+      </Card>
+
+      {selectedDriveMonth && filteredVehicleLogs.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Detailný prehľad jázd</CardTitle>
+            <CardDescription>
+              {format(parseISO(`${selectedDriveMonth}-01`), 'LLLL yyyy', { locale: sk })}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ScrollArea className="w-full">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="whitespace-nowrap">Dátum</TableHead>
+                    <TableHead className="whitespace-nowrap">Vozidlo</TableHead>
+                    <TableHead className="whitespace-nowrap">Projekt</TableHead>
+                    <TableHead className="whitespace-nowrap">Km začiatok</TableHead>
+                    <TableHead className="whitespace-nowrap">Km koniec</TableHead>
+                    <TableHead className="whitespace-nowrap">Najazdené km</TableHead>
+                    <TableHead className="whitespace-nowrap">Čas začiatku</TableHead>
+                    <TableHead className="whitespace-nowrap">Čas konca</TableHead>
+                    <TableHead className="whitespace-nowrap">Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredVehicleLogs.map((log) => (
+                    <TableRow key={log.id}>
+                      <TableCell className="whitespace-nowrap">
+                        {format(parseISO(log.date), 'dd.MM.yyyy', { locale: sk })}
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap">
+                        <div className="flex flex-col gap-0.5">
+                          <span className="font-medium">{(log as any).vehicles?.spz || '-'}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {(log as any).vehicles?.brand} {(log as any).vehicles?.type}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="max-w-[200px]">
+                        <div className="flex flex-col gap-0.5">
+                          <span className="font-medium">{(log as any).projects?.name || '-'}</span>
+                          {(log as any).projects?.description && (
+                            <span className="text-xs text-muted-foreground line-clamp-1">
+                              {(log as any).projects.description}
+                            </span>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap">{log.km_start?.toLocaleString()} km</TableCell>
+                      <TableCell className="whitespace-nowrap">
+                        {log.km_end ? `${log.km_end.toLocaleString()} km` : '-'}
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap font-medium">
+                        {log.km_driven ? `${log.km_driven.toLocaleString()} km` : '-'}
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap">
+                        {log.created_at ? format(parseISO(log.created_at), 'HH:mm', { locale: sk }) : '-'}
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap">
+                        {log.completed_at ? format(parseISO(log.completed_at), 'HH:mm', { locale: sk }) : '-'}
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap">
+                        {log.is_completed ? (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-green-100 text-green-800 text-xs font-medium">
+                            Dokončená
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-orange-100 text-orange-800 text-xs font-medium">
+                            Nedokončená
+                          </span>
+                        )}
                       </TableCell>
                     </TableRow>
                   ))}
