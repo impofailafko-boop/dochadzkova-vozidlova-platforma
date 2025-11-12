@@ -328,15 +328,15 @@ const FuelingsOverview = () => {
                   {fuelings && fuelings.length > 0 ? (
                     fuelings.map((record: any, index: number) => {
                       const currentDate = new Date(record.date).toLocaleDateString('sk-SK');
-                      const previousDate = index > 0 
-                        ? new Date(fuelings[index - 1].date).toLocaleDateString('sk-SK') 
+                      const nextDate = index < fuelings.length - 1 
+                        ? new Date(fuelings[index + 1].date).toLocaleDateString('sk-SK') 
                         : null;
-                      const isDateChange = previousDate && currentDate !== previousDate;
+                      const isLastOfDate = nextDate && currentDate !== nextDate;
                       
                       return (
                       <TableRow 
                         key={record.id}
-                        className={isDateChange ? "border-b-2 border-primary" : ""}
+                        className={isLastOfDate ? "border-b-2 border-primary" : ""}
                       >
                         <TableCell className="font-medium whitespace-nowrap">
                           {new Date(record.date).toLocaleDateString('sk-SK')}
