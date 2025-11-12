@@ -36,15 +36,18 @@ interface MonthlySummary {
   workDays: number;
   hourlyRate: number | null;
   totalPayment: number | null;
-}
-
-interface MonthlyDriveSummary {
-  month: string;
-  year: number;
-  monthNumber: number;
-  totalDrives: number;
   totalKm: number;
   vehicles: Set<string>;
+  projects: Set<string>;
+}
+
+interface DailyActivity {
+  date: string;
+  attendance: any | null;
+  vehicleLogs: any[];
+  totalHours: number;
+  payment: number | null;
+  totalKm: number;
 }
 
 const EmployeeDetail = () => {
@@ -76,16 +79,15 @@ const EmployeeDetail = () => {
     }
   }, [employee]);
 
-  // Calculate monthly summaries
+  // Calculate monthly summaries combining attendance and vehicle logs
   const monthlySummaries = useMemo<MonthlySummary[]>(() => {
-    if (!attendance || attendance.length === 0) return [];
+    if ((!attendance || attendance.length === 0) && (!vehicleLogs || vehicleLogs.length === 0)) return [];
 
     const summaryMap = new Map<string, MonthlySummary>();
     const hourlyRate = employee?.hourly_rate ? parseFloat(employee.hourly_rate.toString()) : null;
 
-    attendance.forEach((record) => {
-      if (!record.total_hours) return;
-
+    // Process attendance data
+    attendance?.forEach((record) => {
       const date = parseISO(record.date);
       const monthKey = format(date, 'yyyy-MM');
       const monthName = format(date, 'LLLL yyyy', { locale: sk });
@@ -101,45 +103,24 @@ const EmployeeDetail = () => {
           workDays: 0,
           hourlyRate,
           totalPayment: null,
+          totalKm: 0,
+          vehicles: new Set<string>(),
+          projects: new Set<string>(),
         });
       }
 
       const summary = summaryMap.get(monthKey)!;
-      summary.totalHours += parseFloat(record.total_hours.toString());
-      summary.workDays += 1;
-    });
-
-    // Calculate payments
-    summaryMap.forEach((summary) => {
-      if (summary.hourlyRate !== null) {
-        summary.totalPayment = summary.totalHours * summary.hourlyRate;
+      if (record.total_hours) {
+        summary.totalHours += parseFloat(record.total_hours.toString());
+        summary.workDays += 1;
+      }
+      if ((record as any).projects?.name) {
+        summary.projects.add((record as any).projects.name);
       }
     });
 
-    return Array.from(summaryMap.values()).sort((a, b) => {
-      if (a.year !== b.year) return b.year - a.year;
-      return b.monthNumber - a.monthNumber;
-    });
-  }, [attendance, employee?.hourly_rate]);
-
-  // Filter attendance by selected month
-  const filteredAttendance = useMemo(() => {
-    if (!selectedMonth || !attendance) return [];
-
-    return attendance.filter((record) => {
-      const date = parseISO(record.date);
-      const monthKey = format(date, 'yyyy-MM');
-      return monthKey === selectedMonth;
-    });
-  }, [attendance, selectedMonth]);
-
-  // Calculate monthly drive summaries
-  const monthlyDriveSummaries = useMemo<MonthlyDriveSummary[]>(() => {
-    if (!vehicleLogs || vehicleLogs.length === 0) return [];
-
-    const summaryMap = new Map<string, MonthlyDriveSummary>();
-
-    vehicleLogs.forEach((log) => {
+    // Process vehicle logs data
+    vehicleLogs?.forEach((log) => {
       const date = parseISO(log.date);
       const monthKey = format(date, 'yyyy-MM');
       const monthName = format(date, 'LLLL yyyy', { locale: sk });
@@ -151,17 +132,30 @@ const EmployeeDetail = () => {
           month: monthName,
           year,
           monthNumber,
-          totalDrives: 0,
+          totalHours: 0,
+          workDays: 0,
+          hourlyRate,
+          totalPayment: null,
           totalKm: 0,
           vehicles: new Set<string>(),
+          projects: new Set<string>(),
         });
       }
 
       const summary = summaryMap.get(monthKey)!;
-      summary.totalDrives += 1;
       summary.totalKm += log.km_driven || 0;
       if ((log as any).vehicles?.spz) {
         summary.vehicles.add((log as any).vehicles.spz);
+      }
+      if ((log as any).projects?.name) {
+        summary.projects.add((log as any).projects.name);
+      }
+    });
+
+    // Calculate payments
+    summaryMap.forEach((summary) => {
+      if (summary.hourlyRate !== null && summary.totalHours > 0) {
+        summary.totalPayment = summary.totalHours * summary.hourlyRate;
       }
     });
 
@@ -169,18 +163,70 @@ const EmployeeDetail = () => {
       if (a.year !== b.year) return b.year - a.year;
       return b.monthNumber - a.monthNumber;
     });
-  }, [vehicleLogs]);
+  }, [attendance, vehicleLogs, employee?.hourly_rate]);
 
-  // Filter vehicle logs by selected month
-  const filteredVehicleLogs = useMemo(() => {
-    if (!selectedDriveMonth || !vehicleLogs) return [];
+  // Create daily activity data combining attendance and vehicle logs
+  const dailyActivities = useMemo(() => {
+    if (!selectedMonth) return [];
 
-    return vehicleLogs.filter((log) => {
+    const activityMap = new Map<string, DailyActivity>();
+    const hourlyRate = employee?.hourly_rate ? parseFloat(employee.hourly_rate.toString()) : null;
+
+    // Add attendance data
+    attendance?.forEach((record) => {
+      const date = parseISO(record.date);
+      const monthKey = format(date, 'yyyy-MM');
+      if (monthKey !== selectedMonth) return;
+
+      const dateKey = record.date;
+      if (!activityMap.has(dateKey)) {
+        activityMap.set(dateKey, {
+          date: dateKey,
+          attendance: null,
+          vehicleLogs: [],
+          totalHours: 0,
+          payment: null,
+          totalKm: 0,
+        });
+      }
+
+      const activity = activityMap.get(dateKey)!;
+      activity.attendance = record;
+      if (record.total_hours) {
+        activity.totalHours = parseFloat(record.total_hours.toString());
+        if (hourlyRate !== null) {
+          activity.payment = activity.totalHours * hourlyRate;
+        }
+      }
+    });
+
+    // Add vehicle logs data
+    vehicleLogs?.forEach((log) => {
       const date = parseISO(log.date);
       const monthKey = format(date, 'yyyy-MM');
-      return monthKey === selectedDriveMonth;
+      if (monthKey !== selectedMonth) return;
+
+      const dateKey = log.date;
+      if (!activityMap.has(dateKey)) {
+        activityMap.set(dateKey, {
+          date: dateKey,
+          attendance: null,
+          vehicleLogs: [],
+          totalHours: 0,
+          payment: null,
+          totalKm: 0,
+        });
+      }
+
+      const activity = activityMap.get(dateKey)!;
+      activity.vehicleLogs.push(log);
+      activity.totalKm += log.km_driven || 0;
     });
-  }, [vehicleLogs, selectedDriveMonth]);
+
+    return Array.from(activityMap.values()).sort((a, b) => 
+      b.date.localeCompare(a.date)
+    );
+  }, [selectedMonth, attendance, vehicleLogs, employee?.hourly_rate]);
 
   if (isLoading) {
     return (
@@ -425,12 +471,12 @@ const EmployeeDetail = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Odpracované hodiny</CardTitle>
-          <CardDescription>Mesačný prehľad pracovnej dochádzky</CardDescription>
+          <CardTitle>Kompletný prehľad aktivity</CardTitle>
+          <CardDescription>Mesačný súhrn dochádzky, jázd a výplat</CardDescription>
         </CardHeader>
         <CardContent>
           {monthlySummaries.length === 0 ? (
-            <p className="text-center text-muted-foreground py-4">Žiadne záznamy o dochádzke</p>
+            <p className="text-center text-muted-foreground py-4">Žiadne záznamy</p>
           ) : (
             <ScrollArea className="w-full">
               <Table>
@@ -439,6 +485,9 @@ const EmployeeDetail = () => {
                     <TableHead className="whitespace-nowrap">Mesiac</TableHead>
                     <TableHead className="whitespace-nowrap">Pracovné dni</TableHead>
                     <TableHead className="whitespace-nowrap">Celkové hodiny</TableHead>
+                    <TableHead className="whitespace-nowrap">Najazdené km</TableHead>
+                    <TableHead className="whitespace-nowrap">Použité autá</TableHead>
+                    <TableHead className="whitespace-nowrap">Projekty</TableHead>
                     <TableHead className="whitespace-nowrap">Výplata</TableHead>
                     <TableHead className="text-right whitespace-nowrap">Akcie</TableHead>
                   </TableRow>
@@ -454,6 +503,32 @@ const EmployeeDetail = () => {
                         <TableCell className="whitespace-nowrap">{summary.workDays}</TableCell>
                         <TableCell className="whitespace-nowrap">
                           {formatHoursToReadable(summary.totalHours)}
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap">
+                          {summary.totalKm > 0 ? `${summary.totalKm.toLocaleString()} km` : '-'}
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap">
+                          <div className="flex flex-wrap gap-1">
+                            {Array.from(summary.vehicles).length > 0 ? (
+                              Array.from(summary.vehicles).slice(0, 2).map((spz) => (
+                                <span key={spz} className="inline-flex items-center px-2 py-0.5 rounded-md bg-secondary text-xs font-medium">
+                                  {spz}
+                                </span>
+                              ))
+                            ) : (
+                              <span className="text-muted-foreground">-</span>
+                            )}
+                            {Array.from(summary.vehicles).length > 2 && (
+                              <span className="text-xs text-muted-foreground">+{Array.from(summary.vehicles).length - 2}</span>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap max-w-[150px]">
+                          <div className="truncate">
+                            {Array.from(summary.projects).length > 0 
+                              ? Array.from(summary.projects).join(', ')
+                              : '-'}
+                          </div>
                         </TableCell>
                         <TableCell className="whitespace-nowrap">
                           {summary.totalPayment !== null ? (
@@ -501,10 +576,10 @@ const EmployeeDetail = () => {
         </CardContent>
       </Card>
 
-      {selectedMonth && filteredAttendance.length > 0 && (
+      {selectedMonth && dailyActivities.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Detailná dochádzka</CardTitle>
+            <CardTitle>Denný prehľad aktivity</CardTitle>
             <CardDescription>
               {format(parseISO(`${selectedMonth}-01`), 'LLLL yyyy', { locale: sk })}
             </CardDescription>
@@ -518,175 +593,66 @@ const EmployeeDetail = () => {
                     <TableHead className="whitespace-nowrap">Príchod</TableHead>
                     <TableHead className="whitespace-nowrap">Odchod</TableHead>
                     <TableHead className="whitespace-nowrap">Hodiny</TableHead>
+                    <TableHead className="whitespace-nowrap">Výplata</TableHead>
                     <TableHead className="whitespace-nowrap">Projekt</TableHead>
+                    <TableHead className="whitespace-nowrap">Vozidlá použité</TableHead>
+                    <TableHead className="whitespace-nowrap">Km</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredAttendance.map((record) => (
-                    <TableRow key={record.id}>
-                      <TableCell className="whitespace-nowrap">
-                        {format(parseISO(record.date), 'dd.MM.yyyy', { locale: sk })}
+                  {dailyActivities.map((activity) => (
+                    <TableRow key={activity.date}>
+                      <TableCell className="whitespace-nowrap font-medium">
+                        {format(parseISO(activity.date), 'dd.MM.yyyy (E)', { locale: sk })}
                       </TableCell>
                       <TableCell className="whitespace-nowrap">
-                        {record.arrival_time || '-'}
+                        {activity.attendance?.arrival_time || '-'}
                       </TableCell>
                       <TableCell className="whitespace-nowrap">
-                        {record.departure_time || '-'}
+                        {activity.attendance?.departure_time || '-'}
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap font-medium">
+                        {activity.totalHours > 0 ? formatHoursToReadable(activity.totalHours) : '-'}
                       </TableCell>
                       <TableCell className="whitespace-nowrap">
-                        {record.total_hours ? formatHoursToReadable(parseFloat(record.total_hours.toString())) : '-'}
+                        {activity.payment !== null ? (
+                          <span className="text-green-600 font-medium">
+                            {activity.payment.toFixed(2)} €
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
                       </TableCell>
-                      <TableCell className="max-w-[200px]">
-                        <div className="flex flex-col gap-0.5">
-                          <span className="font-medium">{(record as any).projects?.name || '-'}</span>
-                          {(record as any).projects?.description && (
-                            <span className="text-xs text-muted-foreground line-clamp-1">
-                              {(record as any).projects.description}
-                            </span>
-                          )}
-                        </div>
+                      <TableCell className="max-w-[150px]">
+                        {activity.attendance?.projects ? (
+                          <div className="flex flex-col gap-0.5">
+                            <span className="font-medium truncate">{(activity.attendance as any).projects?.name}</span>
+                            {(activity.attendance as any).projects?.description && (
+                              <span className="text-xs text-muted-foreground line-clamp-1">
+                                {(activity.attendance as any).projects.description}
+                              </span>
+                            )}
+                          </div>
+                        ) : '-'}
                       </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-              <ScrollBar orientation="horizontal" />
-            </ScrollArea>
-          </CardContent>
-        </Card>
-      )}
-
-      <Card>
-        <CardHeader>
-          <CardTitle>História použitých áut</CardTitle>
-          <CardDescription>Prehľad jázd a použitých vozidiel</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {monthlyDriveSummaries.length === 0 ? (
-            <p className="text-center text-muted-foreground py-4">Žiadne záznamy o jazdách</p>
-          ) : (
-            <ScrollArea className="w-full">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="whitespace-nowrap">Mesiac</TableHead>
-                    <TableHead className="whitespace-nowrap">Počet jázd</TableHead>
-                    <TableHead className="whitespace-nowrap">Celkové km</TableHead>
-                    <TableHead className="whitespace-nowrap">Použité vozidlá</TableHead>
-                    <TableHead className="text-right whitespace-nowrap">Akcie</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {monthlyDriveSummaries.map((summary) => {
-                    const monthKey = `${summary.year}-${summary.monthNumber.toString().padStart(2, '0')}`;
-                    return (
-                      <TableRow key={monthKey}>
-                        <TableCell className="font-medium whitespace-nowrap capitalize">
-                          {summary.month}
-                        </TableCell>
-                        <TableCell className="whitespace-nowrap">{summary.totalDrives}</TableCell>
-                        <TableCell className="whitespace-nowrap">
-                          {summary.totalKm.toLocaleString()} km
-                        </TableCell>
-                        <TableCell className="whitespace-nowrap">
-                          <div className="flex flex-wrap gap-1">
-                            {Array.from(summary.vehicles).map((spz) => (
-                              <span key={spz} className="inline-flex items-center px-2 py-0.5 rounded-md bg-secondary text-xs font-medium">
-                                {spz}
+                      <TableCell className="whitespace-nowrap">
+                        {activity.vehicleLogs.length > 0 ? (
+                          <div className="flex flex-col gap-1">
+                            {activity.vehicleLogs.map((log) => (
+                              <span key={log.id} className="inline-flex items-center px-2 py-0.5 rounded-md bg-secondary text-xs font-medium">
+                                {(log as any).vehicles?.spz || '-'}
                               </span>
                             ))}
                           </div>
-                        </TableCell>
-                        <TableCell className="text-right whitespace-nowrap">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setSelectedDriveMonth(selectedDriveMonth === monthKey ? null : monthKey)}
-                          >
-                            {selectedDriveMonth === monthKey ? 'Skryť detail' : 'Zobraziť detail'}
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-              <ScrollBar orientation="horizontal" />
-            </ScrollArea>
-          )}
-        </CardContent>
-      </Card>
-
-      {selectedDriveMonth && filteredVehicleLogs.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Detailný prehľad jázd</CardTitle>
-            <CardDescription>
-              {format(parseISO(`${selectedDriveMonth}-01`), 'LLLL yyyy', { locale: sk })}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ScrollArea className="w-full">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="whitespace-nowrap">Dátum</TableHead>
-                    <TableHead className="whitespace-nowrap">Vozidlo</TableHead>
-                    <TableHead className="whitespace-nowrap">Projekt</TableHead>
-                    <TableHead className="whitespace-nowrap">Km začiatok</TableHead>
-                    <TableHead className="whitespace-nowrap">Km koniec</TableHead>
-                    <TableHead className="whitespace-nowrap">Najazdené km</TableHead>
-                    <TableHead className="whitespace-nowrap">Čas začiatku</TableHead>
-                    <TableHead className="whitespace-nowrap">Čas konca</TableHead>
-                    <TableHead className="whitespace-nowrap">Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredVehicleLogs.map((log) => (
-                    <TableRow key={log.id}>
-                      <TableCell className="whitespace-nowrap">
-                        {format(parseISO(log.date), 'dd.MM.yyyy', { locale: sk })}
-                      </TableCell>
-                      <TableCell className="whitespace-nowrap">
-                        <div className="flex flex-col gap-0.5">
-                          <span className="font-medium">{(log as any).vehicles?.spz || '-'}</span>
-                          <span className="text-xs text-muted-foreground">
-                            {(log as any).vehicles?.brand} {(log as any).vehicles?.type}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="max-w-[200px]">
-                        <div className="flex flex-col gap-0.5">
-                          <span className="font-medium">{(log as any).projects?.name || '-'}</span>
-                          {(log as any).projects?.description && (
-                            <span className="text-xs text-muted-foreground line-clamp-1">
-                              {(log as any).projects.description}
-                            </span>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell className="whitespace-nowrap">{log.km_start?.toLocaleString()} km</TableCell>
-                      <TableCell className="whitespace-nowrap">
-                        {log.km_end ? `${log.km_end.toLocaleString()} km` : '-'}
-                      </TableCell>
-                      <TableCell className="whitespace-nowrap font-medium">
-                        {log.km_driven ? `${log.km_driven.toLocaleString()} km` : '-'}
-                      </TableCell>
-                      <TableCell className="whitespace-nowrap">
-                        {log.created_at ? format(parseISO(log.created_at), 'HH:mm', { locale: sk }) : '-'}
-                      </TableCell>
-                      <TableCell className="whitespace-nowrap">
-                        {log.completed_at ? format(parseISO(log.completed_at), 'HH:mm', { locale: sk }) : '-'}
-                      </TableCell>
-                      <TableCell className="whitespace-nowrap">
-                        {log.is_completed ? (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-green-100 text-green-800 text-xs font-medium">
-                            Dokončená
-                          </span>
                         ) : (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-orange-100 text-orange-800 text-xs font-medium">
-                            Nedokončená
-                          </span>
+                          <span className="text-muted-foreground">-</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap">
+                        {activity.totalKm > 0 ? (
+                          <span className="font-medium">{activity.totalKm.toLocaleString()} km</span>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
                         )}
                       </TableCell>
                     </TableRow>
