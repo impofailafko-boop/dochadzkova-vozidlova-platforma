@@ -256,6 +256,7 @@ export type Database = {
       }
       vehicle_logs: {
         Row: {
+          completed_at: string | null
           created_at: string
           date: string
           end_latitude: number | null
@@ -274,6 +275,7 @@ export type Database = {
           vehicle_id: string
         }
         Insert: {
+          completed_at?: string | null
           created_at?: string
           date: string
           end_latitude?: number | null
@@ -292,6 +294,7 @@ export type Database = {
           vehicle_id: string
         }
         Update: {
+          completed_at?: string | null
           created_at?: string
           date?: string
           end_latitude?: number | null

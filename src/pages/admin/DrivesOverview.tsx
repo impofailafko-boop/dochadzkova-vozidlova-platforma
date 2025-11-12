@@ -119,13 +119,15 @@ const DrivesOverview = () => {
     if (!drives || drives.length === 0) return;
 
     const csv = [
-      ['Dátum', 'Zamestnanec', 'Vozidlo', 'Projekt', 'Status', 'Km začiatku', 'Km konca', 'Km celkom', 'GPS Start Lat', 'GPS Start Lon', 'GPS End Lat', 'GPS End Lon'].join(','),
+      ['Dátum', 'Zamestnanec', 'Vozidlo', 'Projekt', 'Status', 'Čas začiatku', 'Čas konca', 'Km začiatku', 'Km konca', 'Km celkom', 'GPS Start Lat', 'GPS Start Lon', 'GPS End Lat', 'GPS End Lon'].join(','),
       ...drives.map((record: any) => [
         record.date,
         record.profiles?.full_name || '-',
         record.vehicles?.spz || '-',
         record.projects?.name || '-',
         record.is_completed ? 'Ukončená' : 'Prebieha',
+        record.created_at ? new Date(record.created_at).toLocaleTimeString('sk-SK', { hour: '2-digit', minute: '2-digit' }) : '-',
+        record.completed_at ? new Date(record.completed_at).toLocaleTimeString('sk-SK', { hour: '2-digit', minute: '2-digit' }) : '-',
         record.km_start,
         record.km_end || '-',
         record.km_driven || '-',
@@ -330,6 +332,8 @@ const DrivesOverview = () => {
                     <TableHead className="whitespace-nowrap">Vozidlo</TableHead>
                     <TableHead className="whitespace-nowrap">Projekt</TableHead>
                     <TableHead className="whitespace-nowrap">Status</TableHead>
+                    <TableHead className="whitespace-nowrap">Čas začiatku</TableHead>
+                    <TableHead className="whitespace-nowrap">Čas konca</TableHead>
                     <TableHead className="whitespace-nowrap">GPS</TableHead>
                     <TableHead className="text-right whitespace-nowrap">Km</TableHead>
                     <TableHead className="whitespace-nowrap">Tachometer (Štart)</TableHead>
@@ -382,6 +386,18 @@ const DrivesOverview = () => {
                               Prebieha
                             </Badge>
                           )}
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap">
+                          {record.created_at ? new Date(record.created_at).toLocaleTimeString('sk-SK', { 
+                            hour: '2-digit', 
+                            minute: '2-digit' 
+                          }) : '-'}
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap">
+                          {record.completed_at ? new Date(record.completed_at).toLocaleTimeString('sk-SK', { 
+                            hour: '2-digit', 
+                            minute: '2-digit' 
+                          }) : '-'}
                         </TableCell>
                         <TableCell className="whitespace-nowrap">
                           <div className="flex gap-1">
@@ -521,7 +537,7 @@ const DrivesOverview = () => {
                     })
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={10} className="text-center text-muted-foreground">
+                      <TableCell colSpan={12} className="text-center text-muted-foreground">
                         Žiadne záznamy
                       </TableCell>
                     </TableRow>
