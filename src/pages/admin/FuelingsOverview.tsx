@@ -326,8 +326,18 @@ const FuelingsOverview = () => {
                 </TableHeader>
                 <TableBody>
                   {fuelings && fuelings.length > 0 ? (
-                    fuelings.map((record: any) => (
-                      <TableRow key={record.id}>
+                    fuelings.map((record: any, index: number) => {
+                      const currentDate = new Date(record.date).toLocaleDateString('sk-SK');
+                      const previousDate = index > 0 
+                        ? new Date(fuelings[index - 1].date).toLocaleDateString('sk-SK') 
+                        : null;
+                      const isDateChange = previousDate && currentDate !== previousDate;
+                      
+                      return (
+                      <TableRow 
+                        key={record.id}
+                        className={isDateChange ? "border-b-2 border-primary" : ""}
+                      >
                         <TableCell className="font-medium whitespace-nowrap">
                           {new Date(record.date).toLocaleDateString('sk-SK')}
                         </TableCell>
@@ -398,7 +408,8 @@ const FuelingsOverview = () => {
                           </DropdownMenu>
                         </TableCell>
                       </TableRow>
-                    ))
+                      );
+                    })
                   ) : (
                     <TableRow>
                       <TableCell colSpan={9} className="text-center text-muted-foreground">
