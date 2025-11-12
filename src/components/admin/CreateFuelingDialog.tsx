@@ -125,7 +125,7 @@ export function CreateFuelingDialog({ open, onOpenChange, vehicles, projects, cu
                     <SelectContent className="bg-popover z-50">
                       {vehicles?.map((vehicle: any) => (
                         <SelectItem key={vehicle.id} value={vehicle.id}>
-                          {vehicle.spz}
+                          {vehicle.spz} - {vehicle.brand} {vehicle.type}
                         </SelectItem>
                       ))}
                     </SelectContent>

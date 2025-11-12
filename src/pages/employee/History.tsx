@@ -348,7 +348,11 @@ const History = () => {
                             <TableCell className="font-medium whitespace-nowrap">
                               {new Date(log.date).toLocaleDateString('sk-SK')}
                             </TableCell>
-                            <TableCell className="whitespace-nowrap">{log.vehicles?.spz}</TableCell>
+                            <TableCell className="whitespace-nowrap">
+                              {log.vehicles?.spz ? 
+                                `${log.vehicles.spz} - ${log.vehicles.brand} ${log.vehicles.type}` 
+                                : '-'}
+                            </TableCell>
                             <TableCell className="max-w-[200px]">
                               <div className="flex flex-col gap-0.5">
                                 <span className="font-medium">{log.projects?.name}</span>
@@ -558,7 +562,11 @@ const History = () => {
                             <TableCell className="font-medium whitespace-nowrap">
                               {new Date(log.date).toLocaleDateString('sk-SK')}
                             </TableCell>
-                            <TableCell className="whitespace-nowrap">{log.vehicles?.spz}</TableCell>
+                            <TableCell className="whitespace-nowrap">
+                              {log.vehicles?.spz ? 
+                                `${log.vehicles.spz} - ${log.vehicles.brand} ${log.vehicles.type}` 
+                                : '-'}
+                            </TableCell>
                             <TableCell className="max-w-[200px]">
                               <div className="flex flex-col gap-0.5">
                                 <span className="font-medium">{log.projects?.name || '-'}</span>

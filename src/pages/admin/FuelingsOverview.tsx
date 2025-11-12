@@ -258,7 +258,7 @@ const FuelingsOverview = () => {
                   <SelectItem value="all">Všetky</SelectItem>
                   {vehicles?.map((vehicle: any) => (
                     <SelectItem key={vehicle.id} value={vehicle.id}>
-                      {vehicle.spz}
+                      {vehicle.spz} - {vehicle.brand} {vehicle.type}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -342,7 +342,11 @@ const FuelingsOverview = () => {
                           {new Date(record.date).toLocaleDateString('sk-SK')}
                         </TableCell>
                         <TableCell className="whitespace-nowrap">{record.profiles?.full_name || '-'}</TableCell>
-                        <TableCell className="whitespace-nowrap">{record.vehicles?.spz || '-'}</TableCell>
+                        <TableCell className="whitespace-nowrap">
+                          {record.vehicles?.spz ? 
+                            `${record.vehicles.spz} - ${record.vehicles.brand} ${record.vehicles.type}` 
+                            : '-'}
+                        </TableCell>
                         <TableCell className="max-w-[200px]">
                           <div className="flex flex-col gap-0.5">
                             <span className="font-medium">{record.projects?.name || '-'}</span>

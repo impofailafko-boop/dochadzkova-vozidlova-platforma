@@ -99,7 +99,7 @@ export function EditDriveDialog({ open, onOpenChange, drive, vehicles, projects,
                     <SelectContent className="bg-popover z-50">
                       {vehicles?.map((vehicle: any) => (
                         <SelectItem key={vehicle.id} value={vehicle.id}>
-                          {vehicle.spz}
+                          {vehicle.spz} - {vehicle.brand} {vehicle.type}
                         </SelectItem>
                       ))}
                     </SelectContent>
