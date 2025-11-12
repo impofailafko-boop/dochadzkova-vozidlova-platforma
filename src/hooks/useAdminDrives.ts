@@ -28,7 +28,8 @@ export function useAdminDrives(filters?: {
             type
           ),
           projects (
-            name
+            name,
+            description
           )
         `)
         .order('date', { ascending: false });

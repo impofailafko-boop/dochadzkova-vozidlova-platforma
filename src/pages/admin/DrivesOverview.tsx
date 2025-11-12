@@ -405,61 +405,73 @@ const DrivesOverview = () => {
                           {record.is_completed ? `${record.km_driven} km` : `${record.km_start} km →`}
                         </TableCell>
                         <TableCell className="whitespace-nowrap">
-                          {record.photo_km_start ? (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={async () => {
-                                const { data, error } = await supabase.storage
-                                  .from('vehicle-photos')
-                                  .createSignedUrl(record.photo_km_start, 3600); // 1 hour expiry
-                                
-                                if (error) {
-                                  console.error('Error creating signed URL:', error);
-                                  toast.error('Nepodarilo sa načítať fotku');
-                                  return;
-                                }
-                                
-                                if (data?.signedUrl) {
-                                  window.open(data.signedUrl, '_blank');
-                                } else {
-                                  toast.error('Fotka nebola nájdená');
-                                }
-                              }}
-                            >
-                              <ImageIcon className="h-4 w-4 mr-2" />
-                              Zobraziť
-                            </Button>
-                          ) : (
-                            <span className="text-muted-foreground">-</span>
-                          )}
+                          <div className="flex flex-col gap-1">
+                            <span className="font-medium">{record.km_start} km</span>
+                            {record.photo_km_start ? (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="w-fit"
+                                onClick={async () => {
+                                  const { data, error } = await supabase.storage
+                                    .from('vehicle-photos')
+                                    .createSignedUrl(record.photo_km_start, 3600);
+                                  
+                                  if (error) {
+                                    console.error('Error creating signed URL:', error);
+                                    toast.error('Nepodarilo sa načítať fotku');
+                                    return;
+                                  }
+                                  
+                                  if (data?.signedUrl) {
+                                    window.open(data.signedUrl, '_blank');
+                                  } else {
+                                    toast.error('Fotka nebola nájdená');
+                                  }
+                                }}
+                              >
+                                <ImageIcon className="h-3 w-3 mr-1" />
+                                Fotka
+                              </Button>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">Bez fotky</span>
+                            )}
+                          </div>
                         </TableCell>
                         <TableCell className="whitespace-nowrap">
-                          {record.photo_km_end ? (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={async () => {
-                                const { data, error } = await supabase.storage
-                                  .from('vehicle-photos')
-                                  .createSignedUrl(record.photo_km_end, 3600); // 1 hour expiry
-                                
-                                if (error) {
-                                  console.error('Error creating signed URL:', error);
-                                  toast.error('Nepodarilo sa načítať fotku');
-                                  return;
-                                }
-                                
-                                if (data?.signedUrl) {
-                                  window.open(data.signedUrl, '_blank');
-                                } else {
-                                  toast.error('Fotka nebola nájdená');
-                                }
-                              }}
-                            >
-                              <ImageIcon className="h-4 w-4 mr-2" />
-                              Zobraziť
-                            </Button>
+                          {record.is_completed ? (
+                            <div className="flex flex-col gap-1">
+                              <span className="font-medium">{record.km_end} km</span>
+                              {record.photo_km_end ? (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="w-fit"
+                                  onClick={async () => {
+                                    const { data, error } = await supabase.storage
+                                      .from('vehicle-photos')
+                                      .createSignedUrl(record.photo_km_end, 3600);
+                                    
+                                    if (error) {
+                                      console.error('Error creating signed URL:', error);
+                                      toast.error('Nepodarilo sa načítať fotku');
+                                      return;
+                                    }
+                                    
+                                    if (data?.signedUrl) {
+                                      window.open(data.signedUrl, '_blank');
+                                    } else {
+                                      toast.error('Fotka nebola nájdená');
+                                    }
+                                  }}
+                                >
+                                  <ImageIcon className="h-3 w-3 mr-1" />
+                                  Fotka
+                                </Button>
+                              ) : (
+                                <span className="text-xs text-muted-foreground">Bez fotky</span>
+                              )}
+                            </div>
                           ) : (
                             <span className="text-muted-foreground">-</span>
                           )}
