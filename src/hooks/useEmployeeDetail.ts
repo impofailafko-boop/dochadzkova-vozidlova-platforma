@@ -39,7 +39,8 @@ export function useEmployeeDetail(userId: string | undefined) {
         .select(`
           *,
           projects (
-            name
+            name,
+            description
           )
         `)
         .eq('user_id', userId)
