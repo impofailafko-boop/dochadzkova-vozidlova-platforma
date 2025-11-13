@@ -657,9 +657,11 @@ const EmployeeDetail = () => {
                         {activity.vehicleLogs.length > 0 ? (
                           <div className="flex flex-col gap-1">
                             {activity.vehicleLogs.map((log) => (
-                              <span key={log.id} className="inline-flex items-center px-2 py-0.5 rounded-md bg-secondary text-xs font-medium">
-                                {(log as any).vehicles?.spz || '-'}
-                              </span>
+                              <div key={log.id} className="inline-flex items-center px-2 py-0.5 rounded-md bg-secondary text-xs font-medium gap-1.5">
+                                <span className="font-semibold">{(log as any).vehicles?.spz}</span>
+                                <span className="text-muted-foreground">-</span>
+                                <span>{(log as any).vehicles?.brand} {(log as any).vehicles?.type}</span>
+                              </div>
                             ))}
                           </div>
                         ) : (
