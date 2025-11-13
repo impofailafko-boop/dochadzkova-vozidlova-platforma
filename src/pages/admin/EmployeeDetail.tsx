@@ -32,7 +32,8 @@ interface MonthlySummary {
   month: string;
   year: number;
   monthNumber: number;
-  totalHours: number;
+  totalHoursBrutto: number; // Celkové hodiny pred odrátaním prestávky
+  totalHours: number; // Netto hodiny po odrátaní prestávky
   workDays: number;
   hourlyRate: number | null;
   totalPayment: number | null;
@@ -99,6 +100,7 @@ const EmployeeDetail = () => {
           month: monthName,
           year,
           monthNumber,
+          totalHoursBrutto: 0,
           totalHours: 0,
           workDays: 0,
           hourlyRate,
@@ -112,7 +114,9 @@ const EmployeeDetail = () => {
       const summary = summaryMap.get(monthKey)!;
       if (record.total_hours) {
         const hoursWorked = parseFloat(record.total_hours.toString());
-        // Odrátať 30 minút (0.5 hodiny) prestávky
+        // Brutto hodiny (pred odrátaním prestávky)
+        summary.totalHoursBrutto += hoursWorked;
+        // Netto hodiny (po odrátaní 30 minút prestávky)
         const hoursWithBreak = Math.max(0, hoursWorked - 0.5);
         summary.totalHours += hoursWithBreak;
         summary.workDays += 1;
@@ -135,6 +139,7 @@ const EmployeeDetail = () => {
           month: monthName,
           year,
           monthNumber,
+          totalHoursBrutto: 0,
           totalHours: 0,
           workDays: 0,
           hourlyRate,
@@ -489,7 +494,9 @@ const EmployeeDetail = () => {
                   <TableRow>
                     <TableHead className="whitespace-nowrap">Mesiac</TableHead>
                     <TableHead className="whitespace-nowrap">Pracovné dni</TableHead>
-                    <TableHead className="whitespace-nowrap">Celkové hodiny</TableHead>
+                    <TableHead className="whitespace-nowrap">Brutto hodiny</TableHead>
+                    <TableHead className="whitespace-nowrap">Prestávka</TableHead>
+                    <TableHead className="whitespace-nowrap">Netto hodiny</TableHead>
                     <TableHead className="whitespace-nowrap">Najazdené km</TableHead>
                     <TableHead className="whitespace-nowrap">Použité autá</TableHead>
                     <TableHead className="whitespace-nowrap">Projekty</TableHead>
@@ -507,6 +514,12 @@ const EmployeeDetail = () => {
                         </TableCell>
                         <TableCell className="whitespace-nowrap">{summary.workDays}</TableCell>
                         <TableCell className="whitespace-nowrap">
+                          {formatHoursToReadable(summary.totalHoursBrutto)}
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap text-orange-600">
+                          {formatHoursToReadable(summary.workDays * 0.5)}
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap font-medium">
                           {formatHoursToReadable(summary.totalHours)}
                         </TableCell>
                         <TableCell className="whitespace-nowrap">
