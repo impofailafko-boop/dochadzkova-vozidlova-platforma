@@ -1,7 +1,7 @@
 import AttendanceButton from '@/components/employee/AttendanceButton';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Car, Fuel, History, Loader2, Briefcase } from 'lucide-react';
+import { Car, Fuel, History, Loader2, Briefcase, Clock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useActiveVehicleLogs } from '@/hooks/useVehicleLogs';
 import { ActiveVehicleCard } from '@/components/employee/ActiveVehicleCard';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { useEmployeeStats } from '@/hooks/useEmployeeStats';
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -39,11 +40,12 @@ const Dashboard = () => {
   });
 
   const { data: activeVehicles = [], isLoading: loadingVehicles } = useActiveVehicleLogs(user?.id);
+  const { data: stats, isLoading: loadingStats } = useEmployeeStats(user?.id);
 
   // Extract first name from full_name
   const firstName = profile?.full_name?.split(' ')[0] || 'používateľ';
 
-  if (loadingProfile || loadingVehicles) {
+  if (loadingProfile || loadingVehicles || loadingStats) {
     return (
       <div className="flex items-center justify-center h-screen">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -59,6 +61,43 @@ const Dashboard = () => {
           Tu nájdeš prehľad svojej dochádzky a rýchly prístup k dôležitým funkciám
         </p>
       </div>
+
+      {/* Work Hours Stats */}
+      {stats && (
+        <div className="grid grid-cols-2 gap-3">
+          <Card className="border-2 border-blue-200 bg-blue-50/50 dark:bg-blue-950/20 dark:border-blue-900">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="rounded-full bg-blue-100 dark:bg-blue-900 p-2">
+                  <Clock className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground font-medium">Tento týždeň</p>
+                  <p className="text-2xl font-bold text-blue-700 dark:text-blue-300">
+                    {stats.weekHours.toFixed(1)}h
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-2 border-green-200 bg-green-50/50 dark:bg-green-950/20 dark:border-green-900">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="rounded-full bg-green-100 dark:bg-green-900 p-2">
+                  <Clock className="h-5 w-5 text-green-600 dark:text-green-400" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground font-medium">Tento mesiac</p>
+                  <p className="text-2xl font-bold text-green-700 dark:text-green-300">
+                    {stats.monthHours.toFixed(1)}h
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Current Project Banner */}
       {profile?.projects && (
