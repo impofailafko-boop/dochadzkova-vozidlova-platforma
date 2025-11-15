@@ -17,13 +17,18 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import * as XLSX from 'xlsx';
 import { formatHoursToReadable } from '@/lib/utils';
+import { Check, ChevronsUpDown } from 'lucide-react';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
 
 const Reports = () => {
   const [dateRange, setDateRange] = useState({
     startDate: formatDateToLocalString(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)),
     endDate: formatDateToLocalString(new Date()),
   });
-  const [selectedProject, setSelectedProject] = useState<string>('all');
+  const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
 
   const { projects, isLoading: loadingProjects } = useAdminProjects();
   const { data: attendance, isLoading: loadingAttendance } = useAdminAttendance(dateRange);
@@ -33,28 +38,28 @@ const Reports = () => {
   // Filter data by selected project
   const filteredDrives = useMemo(() => {
     if (!drives) return [];
-    if (selectedProject === 'all') return drives;
-    return drives.filter((drive: any) => drive.project_id === selectedProject);
-  }, [drives, selectedProject]);
+    if (selectedProjects.length === 0) return drives;
+    return drives.filter((drive: any) => selectedProjects.includes(drive.project_id));
+  }, [drives, selectedProjects]);
 
   const filteredFuelings = useMemo(() => {
     if (!fuelings) return [];
-    if (selectedProject === 'all') return fuelings;
-    return fuelings.filter((fuel: any) => fuel.project_id === selectedProject);
-  }, [fuelings, selectedProject]);
+    if (selectedProjects.length === 0) return fuelings;
+    return fuelings.filter((fuel: any) => selectedProjects.includes(fuel.project_id));
+  }, [fuelings, selectedProjects]);
 
   // Get user IDs who worked on the selected project (from drives)
   const projectUserIds = useMemo(() => {
-    if (selectedProject === 'all') return [];
+    if (selectedProjects.length === 0) return [];
     return [...new Set(filteredDrives.map((drive: any) => drive.user_id))];
-  }, [filteredDrives, selectedProject]);
+  }, [filteredDrives, selectedProjects]);
 
   // Filter attendance by project users
   const filteredAttendance = useMemo(() => {
     if (!attendance) return [];
-    if (selectedProject === 'all') return attendance;
+    if (selectedProjects.length === 0) return attendance;
     return attendance.filter((att: any) => projectUserIds.includes(att.user_id));
-  }, [attendance, selectedProject, projectUserIds]);
+  }, [attendance, selectedProjects, projectUserIds]);
 
   // Calculate project statistics
   const projectStats = useMemo(() => {
@@ -375,33 +380,102 @@ const Reports = () => {
                     Obdobie: {new Date(dateRange.startDate).toLocaleDateString('sk-SK')} - {new Date(dateRange.endDate).toLocaleDateString('sk-SK')}
                   </CardDescription>
                 </div>
-                <div className="w-full sm:w-[250px]">
-                  <Label>Filter projektu</Label>
-                  <Select value={selectedProject} onValueChange={setSelectedProject}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Všetky projekty" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Všetky projekty</SelectItem>
-                      {projects?.map((project: any) => (
-                        <SelectItem key={project.id} value={project.id}>
-                          <div className="flex flex-col gap-1 py-1">
-                            <span className="font-medium">{project.name}</span>
-                            {project.description && (
-                              <span className="text-xs text-muted-foreground line-clamp-2">
-                                {project.description}
-                              </span>
+                <div className="w-full sm:w-[300px]">
+                  <Label>Filter projektov</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        className="w-full justify-between"
+                      >
+                        {selectedProjects.length === 0 ? (
+                          "Všetky projekty"
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <span>{selectedProjects.length} vybraných</span>
+                            {selectedProjects.length <= 2 && (
+                              <div className="flex gap-1">
+                                {selectedProjects.map(id => {
+                                  const proj = projects?.find((p: any) => p.id === id);
+                                  return proj ? (
+                                    <Badge key={id} variant="secondary" className="text-xs">
+                                      {proj.name}
+                                    </Badge>
+                                  ) : null;
+                                })}
+                              </div>
                             )}
                           </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                        )}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[300px] p-0" align="start">
+                      <Command>
+                        <CommandInput placeholder="Hľadať projekt..." />
+                        <CommandEmpty>Žiadny projekt nenájdený.</CommandEmpty>
+                        <CommandGroup className="max-h-64 overflow-auto">
+                          <CommandItem
+                            onSelect={() => {
+                              setSelectedProjects([]);
+                            }}
+                            className="cursor-pointer"
+                          >
+                            <div className="flex items-center gap-2 w-full">
+                              <Checkbox
+                                checked={selectedProjects.length === 0}
+                                onCheckedChange={() => setSelectedProjects([])}
+                              />
+                              <div className="flex-1">
+                                <div className="font-medium">Všetky projekty</div>
+                                <div className="text-xs text-muted-foreground">Zobraziť všetky</div>
+                              </div>
+                            </div>
+                          </CommandItem>
+                          {projects?.map((project: any) => (
+                            <CommandItem
+                              key={project.id}
+                              onSelect={() => {
+                                setSelectedProjects(prev =>
+                                  prev.includes(project.id)
+                                    ? prev.filter(id => id !== project.id)
+                                    : [...prev, project.id]
+                                );
+                              }}
+                              className="cursor-pointer"
+                            >
+                              <div className="flex items-center gap-2 w-full">
+                                <Checkbox
+                                  checked={selectedProjects.includes(project.id)}
+                                  onCheckedChange={() => {
+                                    setSelectedProjects(prev =>
+                                      prev.includes(project.id)
+                                        ? prev.filter(id => id !== project.id)
+                                        : [...prev, project.id]
+                                    );
+                                  }}
+                                />
+                                <div className="flex-1">
+                                  <div className="font-medium">{project.name}</div>
+                                  {project.description && (
+                                    <div className="text-xs text-muted-foreground line-clamp-1">
+                                      {project.description}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                 </div>
               </div>
             </CardHeader>
             <CardContent className="space-y-6">
-              {selectedProject !== 'all' && (
+              {selectedProjects.length > 0 && (
                 <>
                   <div>
                     <h3 className="font-semibold mb-3">Zamestnanci na projekte</h3>
@@ -466,7 +540,7 @@ const Reports = () => {
                 </>
               )}
 
-              {selectedProject === 'all' && (
+              {selectedProjects.length === 0 && (
                 <>
                   <div>
                     <h3 className="font-semibold mb-2">Dochádzka</h3>
