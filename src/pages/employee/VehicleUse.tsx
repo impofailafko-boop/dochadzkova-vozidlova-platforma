@@ -7,6 +7,7 @@ import { useFormPersistence } from '@/hooks/useFormPersistence';
 import { clearLastFormRoute } from '@/hooks/useRouteTracking';
 import { useProfile } from '@/hooks/useProfile';
 import { useDebounce } from '@/hooks/useDebounce';
+import { useLastVehicleKm } from '@/hooks/useLastVehicleKm';
 import { useMemo, useCallback, useEffect } from 'react';
 import { OfflineIndicator } from '@/components/employee/OfflineIndicator';
 import { PhotoUpload } from '@/components/common/PhotoUpload';
@@ -67,12 +68,26 @@ const VehicleUse = () => {
     },
   });
 
+  const selectedVehicleId = form.watch('vehicle_id');
+  const { data: lastKm } = useLastVehicleKm(selectedVehicleId);
+
   // Auto-fill project from daily selection
   useEffect(() => {
     if (currentProjectId && !form.getValues('project_id')) {
       form.setValue('project_id', currentProjectId);
     }
   }, [currentProjectId, form]);
+
+  // Auto-fill km_start from last completed drive
+  useEffect(() => {
+    if (lastKm && selectedVehicleId) {
+      const currentKmStart = form.getValues('km_start');
+      if (!currentKmStart || currentKmStart === 0) {
+        form.setValue('km_start', lastKm);
+        toast.info(`Kilometre predvyplnené z poslednej jazdy: ${lastKm} km`);
+      }
+    }
+  }, [lastKm, selectedVehicleId, form]);
 
   // Persist form data in localStorage (exclude photo file)
   const { clearPersistedData } = useFormPersistence(form, 'vehicle-use-form', ['photo_km_start']);
