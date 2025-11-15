@@ -95,17 +95,24 @@ const AttendanceOverview = () => {
     if (!attendance || attendance.length === 0) return;
 
     const csv = [
-      ['Dátum', 'Zamestnanec', 'Projekt', 'Príchod', 'Odchod', 'Hodiny', 'GPS Latitude', 'GPS Longitude'].join(','),
-      ...attendance.map((record: any) => [
-        record.date,
-        record.profiles?.full_name || '-',
-        record.projects?.name || '-',
-        record.arrival_time || '-',
-        record.departure_time || '-',
-        record.total_hours || '-',
-        record.arrival_latitude || '-',
-        record.arrival_longitude || '-',
-      ].join(',')),
+      ['Dátum', 'Zamestnanec', 'Projekt', 'Príchod', 'Odchod', 'Brutto hodiny', 'Prestávka', 'Netto hodiny', 'GPS Latitude', 'GPS Longitude'].join(','),
+      ...attendance.map((record: any) => {
+        const bruttoHours = record.total_hours || 0;
+        const nettoHours = record.total_hours ? Math.max(0, parseFloat(record.total_hours) - 0.5) : 0;
+        
+        return [
+          record.date,
+          record.profiles?.full_name || '-',
+          record.projects?.name || '-',
+          record.arrival_time || '-',
+          record.departure_time || '-',
+          bruttoHours,
+          '0.5',
+          nettoHours,
+          record.arrival_latitude || '-',
+          record.arrival_longitude || '-',
+        ].join(',');
+      }),
     ].join('\n');
 
     const blob = new Blob([csv], { type: 'text/csv' });
@@ -210,7 +217,9 @@ const AttendanceOverview = () => {
                     <TableHead className="whitespace-nowrap">Príchod</TableHead>
                     <TableHead className="whitespace-nowrap">Odchod</TableHead>
                     <TableHead className="whitespace-nowrap">Poloha</TableHead>
-                    <TableHead className="text-right whitespace-nowrap">Hodiny</TableHead>
+                    <TableHead className="text-right whitespace-nowrap">Brutto hodiny</TableHead>
+                    <TableHead className="text-right whitespace-nowrap">Prestávka</TableHead>
+                    <TableHead className="text-right whitespace-nowrap">Netto hodiny</TableHead>
                     <TableHead className="text-right whitespace-nowrap">Akcie</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -278,6 +287,12 @@ const AttendanceOverview = () => {
                         <TableCell className="text-right whitespace-nowrap">
                           {record.total_hours ? formatHoursToReadable(record.total_hours) : '-'}
                         </TableCell>
+                        <TableCell className="text-right whitespace-nowrap text-orange-600">
+                          0,5h
+                        </TableCell>
+                        <TableCell className="text-right whitespace-nowrap font-semibold">
+                          {record.total_hours ? formatHoursToReadable(Math.max(0, parseFloat(record.total_hours) - 0.5)) : '-'}
+                        </TableCell>
                         <TableCell className="text-right whitespace-nowrap">
                           <DropdownMenu modal={false}>
                             <DropdownMenuTrigger asChild>
@@ -302,7 +317,7 @@ const AttendanceOverview = () => {
                     })
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={8} className="text-center text-muted-foreground">
+                      <TableCell colSpan={10} className="text-center text-muted-foreground">
                         Žiadne záznamy
                       </TableCell>
                     </TableRow>
