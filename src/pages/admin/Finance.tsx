@@ -155,12 +155,18 @@ export default function Finance() {
                 <TableRow>
                   <TableHead className="w-[150px]">Č. objednávky</TableHead>
                   <TableHead>Lokalita</TableHead>
-                  <TableHead>Termín</TableHead>
+                  <TableHead>Termín ukončenia</TableHead>
                   <TableHead>Pracovník</TableHead>
+                  <TableHead>Rozsah podľa obj.</TableHead>
                   <TableHead className="text-right">Suma VŠD</TableHead>
                   <TableHead className="text-right">Zaplatené</TableHead>
                   <TableHead className="text-right">Zisk</TableHead>
+                  <TableHead>Dátum ukončenia</TableHead>
                   <TableHead>FA</TableHead>
+                  <TableHead>Rozsah podľa FA</TableHead>
+                  <TableHead>Rozsah reálny</TableHead>
+                  <TableHead>Podľa zamestnanca</TableHead>
+                  <TableHead>Poznámky</TableHead>
                   <TableHead className="w-[100px]">Akcie</TableHead>
                 </TableRow>
               </TableHeader>
@@ -171,14 +177,15 @@ export default function Finance() {
                     style={{ backgroundColor: record.row_color || '#ffffff' }}
                   >
                     <TableCell className="font-medium">{record.order_number}</TableCell>
-                    <TableCell>{record.location}</TableCell>
+                    <TableCell>{record.location || '-'}</TableCell>
                     <TableCell>
                       {record.completion_deadline ? 
                         format(new Date(record.completion_deadline), 'dd.MM.yyyy', { locale: sk }) 
                         : '-'
                       }
                     </TableCell>
-                    <TableCell>{record.worker}</TableCell>
+                    <TableCell>{record.worker || '-'}</TableCell>
+                    <TableCell>{record.scope_by_order || '-'}</TableCell>
                     <TableCell className="text-right">
                       {record.total_vsd ? `${record.total_vsd.toFixed(2)} €` : '-'}
                     </TableCell>
@@ -190,7 +197,17 @@ export default function Finance() {
                     }`}>
                       {record.profit ? `${record.profit.toFixed(2)} €` : '-'}
                     </TableCell>
-                    <TableCell>{record.invoice_number}</TableCell>
+                    <TableCell>
+                      {record.completion_date ? 
+                        format(new Date(record.completion_date), 'dd.MM.yyyy', { locale: sk }) 
+                        : '-'
+                      }
+                    </TableCell>
+                    <TableCell>{record.invoice_number || '-'}</TableCell>
+                    <TableCell>{record.scope_by_invoice || '-'}</TableCell>
+                    <TableCell>{record.actual_scope || '-'}</TableCell>
+                    <TableCell>{record.by_employee || '-'}</TableCell>
+                    <TableCell className="max-w-[200px] truncate">{record.notes || '-'}</TableCell>
                     <TableCell>
                       <div className="flex gap-2">
                         <Button
