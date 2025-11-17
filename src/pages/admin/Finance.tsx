@@ -306,11 +306,12 @@ export default function Finance() {
               {sheets.map((sheet) => (
                 <div
                   key={sheet.id}
-                  className={`group flex items-center gap-2 px-4 py-2 rounded-t-md border-b-2 transition-colors ${
+                  className={`group flex items-center gap-2 px-4 py-2 rounded-t-md border-b-2 transition-colors cursor-pointer ${
                     activeSheetId === sheet.id
                       ? 'bg-accent border-primary'
                       : 'border-transparent hover:bg-accent/50'
                   }`}
+                  onClick={() => setActiveSheetId(sheet.id)}
                 >
                   <EditableSheetName
                     value={sheet.name}
