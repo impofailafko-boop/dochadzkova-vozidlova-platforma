@@ -74,6 +74,69 @@ export type Database = {
           },
         ]
       }
+      finance_records: {
+        Row: {
+          actual_scope: string | null
+          by_employee: string | null
+          completion_date: string | null
+          completion_deadline: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          invoice_number: string | null
+          location: string | null
+          notes: string | null
+          order_number: string
+          paid_employees: number | null
+          profit: number | null
+          row_color: string | null
+          scope_by_invoice: string | null
+          scope_by_order: string | null
+          total_vsd: number | null
+          worker: string | null
+        }
+        Insert: {
+          actual_scope?: string | null
+          by_employee?: string | null
+          completion_date?: string | null
+          completion_deadline?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          invoice_number?: string | null
+          location?: string | null
+          notes?: string | null
+          order_number: string
+          paid_employees?: number | null
+          profit?: number | null
+          row_color?: string | null
+          scope_by_invoice?: string | null
+          scope_by_order?: string | null
+          total_vsd?: number | null
+          worker?: string | null
+        }
+        Update: {
+          actual_scope?: string | null
+          by_employee?: string | null
+          completion_date?: string | null
+          completion_deadline?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          invoice_number?: string | null
+          location?: string | null
+          notes?: string | null
+          order_number?: string
+          paid_employees?: number | null
+          profit?: number | null
+          row_color?: string | null
+          scope_by_invoice?: string | null
+          scope_by_order?: string | null
+          total_vsd?: number | null
+          worker?: string | null
+        }
+        Relationships: []
+      }
       fuel_logs: {
         Row: {
           created_at: string

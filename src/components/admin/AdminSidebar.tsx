@@ -11,6 +11,7 @@ import {
   Calendar,
   Settings,
   Sparkles,
+  DollarSign,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -38,6 +39,7 @@ const viewItems = [
   { title: 'Kalendár', url: '/admin/calendar', icon: Calendar },
   { title: 'Reporty', url: '/admin/reports', icon: BarChart3 },
   { title: 'AI Asistent', url: '/admin/ai-reports', icon: Sparkles },
+  { title: 'Financie', url: '/admin/finance', icon: DollarSign },
 ];
 
 const settingsItems = [
