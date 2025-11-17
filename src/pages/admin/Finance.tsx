@@ -7,6 +7,7 @@ import { CreateFinanceRecordDialog } from '@/components/admin/CreateFinanceRecor
 import { FinanceRecordChartDialog } from '@/components/admin/FinanceRecordChartDialog';
 import { format } from 'date-fns';
 import { sk } from 'date-fns/locale';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   Table,
   TableBody,
@@ -28,12 +29,31 @@ import {
 } from '@/components/ui/alert-dialog';
 
 export default function Finance() {
+  const { user } = useAuth();
   const { records, isLoading, deleteRecord } = useFinanceRecords();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [chartDialogOpen, setChartDialogOpen] = useState(false);
   const [selectedRecordId, setSelectedRecordId] = useState<string | null>(null);
   const [selectedRecordForChart, setSelectedRecordForChart] = useState<FinanceRecord | null>(null);
+
+  // Check if user has access to finance section
+  const hasAccess = user?.email === 'pikolo@pikolo.sk';
+
+  if (!hasAccess) {
+    return (
+      <div className="flex items-center justify-center h-full p-6">
+        <Card className="max-w-md">
+          <CardHeader>
+            <CardTitle>Prístup odmietnutý</CardTitle>
+            <CardDescription>
+              Nemáte oprávnenie na prístup do sekcie Financie.
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
+    );
+  }
 
   const handleDelete = async () => {
     if (selectedRecordId) {
