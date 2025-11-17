@@ -113,7 +113,7 @@ const Fueling = () => {
     );
   }, [createLog, clearPersistedData, form]);
 
-  const { debouncedFn: debouncedSubmit } = useDebounce(handleSubmitCore, 2000);
+  const { debouncedFn: debouncedSubmit } = useDebounce(handleSubmitCore, 500);
   
   const handleSubmit = (data: FuelLogFormData) => {
     debouncedSubmit(data);

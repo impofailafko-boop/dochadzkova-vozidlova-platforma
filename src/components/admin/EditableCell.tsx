@@ -73,7 +73,7 @@ export function EditableCell({ value, onSave, type = 'text', className }: Editab
 
   return (
     <div
-      className={`cursor-pointer hover:bg-accent/50 rounded px-2 py-1 transition-colors ${className}`}
+      className={`cursor-pointer hover:bg-accent/50 rounded px-3 py-2 min-h-[36px] flex items-center transition-colors ${className}`}
       onClick={() => setIsEditing(true)}
       title="Kliknutím upravíte"
     >
