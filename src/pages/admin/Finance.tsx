@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, Trash2, Download, BarChart3 } from 'lucide-react';
+import { Plus, Trash2, Download, BarChart3, Palette } from 'lucide-react';
 import { useFinanceRecords, FinanceRecord } from '@/hooks/useFinanceRecords';
 import { CreateFinanceRecordDialog } from '@/components/admin/CreateFinanceRecordDialog';
 import { FinanceRecordChartDialog } from '@/components/admin/FinanceRecordChartDialog';
+import { CellColorPicker } from '@/components/admin/CellColorPicker';
 import { format } from 'date-fns';
 import { sk } from 'date-fns/locale';
 import { useAuth } from '@/contexts/AuthContext';
@@ -30,7 +31,7 @@ import {
 
 export default function Finance() {
   const { user } = useAuth();
-  const { records, isLoading, deleteRecord } = useFinanceRecords();
+  const { records, isLoading, deleteRecord, updateRecord } = useFinanceRecords();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [chartDialogOpen, setChartDialogOpen] = useState(false);
@@ -39,6 +40,31 @@ export default function Finance() {
 
   // Check if user has access to finance section
   const hasAccess = user?.email === 'pikolo@pikolo.sk';
+
+  const handleRowColorChange = async (recordId: string, color: string) => {
+    await updateRecord({ id: recordId, row_color: color });
+  };
+
+  const handleCellColorChange = async (recordId: string, cellKey: string, color: string) => {
+    const record = records.find(r => r.id === recordId);
+    if (!record) return;
+
+    const newCellColors = { ...(record.cell_colors || {}), [cellKey]: color };
+    await updateRecord({ id: recordId, cell_colors: newCellColors });
+  };
+
+  const handleClearCellColor = async (recordId: string, cellKey: string) => {
+    const record = records.find(r => r.id === recordId);
+    if (!record) return;
+
+    const newCellColors = { ...(record.cell_colors || {}) };
+    delete newCellColors[cellKey];
+    await updateRecord({ id: recordId, cell_colors: newCellColors });
+  };
+
+  const getCellColor = (record: FinanceRecord, cellKey: string) => {
+    return record.cell_colors?.[cellKey];
+  };
 
   if (!hasAccess) {
     return (
@@ -151,6 +177,7 @@ export default function Finance() {
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50">
+                  <TableHead className="w-[80px] border-r">Farba riadku</TableHead>
                   <TableHead className="w-[150px] border-r">Č. objednávky</TableHead>
                   <TableHead className="border-r">Lokalita</TableHead>
                   <TableHead className="border-r">Termín ukončenia</TableHead>
@@ -176,38 +203,203 @@ export default function Finance() {
                     style={{ backgroundColor: record.row_color || '#ffffff' }}
                     className={index % 2 === 0 ? '' : 'bg-muted/20'}
                   >
-                    <TableCell className="font-medium border-r">{record.order_number}</TableCell>
-                    <TableCell className="border-r">{record.location || '-'}</TableCell>
                     <TableCell className="border-r">
+                      <CellColorPicker
+                        currentColor={record.row_color || undefined}
+                        onColorChange={(color) => handleRowColorChange(record.id, color)}
+                        onClearColor={() => handleRowColorChange(record.id, '#ffffff')}
+                      />
+                    </TableCell>
+                    <TableCell 
+                      className="font-medium border-r relative group"
+                      style={{ backgroundColor: getCellColor(record, 'order_number') }}
+                    >
+                      {record.order_number}
+                      <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <CellColorPicker
+                          currentColor={getCellColor(record, 'order_number')}
+                          onColorChange={(color) => handleCellColorChange(record.id, 'order_number', color)}
+                          onClearColor={() => handleClearCellColor(record.id, 'order_number')}
+                        />
+                      </div>
+                    </TableCell>
+                    <TableCell 
+                      className="border-r relative group"
+                      style={{ backgroundColor: getCellColor(record, 'location') }}
+                    >
+                      {record.location || '-'}
+                      <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <CellColorPicker
+                          currentColor={getCellColor(record, 'location')}
+                          onColorChange={(color) => handleCellColorChange(record.id, 'location', color)}
+                          onClearColor={() => handleClearCellColor(record.id, 'location')}
+                        />
+                      </div>
+                    </TableCell>
+                    <TableCell 
+                      className="border-r relative group"
+                      style={{ backgroundColor: getCellColor(record, 'completion_deadline') }}
+                    >
                       {record.completion_deadline ? 
                         format(new Date(record.completion_deadline), 'dd.MM.yyyy', { locale: sk }) 
                         : '-'
                       }
+                      <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <CellColorPicker
+                          currentColor={getCellColor(record, 'completion_deadline')}
+                          onColorChange={(color) => handleCellColorChange(record.id, 'completion_deadline', color)}
+                          onClearColor={() => handleClearCellColor(record.id, 'completion_deadline')}
+                        />
+                      </div>
                     </TableCell>
-                    <TableCell className="border-r">{record.worker || '-'}</TableCell>
-                    <TableCell className="border-r">{record.scope_by_order || '-'}</TableCell>
-                    <TableCell className="text-right border-r">
+                    <TableCell 
+                      className="border-r relative group"
+                      style={{ backgroundColor: getCellColor(record, 'worker') }}
+                    >
+                      {record.worker || '-'}
+                      <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <CellColorPicker
+                          currentColor={getCellColor(record, 'worker')}
+                          onColorChange={(color) => handleCellColorChange(record.id, 'worker', color)}
+                          onClearColor={() => handleClearCellColor(record.id, 'worker')}
+                        />
+                      </div>
+                    </TableCell>
+                    <TableCell 
+                      className="border-r relative group"
+                      style={{ backgroundColor: getCellColor(record, 'scope_by_order') }}
+                    >
+                      {record.scope_by_order || '-'}
+                      <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <CellColorPicker
+                          currentColor={getCellColor(record, 'scope_by_order')}
+                          onColorChange={(color) => handleCellColorChange(record.id, 'scope_by_order', color)}
+                          onClearColor={() => handleClearCellColor(record.id, 'scope_by_order')}
+                        />
+                      </div>
+                    </TableCell>
+                    <TableCell 
+                      className="text-right border-r relative group"
+                      style={{ backgroundColor: getCellColor(record, 'total_vsd') }}
+                    >
                       {record.total_vsd ? `${record.total_vsd.toFixed(2)} €` : '-'}
+                      <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <CellColorPicker
+                          currentColor={getCellColor(record, 'total_vsd')}
+                          onColorChange={(color) => handleCellColorChange(record.id, 'total_vsd', color)}
+                          onClearColor={() => handleClearCellColor(record.id, 'total_vsd')}
+                        />
+                      </div>
                     </TableCell>
-                    <TableCell className="text-right border-r">
+                    <TableCell 
+                      className="text-right border-r relative group"
+                      style={{ backgroundColor: getCellColor(record, 'paid_employees') }}
+                    >
                       {record.paid_employees ? `${record.paid_employees.toFixed(2)} €` : '-'}
+                      <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <CellColorPicker
+                          currentColor={getCellColor(record, 'paid_employees')}
+                          onColorChange={(color) => handleCellColorChange(record.id, 'paid_employees', color)}
+                          onClearColor={() => handleClearCellColor(record.id, 'paid_employees')}
+                        />
+                      </div>
                     </TableCell>
-                    <TableCell className={`text-right font-medium border-r ${
-                      (record.profit || 0) >= 0 ? 'text-green-600' : 'text-red-600'
-                    }`}>
+                    <TableCell 
+                      className={`text-right font-medium border-r relative group ${
+                        (record.profit || 0) >= 0 ? 'text-green-600' : 'text-red-600'
+                      }`}
+                      style={{ backgroundColor: getCellColor(record, 'profit') }}
+                    >
                       {record.profit ? `${record.profit.toFixed(2)} €` : '-'}
+                      <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <CellColorPicker
+                          currentColor={getCellColor(record, 'profit')}
+                          onColorChange={(color) => handleCellColorChange(record.id, 'profit', color)}
+                          onClearColor={() => handleClearCellColor(record.id, 'profit')}
+                        />
+                      </div>
                     </TableCell>
-                    <TableCell className="border-r">
+                    <TableCell 
+                      className="border-r relative group"
+                      style={{ backgroundColor: getCellColor(record, 'completion_date') }}
+                    >
                       {record.completion_date ? 
                         format(new Date(record.completion_date), 'dd.MM.yyyy', { locale: sk }) 
                         : '-'
                       }
+                      <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <CellColorPicker
+                          currentColor={getCellColor(record, 'completion_date')}
+                          onColorChange={(color) => handleCellColorChange(record.id, 'completion_date', color)}
+                          onClearColor={() => handleClearCellColor(record.id, 'completion_date')}
+                        />
+                      </div>
                     </TableCell>
-                    <TableCell className="border-r">{record.invoice_number || '-'}</TableCell>
-                    <TableCell className="border-r">{record.scope_by_invoice || '-'}</TableCell>
-                    <TableCell className="border-r">{record.actual_scope || '-'}</TableCell>
-                    <TableCell className="border-r">{record.by_employee || '-'}</TableCell>
-                    <TableCell className="max-w-[200px] truncate border-r">{record.notes || '-'}</TableCell>
+                    <TableCell 
+                      className="border-r relative group"
+                      style={{ backgroundColor: getCellColor(record, 'invoice_number') }}
+                    >
+                      {record.invoice_number || '-'}
+                      <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <CellColorPicker
+                          currentColor={getCellColor(record, 'invoice_number')}
+                          onColorChange={(color) => handleCellColorChange(record.id, 'invoice_number', color)}
+                          onClearColor={() => handleClearCellColor(record.id, 'invoice_number')}
+                        />
+                      </div>
+                    </TableCell>
+                    <TableCell 
+                      className="border-r relative group"
+                      style={{ backgroundColor: getCellColor(record, 'scope_by_invoice') }}
+                    >
+                      {record.scope_by_invoice || '-'}
+                      <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <CellColorPicker
+                          currentColor={getCellColor(record, 'scope_by_invoice')}
+                          onColorChange={(color) => handleCellColorChange(record.id, 'scope_by_invoice', color)}
+                          onClearColor={() => handleClearCellColor(record.id, 'scope_by_invoice')}
+                        />
+                      </div>
+                    </TableCell>
+                    <TableCell 
+                      className="border-r relative group"
+                      style={{ backgroundColor: getCellColor(record, 'actual_scope') }}
+                    >
+                      {record.actual_scope || '-'}
+                      <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <CellColorPicker
+                          currentColor={getCellColor(record, 'actual_scope')}
+                          onColorChange={(color) => handleCellColorChange(record.id, 'actual_scope', color)}
+                          onClearColor={() => handleClearCellColor(record.id, 'actual_scope')}
+                        />
+                      </div>
+                    </TableCell>
+                    <TableCell 
+                      className="border-r relative group"
+                      style={{ backgroundColor: getCellColor(record, 'by_employee') }}
+                    >
+                      {record.by_employee || '-'}
+                      <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <CellColorPicker
+                          currentColor={getCellColor(record, 'by_employee')}
+                          onColorChange={(color) => handleCellColorChange(record.id, 'by_employee', color)}
+                          onClearColor={() => handleClearCellColor(record.id, 'by_employee')}
+                        />
+                      </div>
+                    </TableCell>
+                    <TableCell 
+                      className="max-w-[200px] truncate border-r relative group"
+                      style={{ backgroundColor: getCellColor(record, 'notes') }}
+                    >
+                      {record.notes || '-'}
+                      <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <CellColorPicker
+                          currentColor={getCellColor(record, 'notes')}
+                          onColorChange={(color) => handleCellColorChange(record.id, 'notes', color)}
+                          onClearColor={() => handleClearCellColor(record.id, 'notes')}
+                        />
+                      </div>
+                    </TableCell>
                     <TableCell className="border-r">
                       <Button
                         variant="ghost"

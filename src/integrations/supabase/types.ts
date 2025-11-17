@@ -78,6 +78,7 @@ export type Database = {
         Row: {
           actual_scope: string | null
           by_employee: string | null
+          cell_colors: Json | null
           completion_date: string | null
           completion_deadline: string | null
           created_at: string
@@ -98,6 +99,7 @@ export type Database = {
         Insert: {
           actual_scope?: string | null
           by_employee?: string | null
+          cell_colors?: Json | null
           completion_date?: string | null
           completion_deadline?: string | null
           created_at?: string
@@ -118,6 +120,7 @@ export type Database = {
         Update: {
           actual_scope?: string | null
           by_employee?: string | null
+          cell_colors?: Json | null
           completion_date?: string | null
           completion_deadline?: string | null
           created_at?: string
