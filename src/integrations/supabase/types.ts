@@ -93,6 +93,7 @@ export type Database = {
           row_color: string | null
           scope_by_invoice: string | null
           scope_by_order: string | null
+          sheet_id: string
           total_vsd: number | null
           worker: string | null
         }
@@ -114,6 +115,7 @@ export type Database = {
           row_color?: string | null
           scope_by_invoice?: string | null
           scope_by_order?: string | null
+          sheet_id: string
           total_vsd?: number | null
           worker?: string | null
         }
@@ -135,8 +137,41 @@ export type Database = {
           row_color?: string | null
           scope_by_invoice?: string | null
           scope_by_order?: string | null
+          sheet_id?: string
           total_vsd?: number | null
           worker?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "finance_records_sheet_id_fkey"
+            columns: ["sheet_id"]
+            isOneToOne: false
+            referencedRelation: "finance_sheets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      finance_sheets: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          is_default: boolean
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_default?: boolean
+          name: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_default?: boolean
+          name?: string
         }
         Relationships: []
       }
