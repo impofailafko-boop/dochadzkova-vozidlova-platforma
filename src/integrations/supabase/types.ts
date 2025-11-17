@@ -153,6 +153,7 @@ export type Database = {
       }
       finance_sheets: {
         Row: {
+          column_config: Json | null
           created_at: string
           created_by: string | null
           id: string
@@ -160,6 +161,7 @@ export type Database = {
           name: string
         }
         Insert: {
+          column_config?: Json | null
           created_at?: string
           created_by?: string | null
           id?: string
@@ -167,6 +169,7 @@ export type Database = {
           name: string
         }
         Update: {
+          column_config?: Json | null
           created_at?: string
           created_by?: string | null
           id?: string
