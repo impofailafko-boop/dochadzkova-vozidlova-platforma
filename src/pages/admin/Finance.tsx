@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, Trash2, Download, BarChart3, Palette } from 'lucide-react';
+import { Plus, Trash2, Download, BarChart3, Palette, X } from 'lucide-react';
 import { useFinanceRecords, FinanceRecord } from '@/hooks/useFinanceRecords';
+import { useFinanceSheets } from '@/hooks/useFinanceSheets';
 import { CreateFinanceRecordDialog } from '@/components/admin/CreateFinanceRecordDialog';
+import { CreateFinanceSheetDialog } from '@/components/admin/CreateFinanceSheetDialog';
 import { FinanceRecordChartDialog } from '@/components/admin/FinanceRecordChartDialog';
 import { CellColorPicker } from '@/components/admin/CellColorPicker';
 import { EditableCell } from '@/components/admin/EditableCell';
@@ -18,7 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -32,8 +34,11 @@ import {
 
 export default function Finance() {
   const { user } = useAuth();
-  const { records, isLoading, deleteRecord, updateRecord } = useFinanceRecords();
+  const { sheets, isLoading: isSheetsLoading, createSheet, deleteSheet } = useFinanceSheets();
+  const [activeSheetId, setActiveSheetId] = useState<string | null>(null);
+  const { records, isLoading, deleteRecord, updateRecord } = useFinanceRecords(activeSheetId || undefined);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [createSheetDialogOpen, setCreateSheetDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [chartDialogOpen, setChartDialogOpen] = useState(false);
   const [selectedRecordId, setSelectedRecordId] = useState<string | null>(null);
@@ -41,6 +46,11 @@ export default function Finance() {
 
   // Check if user has access to finance section
   const hasAccess = user?.email === 'pikolo@pikolo.sk';
+
+  // Set initial active sheet when sheets load
+  if (!isSheetsLoading && sheets.length > 0 && !activeSheetId) {
+    setActiveSheetId(sheets[0].id);
+  }
 
   const handleRowColorChange = async (recordId: string, color: string) => {
     await updateRecord({ id: recordId, row_color: color });
@@ -94,6 +104,25 @@ export default function Finance() {
       </div>
     );
   }
+
+  const handleCreateSheet = async (name: string) => {
+    const newSheet = await createSheet({ name });
+    setActiveSheetId(newSheet.id);
+  };
+
+  const handleDeleteSheet = async (sheetId: string) => {
+    if (sheets.length <= 1) {
+      return; // Don't delete the last sheet
+    }
+    
+    await deleteSheet(sheetId);
+    
+    // Switch to first available sheet
+    if (activeSheetId === sheetId && sheets.length > 1) {
+      const remainingSheets = sheets.filter(s => s.id !== sheetId);
+      setActiveSheetId(remainingSheets[0].id);
+    }
+  };
 
   const handleDelete = async () => {
     if (selectedRecordId) {
@@ -149,36 +178,93 @@ export default function Finance() {
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `financie_${format(new Date(), 'yyyy-MM-dd')}.csv`;
+    
+    const activeSheet = sheets.find(s => s.id === activeSheetId);
+    const sheetName = activeSheet?.name || 'export';
+    
+    link.download = `financie_${sheetName}_${format(new Date(), 'yyyy-MM-dd')}.csv`;
     link.click();
   };
 
-  if (isLoading) {
+  if (isLoading || isSheetsLoading) {
     return (
       <div className="flex items-center justify-center h-full">
-        <p>Načítavam...</p>
+        <p className="text-muted-foreground">Načítavam...</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 p-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Financie</h1>
-          <p className="text-muted-foreground">Prehľad finančných záznamov a štatistiky</p>
-        </div>
-        <div className="flex gap-2">
-          <Button onClick={exportToCSV} variant="outline">
-            <Download className="w-4 h-4 mr-2" />
-            Export CSV
-          </Button>
-          <Button onClick={() => setCreateDialogOpen(true)}>
-            <Plus className="w-4 h-4 mr-2" />
-            Nová akcia
+    <div className="flex flex-col h-full">
+      {/* Sheets Tabs */}
+      <div className="border-b bg-background">
+        <div className="flex items-center gap-2 p-4">
+          <ScrollArea className="flex-1">
+            <div className="flex gap-1">
+              {sheets.map((sheet) => (
+                <div
+                  key={sheet.id}
+                  className={`group flex items-center gap-2 px-4 py-2 rounded-t-md border-b-2 transition-colors cursor-pointer ${
+                    activeSheetId === sheet.id
+                      ? 'bg-accent border-primary'
+                      : 'border-transparent hover:bg-accent/50'
+                  }`}
+                  onClick={() => setActiveSheetId(sheet.id)}
+                >
+                  <span className="whitespace-nowrap text-sm font-medium">
+                    {sheet.name}
+                  </span>
+                  {!sheet.is_default && sheets.length > 1 && (
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-5 w-5 opacity-0 group-hover:opacity-100"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteSheet(sheet.id);
+                      }}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </div>
+            <ScrollBar orientation="horizontal" />
+          </ScrollArea>
+          <Button
+            onClick={() => setCreateSheetDialogOpen(true)}
+            variant="outline"
+            size="sm"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Nový hárok
           </Button>
         </div>
       </div>
+
+      {/* Main Content */}
+      <div className="flex-1 overflow-auto p-6">
+        <div className="space-y-6">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight">Financie</h1>
+              <p className="text-muted-foreground">Prehľad finančných záznamov</p>
+            </div>
+            <div className="flex gap-2">
+              <Button onClick={exportToCSV} variant="outline">
+                <Download className="w-4 h-4 mr-2" />
+                Export CSV
+              </Button>
+              <Button 
+                onClick={() => setCreateDialogOpen(true)}
+                disabled={!activeSheetId}
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Nový záznam
+              </Button>
+            </div>
+          </div>
 
       {/* Table */}
       <Card>
@@ -486,10 +572,22 @@ export default function Finance() {
           </div>
         </CardContent>
       </Card>
+        </div>
+      </div>
 
-      <CreateFinanceRecordDialog
-        open={createDialogOpen}
-        onOpenChange={setCreateDialogOpen}
+      {/* Dialogs */}
+      {activeSheetId && (
+        <CreateFinanceRecordDialog
+          open={createDialogOpen}
+          onOpenChange={setCreateDialogOpen}
+          sheetId={activeSheetId}
+        />
+      )}
+
+      <CreateFinanceSheetDialog
+        open={createSheetDialogOpen}
+        onOpenChange={setCreateSheetDialogOpen}
+        onSubmit={handleCreateSheet}
       />
 
       <FinanceRecordChartDialog
