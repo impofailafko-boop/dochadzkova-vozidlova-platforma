@@ -122,7 +122,7 @@ const AttendanceButton = () => {
     }
   }, [isOnline, getLocation, user?.id, recordArrival, returnUrl, setDailyProject]);
 
-  const { debouncedFn: debouncedProjectSelect } = useDebounce(handleProjectSelectCore, 2000);
+  const { debouncedFn: debouncedProjectSelect } = useDebounce(handleProjectSelectCore, 500);
   
   const handleProjectSelect = (projectId: string | null) => {
     debouncedProjectSelect(projectId);
@@ -169,7 +169,7 @@ const AttendanceButton = () => {
     }
   }, [isOnline, getLocation, user?.id, recordDeparture]);
 
-  const { debouncedFn: debouncedDeparture } = useDebounce(handleDepartureCore, 2000);
+  const { debouncedFn: debouncedDeparture } = useDebounce(handleDepartureCore, 500);
   
   const handleDeparture = () => {
     debouncedDeparture();
