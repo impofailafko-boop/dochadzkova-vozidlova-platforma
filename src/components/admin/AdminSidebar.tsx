@@ -30,6 +30,7 @@ const items = [
   { title: 'Zamestnanci', url: '/admin/employees', icon: Users },
   { title: 'Vozidlá', url: '/admin/vehicles', icon: Car },
   { title: 'Projekty', url: '/admin/projects', icon: Briefcase },
+  { title: 'Financie', url: '/admin/finance', icon: DollarSign },
 ];
 
 const viewItems = [
@@ -39,7 +40,6 @@ const viewItems = [
   { title: 'Kalendár', url: '/admin/calendar', icon: Calendar },
   { title: 'Reporty', url: '/admin/reports', icon: BarChart3 },
   { title: 'AI Asistent', url: '/admin/ai-reports', icon: Sparkles },
-  { title: 'Financie', url: '/admin/finance', icon: DollarSign },
 ];
 
 const settingsItems = [
