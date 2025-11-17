@@ -24,13 +24,13 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar';
+import { useAuth } from '@/contexts/AuthContext';
 
 const items = [
   { title: 'Dashboard', url: '/admin', icon: LayoutDashboard },
   { title: 'Zamestnanci', url: '/admin/employees', icon: Users },
   { title: 'Vozidlá', url: '/admin/vehicles', icon: Car },
   { title: 'Projekty', url: '/admin/projects', icon: Briefcase },
-  { title: 'Financie', url: '/admin/finance', icon: DollarSign },
 ];
 
 const viewItems = [
@@ -48,6 +48,7 @@ const settingsItems = [
 
 export function AdminSidebar() {
   const { state, isMobile, setOpenMobile } = useSidebar();
+  const { user } = useAuth();
   const location = useLocation();
   const currentPath = location.pathname;
   const collapsed = state === 'collapsed';
@@ -60,6 +61,14 @@ export function AdminSidebar() {
     }
   };
 
+  // Check if user has access to finance section
+  const hasFinanceAccess = user?.email === 'pikolo@pikolo.sk';
+
+  // Add finance item to items array if user has access
+  const itemsWithFinance = hasFinanceAccess 
+    ? [...items, { title: 'Financie', url: '/admin/finance', icon: DollarSign }]
+    : items;
+
   return (
     <Sidebar 
       collapsible="icon" 
@@ -71,7 +80,7 @@ export function AdminSidebar() {
           <SidebarGroupLabel>Správa</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {items.map((item) => {
+              {itemsWithFinance.map((item) => {
                 const Icon = item.icon;
                 const active = isActive(item.url);
                 
