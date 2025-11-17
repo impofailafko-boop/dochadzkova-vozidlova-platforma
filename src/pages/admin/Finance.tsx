@@ -6,6 +6,7 @@ import { useFinanceRecords, FinanceRecord } from '@/hooks/useFinanceRecords';
 import { CreateFinanceRecordDialog } from '@/components/admin/CreateFinanceRecordDialog';
 import { FinanceRecordChartDialog } from '@/components/admin/FinanceRecordChartDialog';
 import { CellColorPicker } from '@/components/admin/CellColorPicker';
+import { EditableCell } from '@/components/admin/EditableCell';
 import { format } from 'date-fns';
 import { sk } from 'date-fns/locale';
 import { useAuth } from '@/contexts/AuthContext';
@@ -64,6 +65,19 @@ export default function Finance() {
 
   const getCellColor = (record: FinanceRecord, cellKey: string) => {
     return record.cell_colors?.[cellKey];
+  };
+
+  const handleUpdateField = async (recordId: string, field: string, value: string) => {
+    const updates: any = { id: recordId };
+    
+    // Parse value based on field type
+    if (['total_vsd', 'paid_employees', 'profit'].includes(field)) {
+      updates[field] = value ? parseFloat(value) : null;
+    } else {
+      updates[field] = value || null;
+    }
+    
+    await updateRecord(updates);
   };
 
   if (!hasAccess) {
@@ -214,7 +228,10 @@ export default function Finance() {
                       className="font-medium border-r relative group"
                       style={{ backgroundColor: getCellColor(record, 'order_number') }}
                     >
-                      {record.order_number}
+                      <EditableCell
+                        value={record.order_number}
+                        onSave={(value) => handleUpdateField(record.id, 'order_number', value)}
+                      />
                       <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <CellColorPicker
                           currentColor={getCellColor(record, 'order_number')}
@@ -227,7 +244,10 @@ export default function Finance() {
                       className="border-r relative group"
                       style={{ backgroundColor: getCellColor(record, 'location') }}
                     >
-                      {record.location || '-'}
+                      <EditableCell
+                        value={record.location}
+                        onSave={(value) => handleUpdateField(record.id, 'location', value)}
+                      />
                       <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <CellColorPicker
                           currentColor={getCellColor(record, 'location')}
@@ -240,10 +260,11 @@ export default function Finance() {
                       className="border-r relative group"
                       style={{ backgroundColor: getCellColor(record, 'completion_deadline') }}
                     >
-                      {record.completion_deadline ? 
-                        format(new Date(record.completion_deadline), 'dd.MM.yyyy', { locale: sk }) 
-                        : '-'
-                      }
+                      <EditableCell
+                        value={record.completion_deadline}
+                        onSave={(value) => handleUpdateField(record.id, 'completion_deadline', value)}
+                        type="date"
+                      />
                       <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <CellColorPicker
                           currentColor={getCellColor(record, 'completion_deadline')}
@@ -256,7 +277,10 @@ export default function Finance() {
                       className="border-r relative group"
                       style={{ backgroundColor: getCellColor(record, 'worker') }}
                     >
-                      {record.worker || '-'}
+                      <EditableCell
+                        value={record.worker}
+                        onSave={(value) => handleUpdateField(record.id, 'worker', value)}
+                      />
                       <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <CellColorPicker
                           currentColor={getCellColor(record, 'worker')}
@@ -269,7 +293,10 @@ export default function Finance() {
                       className="border-r relative group"
                       style={{ backgroundColor: getCellColor(record, 'scope_by_order') }}
                     >
-                      {record.scope_by_order || '-'}
+                      <EditableCell
+                        value={record.scope_by_order}
+                        onSave={(value) => handleUpdateField(record.id, 'scope_by_order', value)}
+                      />
                       <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <CellColorPicker
                           currentColor={getCellColor(record, 'scope_by_order')}
@@ -282,7 +309,12 @@ export default function Finance() {
                       className="text-right border-r relative group"
                       style={{ backgroundColor: getCellColor(record, 'total_vsd') }}
                     >
-                      {record.total_vsd ? `${record.total_vsd.toFixed(2)} €` : '-'}
+                      <EditableCell
+                        value={record.total_vsd}
+                        onSave={(value) => handleUpdateField(record.id, 'total_vsd', value)}
+                        type="number"
+                        className="text-right"
+                      />
                       <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <CellColorPicker
                           currentColor={getCellColor(record, 'total_vsd')}
@@ -295,7 +327,12 @@ export default function Finance() {
                       className="text-right border-r relative group"
                       style={{ backgroundColor: getCellColor(record, 'paid_employees') }}
                     >
-                      {record.paid_employees ? `${record.paid_employees.toFixed(2)} €` : '-'}
+                      <EditableCell
+                        value={record.paid_employees}
+                        onSave={(value) => handleUpdateField(record.id, 'paid_employees', value)}
+                        type="number"
+                        className="text-right"
+                      />
                       <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <CellColorPicker
                           currentColor={getCellColor(record, 'paid_employees')}
@@ -310,7 +347,12 @@ export default function Finance() {
                       }`}
                       style={{ backgroundColor: getCellColor(record, 'profit') }}
                     >
-                      {record.profit ? `${record.profit.toFixed(2)} €` : '-'}
+                      <EditableCell
+                        value={record.profit}
+                        onSave={(value) => handleUpdateField(record.id, 'profit', value)}
+                        type="number"
+                        className="text-right"
+                      />
                       <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <CellColorPicker
                           currentColor={getCellColor(record, 'profit')}
@@ -323,10 +365,11 @@ export default function Finance() {
                       className="border-r relative group"
                       style={{ backgroundColor: getCellColor(record, 'completion_date') }}
                     >
-                      {record.completion_date ? 
-                        format(new Date(record.completion_date), 'dd.MM.yyyy', { locale: sk }) 
-                        : '-'
-                      }
+                      <EditableCell
+                        value={record.completion_date}
+                        onSave={(value) => handleUpdateField(record.id, 'completion_date', value)}
+                        type="date"
+                      />
                       <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <CellColorPicker
                           currentColor={getCellColor(record, 'completion_date')}
@@ -339,7 +382,10 @@ export default function Finance() {
                       className="border-r relative group"
                       style={{ backgroundColor: getCellColor(record, 'invoice_number') }}
                     >
-                      {record.invoice_number || '-'}
+                      <EditableCell
+                        value={record.invoice_number}
+                        onSave={(value) => handleUpdateField(record.id, 'invoice_number', value)}
+                      />
                       <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <CellColorPicker
                           currentColor={getCellColor(record, 'invoice_number')}
@@ -352,7 +398,10 @@ export default function Finance() {
                       className="border-r relative group"
                       style={{ backgroundColor: getCellColor(record, 'scope_by_invoice') }}
                     >
-                      {record.scope_by_invoice || '-'}
+                      <EditableCell
+                        value={record.scope_by_invoice}
+                        onSave={(value) => handleUpdateField(record.id, 'scope_by_invoice', value)}
+                      />
                       <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <CellColorPicker
                           currentColor={getCellColor(record, 'scope_by_invoice')}
@@ -365,7 +414,10 @@ export default function Finance() {
                       className="border-r relative group"
                       style={{ backgroundColor: getCellColor(record, 'actual_scope') }}
                     >
-                      {record.actual_scope || '-'}
+                      <EditableCell
+                        value={record.actual_scope}
+                        onSave={(value) => handleUpdateField(record.id, 'actual_scope', value)}
+                      />
                       <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <CellColorPicker
                           currentColor={getCellColor(record, 'actual_scope')}
@@ -378,7 +430,10 @@ export default function Finance() {
                       className="border-r relative group"
                       style={{ backgroundColor: getCellColor(record, 'by_employee') }}
                     >
-                      {record.by_employee || '-'}
+                      <EditableCell
+                        value={record.by_employee}
+                        onSave={(value) => handleUpdateField(record.id, 'by_employee', value)}
+                      />
                       <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <CellColorPicker
                           currentColor={getCellColor(record, 'by_employee')}
@@ -391,7 +446,10 @@ export default function Finance() {
                       className="max-w-[200px] truncate border-r relative group"
                       style={{ backgroundColor: getCellColor(record, 'notes') }}
                     >
-                      {record.notes || '-'}
+                      <EditableCell
+                        value={record.notes}
+                        onSave={(value) => handleUpdateField(record.id, 'notes', value)}
+                      />
                       <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <CellColorPicker
                           currentColor={getCellColor(record, 'notes')}
