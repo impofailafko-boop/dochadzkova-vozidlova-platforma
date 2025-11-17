@@ -73,9 +73,9 @@ export function EditableCell({ value, onSave, type = 'text', className }: Editab
 
   return (
     <div
-      className={`cursor-pointer hover:bg-muted/30 rounded px-2 py-1 ${className}`}
-      onDoubleClick={() => setIsEditing(true)}
-      title="Dvojklikom upravíte"
+      className={`cursor-pointer hover:bg-accent/50 rounded px-2 py-1 transition-colors ${className}`}
+      onClick={() => setIsEditing(true)}
+      title="Kliknutím upravíte"
     >
       {value || '-'}
     </div>
