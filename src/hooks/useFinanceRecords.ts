@@ -19,6 +19,7 @@ export interface FinanceRecord {
   by_employee: string | null;
   notes: string | null;
   row_color: string | null;
+  cell_colors: Record<string, string> | null;
   created_at: string;
   created_by: string | null;
 }
@@ -39,6 +40,7 @@ export interface FinanceRecordInput {
   by_employee?: string;
   notes?: string;
   row_color?: string;
+  cell_colors?: Record<string, string>;
 }
 
 export function useFinanceRecords() {
