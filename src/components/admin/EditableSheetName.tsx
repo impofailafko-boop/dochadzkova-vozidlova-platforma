@@ -72,11 +72,11 @@ export function EditableSheetName({ value, onSave }: EditableSheetNameProps) {
   return (
     <span
       className="whitespace-nowrap text-sm font-medium cursor-pointer hover:underline"
-      onClick={(e) => {
+      onDoubleClick={(e) => {
         e.stopPropagation();
         setIsEditing(true);
       }}
-      title="Kliknite pre úpravu"
+      title="Dvojklik pre úpravu názvu"
     >
       {value}
     </span>
