@@ -147,67 +147,68 @@ export default function Finance() {
           <CardDescription>Kompletný zoznam finančných záznamov</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto border rounded-lg">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[150px]">Č. objednávky</TableHead>
-                  <TableHead>Lokalita</TableHead>
-                  <TableHead>Termín ukončenia</TableHead>
-                  <TableHead>Pracovník</TableHead>
-                  <TableHead>Rozsah podľa obj.</TableHead>
-                  <TableHead className="text-right">Suma VŠD</TableHead>
-                  <TableHead className="text-right">Zaplatené</TableHead>
-                  <TableHead className="text-right">Zisk</TableHead>
-                  <TableHead>Dátum ukončenia</TableHead>
-                  <TableHead>FA</TableHead>
-                  <TableHead>Rozsah podľa FA</TableHead>
-                  <TableHead>Rozsah reálny</TableHead>
-                  <TableHead>Podľa zamestnanca</TableHead>
-                  <TableHead>Poznámky</TableHead>
-                  <TableHead className="w-[80px]">Graf</TableHead>
+                <TableRow className="bg-muted/50">
+                  <TableHead className="w-[150px] border-r">Č. objednávky</TableHead>
+                  <TableHead className="border-r">Lokalita</TableHead>
+                  <TableHead className="border-r">Termín ukončenia</TableHead>
+                  <TableHead className="border-r">Pracovník</TableHead>
+                  <TableHead className="border-r">Rozsah podľa obj.</TableHead>
+                  <TableHead className="text-right border-r">Suma VŠD</TableHead>
+                  <TableHead className="text-right border-r">Zaplatené</TableHead>
+                  <TableHead className="text-right border-r">Zisk</TableHead>
+                  <TableHead className="border-r">Dátum ukončenia</TableHead>
+                  <TableHead className="border-r">FA</TableHead>
+                  <TableHead className="border-r">Rozsah podľa FA</TableHead>
+                  <TableHead className="border-r">Rozsah reálny</TableHead>
+                  <TableHead className="border-r">Podľa zamestnanca</TableHead>
+                  <TableHead className="border-r">Poznámky</TableHead>
+                  <TableHead className="w-[80px] border-r">Graf</TableHead>
                   <TableHead className="w-[80px]">Akcie</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {records.map((record) => (
+                {records.map((record, index) => (
                   <TableRow 
                     key={record.id}
                     style={{ backgroundColor: record.row_color || '#ffffff' }}
+                    className={index % 2 === 0 ? '' : 'bg-muted/20'}
                   >
-                    <TableCell className="font-medium">{record.order_number}</TableCell>
-                    <TableCell>{record.location || '-'}</TableCell>
-                    <TableCell>
+                    <TableCell className="font-medium border-r">{record.order_number}</TableCell>
+                    <TableCell className="border-r">{record.location || '-'}</TableCell>
+                    <TableCell className="border-r">
                       {record.completion_deadline ? 
                         format(new Date(record.completion_deadline), 'dd.MM.yyyy', { locale: sk }) 
                         : '-'
                       }
                     </TableCell>
-                    <TableCell>{record.worker || '-'}</TableCell>
-                    <TableCell>{record.scope_by_order || '-'}</TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="border-r">{record.worker || '-'}</TableCell>
+                    <TableCell className="border-r">{record.scope_by_order || '-'}</TableCell>
+                    <TableCell className="text-right border-r">
                       {record.total_vsd ? `${record.total_vsd.toFixed(2)} €` : '-'}
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right border-r">
                       {record.paid_employees ? `${record.paid_employees.toFixed(2)} €` : '-'}
                     </TableCell>
-                    <TableCell className={`text-right font-medium ${
+                    <TableCell className={`text-right font-medium border-r ${
                       (record.profit || 0) >= 0 ? 'text-green-600' : 'text-red-600'
                     }`}>
                       {record.profit ? `${record.profit.toFixed(2)} €` : '-'}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="border-r">
                       {record.completion_date ? 
                         format(new Date(record.completion_date), 'dd.MM.yyyy', { locale: sk }) 
                         : '-'
                       }
                     </TableCell>
-                    <TableCell>{record.invoice_number || '-'}</TableCell>
-                    <TableCell>{record.scope_by_invoice || '-'}</TableCell>
-                    <TableCell>{record.actual_scope || '-'}</TableCell>
-                    <TableCell>{record.by_employee || '-'}</TableCell>
-                    <TableCell className="max-w-[200px] truncate">{record.notes || '-'}</TableCell>
-                    <TableCell>
+                    <TableCell className="border-r">{record.invoice_number || '-'}</TableCell>
+                    <TableCell className="border-r">{record.scope_by_invoice || '-'}</TableCell>
+                    <TableCell className="border-r">{record.actual_scope || '-'}</TableCell>
+                    <TableCell className="border-r">{record.by_employee || '-'}</TableCell>
+                    <TableCell className="max-w-[200px] truncate border-r">{record.notes || '-'}</TableCell>
+                    <TableCell className="border-r">
                       <Button
                         variant="ghost"
                         size="icon"
