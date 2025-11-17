@@ -26,6 +26,7 @@ export interface FinanceRecord {
 
 export interface FinanceRecordInput {
   order_number: string;
+  sheet_id: string;
   location?: string;
   completion_deadline?: string;
   worker?: string;
@@ -43,16 +44,22 @@ export interface FinanceRecordInput {
   cell_colors?: Record<string, string>;
 }
 
-export function useFinanceRecords() {
+export function useFinanceRecords(sheetId?: string) {
   const queryClient = useQueryClient();
 
   const { data: records = [], isLoading } = useQuery({
-    queryKey: ['finance-records'],
+    queryKey: ['finance-records', sheetId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('finance_records')
         .select('*')
         .order('created_at', { ascending: false });
+
+      if (sheetId) {
+        query = query.eq('sheet_id', sheetId);
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
       return data as FinanceRecord[];

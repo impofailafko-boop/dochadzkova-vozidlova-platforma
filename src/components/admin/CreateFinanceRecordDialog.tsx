@@ -45,6 +45,7 @@ type FormData = z.infer<typeof formSchema>;
 interface CreateFinanceRecordDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  sheetId: string;
 }
 
 const STEPS = [
@@ -66,7 +67,7 @@ const STEPS = [
   },
 ];
 
-export function CreateFinanceRecordDialog({ open, onOpenChange }: CreateFinanceRecordDialogProps) {
+export function CreateFinanceRecordDialog({ open, onOpenChange, sheetId }: CreateFinanceRecordDialogProps) {
   const [step, setStep] = useState(0);
   const { createRecord, isCreating } = useFinanceRecords();
 
@@ -81,6 +82,7 @@ export function CreateFinanceRecordDialog({ open, onOpenChange }: CreateFinanceR
     try {
       await createRecord({
         order_number: data.order_number,
+        sheet_id: sheetId,
         location: data.location,
         completion_deadline: data.completion_deadline,
         worker: data.worker,
