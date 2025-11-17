@@ -61,8 +61,10 @@ export default function Finance() {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [createSheetDialogOpen, setCreateSheetDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteSheetDialogOpen, setDeleteSheetDialogOpen] = useState(false);
   const [chartDialogOpen, setChartDialogOpen] = useState(false);
   const [selectedRecordId, setSelectedRecordId] = useState<string | null>(null);
+  const [sheetToDelete, setSheetToDelete] = useState<string | null>(null);
   const [selectedRecordForChart, setSelectedRecordForChart] = useState<FinanceRecord | null>(null);
 
   const activeSheet = sheets.find(s => s.id === activeSheetId);
@@ -130,13 +132,21 @@ export default function Finance() {
     await updateSheet({ id: activeSheetId, column_config: updatedColumns });
   };
 
-  const handleDeleteSheet = async (sheetId: string) => {
+  const handleDeleteSheetClick = (sheetId: string) => {
     if (sheets.length <= 1) return;
-    await deleteSheet(sheetId);
-    if (activeSheetId === sheetId && sheets.length > 1) {
-      const remainingSheets = sheets.filter(s => s.id !== sheetId);
+    setSheetToDelete(sheetId);
+    setDeleteSheetDialogOpen(true);
+  };
+
+  const handleConfirmDeleteSheet = async () => {
+    if (!sheetToDelete) return;
+    await deleteSheet(sheetToDelete);
+    if (activeSheetId === sheetToDelete && sheets.length > 1) {
+      const remainingSheets = sheets.filter(s => s.id !== sheetToDelete);
       setActiveSheetId(remainingSheets[0].id);
     }
+    setDeleteSheetDialogOpen(false);
+    setSheetToDelete(null);
   };
 
   const handleRowColorChange = async (recordId: string, color: string) => {
@@ -313,7 +323,7 @@ export default function Finance() {
                       className="h-5 w-5 opacity-0 group-hover:opacity-100"
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleDeleteSheet(sheet.id);
+                        handleDeleteSheetClick(sheet.id);
                       }}
                     >
                       <Trash2 className="h-3 w-3" />
@@ -437,6 +447,31 @@ export default function Finance() {
           <AlertDialogFooter>
             <AlertDialogCancel>Zrušiť</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete}>Vymazať</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={deleteSheetDialogOpen} onOpenChange={setDeleteSheetDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Vymazať hárok?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Táto akcia natrvalo vymaže hárok vrátane všetkých jeho záznamov.
+              {sheetToDelete && (
+                <span className="block mt-2 font-medium">
+                  Hárok: {sheets.find(s => s.id === sheetToDelete)?.name}
+                </span>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Zrušiť</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleConfirmDeleteSheet}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Vymazať hárok
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
