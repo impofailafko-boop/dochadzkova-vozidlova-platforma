@@ -6,8 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, Edit, Save, X } from 'lucide-react';
+import { ArrowLeft, Edit, Save, X, Trash2 } from 'lucide-react';
 import { useState, useEffect, useMemo } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   Select,
   SelectContent,
@@ -15,6 +18,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import {
   Table,
   TableBody,
@@ -54,11 +67,15 @@ interface DailyActivity {
 const EmployeeDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { employee, attendance, vehicleLogs, isLoading } = useEmployeeDetail(id);
   const { updateEmployeeProfile, updateEmployeeType, updateEmployeePosition, updateEmployeeHourlyRate, isUpdatingProfile } = useEmployees();
   const [isEditing, setIsEditing] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
   const [selectedDriveMonth, setSelectedDriveMonth] = useState<string | null>(null);
+  const [deleteMonthDialogOpen, setDeleteMonthDialogOpen] = useState(false);
+  const [monthToDelete, setMonthToDelete] = useState<string | null>(null);
+  const [isDeletingMonth, setIsDeletingMonth] = useState(false);
   
   const [formData, setFormData] = useState({
     full_name: '',
@@ -304,6 +321,55 @@ const EmployeeDetail = () => {
       hourly_rate: employee.hourly_rate ? employee.hourly_rate.toString() : '',
     });
     setIsEditing(false);
+  };
+
+  const handleDeleteMonthClick = (monthKey: string) => {
+    setMonthToDelete(monthKey);
+    setDeleteMonthDialogOpen(true);
+  };
+
+  const handleConfirmDeleteMonth = async () => {
+    if (!monthToDelete || !id) return;
+
+    setIsDeletingMonth(true);
+    try {
+      const [year, month] = monthToDelete.split('-');
+      const startDate = `${year}-${month}-01`;
+      const endDate = format(endOfMonth(parseISO(startDate)), 'yyyy-MM-dd');
+
+      // Delete all attendance records for this month
+      const { error: attendanceError } = await supabase
+        .from('attendance')
+        .delete()
+        .eq('user_id', id)
+        .gte('date', startDate)
+        .lte('date', endDate);
+
+      if (attendanceError) throw attendanceError;
+
+      // Delete all vehicle logs for this month
+      const { error: vehicleLogsError } = await supabase
+        .from('vehicle_logs')
+        .delete()
+        .eq('user_id', id)
+        .gte('date', startDate)
+        .lte('date', endDate);
+
+      if (vehicleLogsError) throw vehicleLogsError;
+
+      // Invalidate queries to refresh data
+      queryClient.invalidateQueries({ queryKey: ['employee-attendance', id] });
+      queryClient.invalidateQueries({ queryKey: ['employee-vehicle-logs', id] });
+
+      toast.success('Všetky záznamy za mesiac boli vymazané');
+      setDeleteMonthDialogOpen(false);
+      setMonthToDelete(null);
+      setSelectedMonth(null);
+    } catch (error: any) {
+      toast.error(error.message || 'Chyba pri vymazávaní záznamov');
+    } finally {
+      setIsDeletingMonth(false);
+    }
   };
 
   const employmentTypeLabels = {
@@ -558,13 +624,23 @@ const EmployeeDetail = () => {
                           )}
                         </TableCell>
                         <TableCell className="text-right whitespace-nowrap">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setSelectedMonth(selectedMonth === monthKey ? null : monthKey)}
-                          >
-                            {selectedMonth === monthKey ? 'Skryť detail' : 'Zobraziť detail'}
-                          </Button>
+                          <div className="flex gap-2 justify-end">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setSelectedMonth(selectedMonth === monthKey ? null : monthKey)}
+                            >
+                              {selectedMonth === monthKey ? 'Skryť detail' : 'Zobraziť detail'}
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => handleDeleteMonthClick(monthKey)}
+                              title="Vymazať všetky záznamy za tento mesiac"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     );
@@ -684,6 +760,32 @@ const EmployeeDetail = () => {
           </CardContent>
         </Card>
       )}
+
+      <AlertDialog open={deleteMonthDialogOpen} onOpenChange={setDeleteMonthDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Vymazať všetky záznamy za mesiac?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Táto akcia natrvalo vymaže všetky záznamy dochádzky a jázd za vybraný mesiac.
+              {monthToDelete && (
+                <span className="block mt-2 font-medium">
+                  Mesiac: {format(parseISO(`${monthToDelete}-01`), 'LLLL yyyy', { locale: sk })}
+                </span>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeletingMonth}>Zrušiť</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleConfirmDeleteMonth}
+              disabled={isDeletingMonth}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeletingMonth ? 'Mazanie...' : 'Vymazať'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
