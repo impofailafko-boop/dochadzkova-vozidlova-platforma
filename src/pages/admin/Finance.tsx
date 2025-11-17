@@ -149,7 +149,7 @@ export default function Finance() {
           <CardDescription>Kompletný zoznam finančných záznamov</CardDescription>
         </CardHeader>
         <CardContent>
-          <ScrollArea className="h-[200px]">
+          <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -209,7 +209,7 @@ export default function Finance() {
                 ))}
               </TableBody>
             </Table>
-          </ScrollArea>
+          </div>
         </CardContent>
       </Card>
 
