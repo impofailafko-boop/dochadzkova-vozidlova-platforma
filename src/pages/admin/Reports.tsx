@@ -386,7 +386,6 @@ const Reports = () => {
                     <PopoverTrigger asChild>
                       <Button
                         variant="outline"
-                        role="combobox"
                         className="w-full justify-between"
                       >
                         {selectedProjects.length === 0 ? (
@@ -411,64 +410,80 @@ const Reports = () => {
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-[300px] p-0" align="start">
-                      <Command>
-                        <CommandInput placeholder="Hľadať projekt..." />
-                        <CommandEmpty>Žiadny projekt nenájdený.</CommandEmpty>
-                        <CommandGroup className="max-h-64 overflow-auto">
-                          <CommandItem
-                            onSelect={() => {
+                    <PopoverContent className="w-[300px] p-3" align="start">
+                      <div className="space-y-3">
+                        <div className="font-medium text-sm">Výber projektov</div>
+                        <div className="space-y-2 max-h-64 overflow-auto">
+                          <div 
+                            className="flex items-center gap-3 p-2 rounded-md hover:bg-accent cursor-pointer transition-colors"
+                            onClick={(e) => {
+                              e.preventDefault();
                               setSelectedProjects([]);
                             }}
-                            className="cursor-pointer"
                           >
-                            <div className="flex items-center gap-2 w-full">
-                              <Checkbox
-                                checked={selectedProjects.length === 0}
-                                onCheckedChange={() => setSelectedProjects([])}
-                              />
-                              <div className="flex-1">
-                                <div className="font-medium">Všetky projekty</div>
-                                <div className="text-xs text-muted-foreground">Zobraziť všetky</div>
-                              </div>
+                            <Checkbox
+                              checked={selectedProjects.length === 0}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  setSelectedProjects([]);
+                                }
+                              }}
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                            <div className="flex-1">
+                              <div className="font-medium text-sm">Všetky projekty</div>
+                              <div className="text-xs text-muted-foreground">Zobraziť všetky</div>
                             </div>
-                          </CommandItem>
+                          </div>
                           {projects?.map((project: any) => (
-                            <CommandItem
+                            <div 
                               key={project.id}
-                              onSelect={() => {
+                              className="flex items-center gap-3 p-2 rounded-md hover:bg-accent cursor-pointer transition-colors"
+                              onClick={(e) => {
+                                e.preventDefault();
                                 setSelectedProjects(prev =>
                                   prev.includes(project.id)
                                     ? prev.filter(id => id !== project.id)
                                     : [...prev, project.id]
                                 );
                               }}
-                              className="cursor-pointer"
                             >
-                              <div className="flex items-center gap-2 w-full">
-                                <Checkbox
-                                  checked={selectedProjects.includes(project.id)}
-                                  onCheckedChange={() => {
-                                    setSelectedProjects(prev =>
-                                      prev.includes(project.id)
-                                        ? prev.filter(id => id !== project.id)
-                                        : [...prev, project.id]
-                                    );
-                                  }}
-                                />
-                                <div className="flex-1">
-                                  <div className="font-medium">{project.name}</div>
-                                  {project.description && (
-                                    <div className="text-xs text-muted-foreground line-clamp-1">
-                                      {project.description}
-                                    </div>
-                                  )}
-                                </div>
+                              <Checkbox
+                                checked={selectedProjects.includes(project.id)}
+                                onCheckedChange={(checked) => {
+                                  setSelectedProjects(prev =>
+                                    checked
+                                      ? [...prev, project.id]
+                                      : prev.filter(id => id !== project.id)
+                                  );
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                              <div className="flex-1">
+                                <div className="font-medium text-sm">{project.name}</div>
+                                {project.description && (
+                                  <div className="text-xs text-muted-foreground line-clamp-1">
+                                    {project.description}
+                                  </div>
+                                )}
                               </div>
-                            </CommandItem>
+                            </div>
                           ))}
-                        </CommandGroup>
-                      </Command>
+                        </div>
+                        {selectedProjects.length > 0 && (
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="w-full"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setSelectedProjects([]);
+                            }}
+                          >
+                            Zrušiť výber
+                          </Button>
+                        )}
+                      </div>
                     </PopoverContent>
                   </Popover>
                 </div>
