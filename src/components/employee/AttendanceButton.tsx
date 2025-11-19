@@ -78,13 +78,8 @@ const AttendanceButton = () => {
   };
 
   const handleProjectSelectCore = useCallback(async (projectId: string | null) => {
-    // Save project to profile for daily use
-    if (projectId) {
-      setDailyProject(projectId);
-    }
-    
     if (!isOnline) {
-      // Save to IndexedDB for offline
+      // Save to IndexedDB for offline (including project selection)
       try {
         const now = new Date();
         
@@ -101,6 +96,7 @@ const AttendanceButton = () => {
             latitude: location?.latitude,
             longitude: location?.longitude,
             userId: user?.id || '',
+            projectId: projectId || null,
           },
           timestamp: now.toISOString(),
           synced: false,
@@ -115,6 +111,10 @@ const AttendanceButton = () => {
         toast.error('Nepodarilo sa uložiť príchod offline');
       }
     } else {
+      // Online: save project to profile and record arrival
+      if (projectId) {
+        setDailyProject(projectId);
+      }
       recordArrival(projectId);
       if (returnUrl) {
         setShouldNavigateBack(true);
