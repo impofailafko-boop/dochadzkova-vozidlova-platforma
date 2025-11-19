@@ -175,7 +175,7 @@ const AttendanceButton = () => {
     debouncedDeparture();
   };
 
-  if (isLoading || isLoadingActiveLogs) {
+  if (isOnline && (isLoading || isLoadingActiveLogs)) {
     return (
       <Card>
         <CardContent className="flex items-center justify-center py-12">
