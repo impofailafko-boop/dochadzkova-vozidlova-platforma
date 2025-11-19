@@ -17,7 +17,7 @@ async function syncAttendance(mutation: PendingMutation): Promise<boolean> {
       return false;
     }
     
-    const { type, timestamp, latitude, longitude, userId } = mutation.data;
+    const { type, timestamp, latitude, longitude, userId, projectId } = mutation.data;
     
     if (type === 'arrival') {
       const recordDate = new Date(timestamp);
@@ -29,6 +29,7 @@ async function syncAttendance(mutation: PendingMutation): Promise<boolean> {
           arrival_time: recordDate.toTimeString().split(' ')[0].substring(0, 5),
           arrival_latitude: latitude,
           arrival_longitude: longitude,
+          project_id: projectId || null,
         });
 
       if (error) throw error;
