@@ -8,12 +8,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { LogOut, User } from 'lucide-react';
+import { LogOut, User, WifiOff } from 'lucide-react';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import pikoloLogo from '@/assets/logo-pikolo.webp';
+import { usePendingSync } from '@/hooks/usePendingSync';
+import { Badge } from '@/components/ui/badge';
 
 const Navbar = () => {
   const { user, signOut, role } = useAuth();
+  const { isOnline, pendingCount } = usePendingSync();
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -25,7 +28,21 @@ const Navbar = () => {
           <h1 className="hidden sm:block text-lg font-semibold">Dochádzková platforma</h1>
         </div>
 
-        <div className="ml-auto flex items-center gap-4">
+        <div className="ml-auto flex items-center gap-2 md:gap-4">
+          {/* Offline indicator */}
+          {!isOnline && (
+            <Badge variant="destructive" className="flex items-center gap-1 text-xs">
+              <WifiOff className="h-3 w-3" />
+              <span className="hidden sm:inline">Offline</span>
+            </Badge>
+          )}
+          
+          {/* Pending sync indicator */}
+          {pendingCount > 0 && (
+            <Badge variant="outline" className="text-xs border-yellow-500 bg-yellow-500/10 text-yellow-700 dark:text-yellow-400">
+              {pendingCount} nesync.
+            </Badge>
+          )}
           <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="relative h-9 w-9 rounded-full">

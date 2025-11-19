@@ -3,11 +3,20 @@ import { getPendingMutations, markMutationSynced, deleteSyncedMutations, increme
 import { toast } from 'sonner';
 import { formatDateToISO, calculateWorkHours } from './utils';
 import { base64ToFile } from './fileUtils';
+import { validateAttendanceData, validateVehicleLogData, validateFuelLogData } from './syncValidation';
 
 const MAX_RETRIES = 3;
 
 async function syncAttendance(mutation: PendingMutation): Promise<boolean> {
   try {
+    // Validate data before sync
+    const validation = validateAttendanceData(mutation);
+    if (!validation.valid) {
+      console.error('Attendance validation failed:', validation.error);
+      toast.error(`Chyba validácie: ${validation.error}`);
+      return false;
+    }
+    
     const { type, timestamp, latitude, longitude, userId } = mutation.data;
     
     if (type === 'arrival') {
@@ -68,6 +77,14 @@ async function syncAttendance(mutation: PendingMutation): Promise<boolean> {
 
 async function syncVehicleLog(mutation: PendingMutation): Promise<boolean> {
   try {
+    // Validate data before sync
+    const validation = validateVehicleLogData(mutation);
+    if (!validation.valid) {
+      console.error('Vehicle log validation failed:', validation.error);
+      toast.error(`Chyba validácie: ${validation.error}`);
+      return false;
+    }
+    
     const { action, data } = mutation;
     
     if (action === 'create') {
@@ -153,6 +170,14 @@ async function syncVehicleLog(mutation: PendingMutation): Promise<boolean> {
 
 async function syncFuelLog(mutation: PendingMutation): Promise<boolean> {
   try {
+    // Validate data before sync
+    const validation = validateFuelLogData(mutation);
+    if (!validation.valid) {
+      console.error('Fuel log validation failed:', validation.error);
+      toast.error(`Chyba validácie: ${validation.error}`);
+      return false;
+    }
+    
     const { action, data } = mutation;
     
     if (action === 'create') {

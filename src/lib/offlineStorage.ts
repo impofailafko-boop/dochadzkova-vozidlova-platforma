@@ -43,7 +43,68 @@ function openDB(): Promise<IDBDatabase> {
   });
 }
 
+async function checkDuplicateMutation(record: PendingMutation): Promise<boolean> {
+  const db = await openDB();
+  const transaction = db.transaction([STORE_NAME], 'readonly');
+  const store = transaction.objectStore(STORE_NAME);
+  
+  return new Promise((resolve, reject) => {
+    const request = store.getAll();
+    
+    request.onsuccess = () => {
+      const allMutations = request.result.filter((r: PendingMutation) => !r.synced);
+      
+      // Check for duplicates based on entity type
+      const isDuplicate = allMutations.some((existing: PendingMutation) => {
+        if (existing.entityType !== record.entityType || existing.userId !== record.userId) {
+          return false;
+        }
+        
+        // Attendance: Check userId + date + type
+        if (record.entityType === 'attendance') {
+          const existingDate = new Date(existing.data.timestamp).toDateString();
+          const newDate = new Date(record.data.timestamp).toDateString();
+          return existingDate === newDate && existing.data.type === record.data.type;
+        }
+        
+        // Vehicle log: Check userId + vehicle_id + date + action
+        if (record.entityType === 'vehicle_log') {
+          const existingDate = existing.data.date;
+          const newDate = record.data.date;
+          return existingDate === newDate && 
+                 existing.data.vehicle_id === record.data.vehicle_id &&
+                 existing.action === record.action;
+        }
+        
+        // Fuel log: Check userId + vehicle_id + date
+        if (record.entityType === 'fuel_log') {
+          const existingDate = existing.data.date;
+          const newDate = record.data.date;
+          return existingDate === newDate && 
+                 existing.data.vehicle_id === record.data.vehicle_id;
+        }
+        
+        return false;
+      });
+      
+      resolve(isDuplicate);
+    };
+    
+    request.onerror = () => reject(request.error);
+  });
+}
+
 export async function savePendingMutation(record: PendingMutation): Promise<void> {
+  // Check for duplicates before saving
+  const isDuplicate = await checkDuplicateMutation(record);
+  
+  if (isDuplicate) {
+    if (import.meta.env.DEV) {
+      console.warn('Duplicate mutation detected, skipping save:', record);
+    }
+    return; // Skip saving duplicate
+  }
+  
   const db = await openDB();
   const transaction = db.transaction([STORE_NAME], 'readwrite');
   const store = transaction.objectStore(STORE_NAME);

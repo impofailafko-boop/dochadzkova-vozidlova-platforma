@@ -15,7 +15,9 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
+  SidebarFooter,
 } from '@/components/ui/sidebar';
+import { PendingSyncBadge } from '@/components/common/PendingSyncBadge';
 
 const items = [
   { title: 'Dashboard', url: '/dashboard', icon: Home },
@@ -68,6 +70,10 @@ export function EmployeeSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      
+      <SidebarFooter className="border-t p-2">
+        {!collapsed && <PendingSyncBadge />}
+      </SidebarFooter>
     </Sidebar>
   );
 }
