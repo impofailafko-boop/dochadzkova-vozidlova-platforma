@@ -270,12 +270,6 @@ export async function syncPendingMutations(): Promise<{ success: number; failed:
     let failedCount = 0;
 
     for (const mutation of sortedMutations) {
-      // Skip if max retries reached
-      if (mutation.retries >= MAX_RETRIES) {
-        failedCount++;
-        continue;
-      }
-
       let success = false;
 
       switch (mutation.entityType) {
