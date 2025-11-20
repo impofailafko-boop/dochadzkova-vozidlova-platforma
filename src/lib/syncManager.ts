@@ -313,7 +313,7 @@ export async function syncPendingMutations(): Promise<{ success: number; failed:
 
 // Auto-sync when online
 export function setupAutoSync() {
-  window.addEventListener('online', async () => {
+  const runSync = async () => {
     try {
       const result = await syncPendingMutations();
       if (result.success > 0) {
@@ -328,5 +328,13 @@ export function setupAutoSync() {
       }
       toast.error('Nepodarilo sa synchronizovať dáta');
     }
-  });
+  };
+
+  // Spusť sync hneď pri štarte, ak je používateľ online
+  if (navigator.onLine) {
+    runSync();
+  }
+
+  // A potom pri každom prechode do online stavu
+  window.addEventListener('online', runSync);
 }
