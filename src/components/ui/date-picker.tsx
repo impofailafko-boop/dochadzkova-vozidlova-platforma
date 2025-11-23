@@ -32,7 +32,7 @@ export function DatePicker({
   className,
 }: DatePickerProps) {
   return (
-    <Popover>
+    <Popover modal={false}>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
@@ -47,7 +47,7 @@ export function DatePicker({
           {date ? format(date, "dd.MM.yyyy", { locale: sk }) : <span>{placeholder}</span>}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0 bg-popover z-50" align="start">
+      <PopoverContent className="w-auto p-0 bg-popover z-[100] pointer-events-auto" align="start">
         <Calendar
           mode="single"
           selected={date}
@@ -61,7 +61,7 @@ export function DatePicker({
             return false;
           }}
           initialFocus
-          className={cn("p-3 pointer-events-auto")}
+          className={cn("p-3")}
           locale={sk}
         />
       </PopoverContent>
