@@ -5,6 +5,9 @@ import { useGeolocation } from '@/hooks/useGeolocation';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useDailyProject } from '@/hooks/useDailyProject';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
+import { usePendingSync } from '@/hooks/usePendingSync';
+import { getPendingMutations } from '@/lib/offlineStorage';
+import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -36,6 +39,7 @@ const AttendanceButton = () => {
   const { getLocation } = useGeolocation();
   const { currentProjectId, setDailyProject, clearDailyProject } = useDailyProject(user?.id);
   const { isConnected } = useNetworkStatus();
+  const { pendingCount, refreshCount } = usePendingSync();
 
   const [shouldNavigateBack, setShouldNavigateBack] = useState(false);
   const [showProjectDialog, setShowProjectDialog] = useState(false);
@@ -43,6 +47,46 @@ const AttendanceButton = () => {
   const [offlineDepartureRecorded, setOfflineDepartureRecorded] = useState(false);
 
   const hasActiveLogs = activeLogs && activeLogs.length > 0;
+
+  // Check for offline arrival on mount
+  useEffect(() => {
+    const checkOfflineArrival = async () => {
+      // Priority: If we have DB record, use that (online mode)
+      if (todayAttendance) {
+        setOfflineArrivalRecorded(false);
+        setOfflineDepartureRecorded(false);
+        return;
+      }
+      
+      // Offline: No DB record, check IndexedDB
+      if (!isLoading && !todayAttendance && user?.id) {
+        const today = format(new Date(), 'yyyy-MM-dd');
+        const pendingMutations = await getPendingMutations('attendance');
+        
+        const todayOfflineArrival = pendingMutations.find(
+          m => m.data.date === today && 
+               m.userId === user?.id &&
+               !m.synced
+        );
+        
+        if (todayOfflineArrival) {
+          setOfflineArrivalRecorded(!!todayOfflineArrival.data.arrival_time);
+          setOfflineDepartureRecorded(!!todayOfflineArrival.data.departure_time);
+        }
+      }
+    };
+    
+    checkOfflineArrival();
+  }, [todayAttendance, isLoading, user?.id]);
+
+  // Clear offline state after sync
+  useEffect(() => {
+    if (pendingCount === 0 && (offlineArrivalRecorded || offlineDepartureRecorded)) {
+      setOfflineArrivalRecorded(false);
+      setOfflineDepartureRecorded(false);
+      refreshCount();
+    }
+  }, [pendingCount, offlineArrivalRecorded, offlineDepartureRecorded, refreshCount]);
 
   // Navigate back after successful check-in
   useEffect(() => {
