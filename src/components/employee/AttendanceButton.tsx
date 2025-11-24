@@ -249,9 +249,14 @@ const AttendanceButton = () => {
             {hasArrived && (
               <>
                 <p className="text-2xl font-bold text-primary">
-                  {todayAttendance.arrival_time}
+                  {todayAttendance?.arrival_time || (
+                    <span className="flex items-center gap-2">
+                      {new Date().toLocaleTimeString('sk-SK', { hour: '2-digit', minute: '2-digit' })}
+                      <WifiOff className="h-4 w-4" />
+                    </span>
+                  )}
                 </p>
-                {todayAttendance.arrival_latitude && todayAttendance.arrival_longitude && (
+                {todayAttendance?.arrival_latitude && todayAttendance?.arrival_longitude && (
                   <a
                     href={`https://www.google.com/maps?q=${todayAttendance.arrival_latitude},${todayAttendance.arrival_longitude}`}
                     target="_blank"
@@ -296,9 +301,14 @@ const AttendanceButton = () => {
               {hasDeparted && (
                 <>
                   <p className="text-2xl font-bold text-secondary">
-                    {todayAttendance.departure_time}
+                    {todayAttendance?.departure_time || (
+                      <span className="flex items-center gap-2">
+                        {new Date().toLocaleTimeString('sk-SK', { hour: '2-digit', minute: '2-digit' })}
+                        <WifiOff className="h-4 w-4" />
+                      </span>
+                    )}
                   </p>
-                  {todayAttendance.departure_latitude && todayAttendance.departure_longitude && (
+                  {todayAttendance?.departure_latitude && todayAttendance?.departure_longitude && (
                     <a
                       href={`https://www.google.com/maps?q=${todayAttendance.departure_latitude},${todayAttendance.departure_longitude}`}
                       target="_blank"
@@ -346,7 +356,7 @@ const AttendanceButton = () => {
         )}
 
         {/* Total hours */}
-        {hasDeparted && todayAttendance.total_hours && (
+        {hasDeparted && todayAttendance?.total_hours && (
           <div className="pt-4 border-t">
             <p className="text-sm text-muted-foreground">Odpracované hodiny</p>
             <p className="text-3xl font-bold text-accent">
