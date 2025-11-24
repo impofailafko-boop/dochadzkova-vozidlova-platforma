@@ -63,16 +63,19 @@ const AttendanceButton = () => {
         const today = format(new Date(), 'yyyy-MM-dd');
         const pendingMutations = await getPendingMutations('attendance');
         
-        const todayOfflineArrival = pendingMutations.find(
-          m => m.data.date === today && 
-               m.userId === user?.id &&
-               !m.synced
-        );
+        // Find today's offline attendance mutations by timestamp
+        const todayMutations = pendingMutations.filter(m => {
+          if (!m.data.timestamp || m.userId !== user?.id || m.synced) return false;
+          const mutationDate = format(new Date(m.data.timestamp), 'yyyy-MM-dd');
+          return mutationDate === today;
+        });
         
-        if (todayOfflineArrival) {
-          setOfflineArrivalRecorded(!!todayOfflineArrival.data.arrival_time);
-          setOfflineDepartureRecorded(!!todayOfflineArrival.data.departure_time);
-        }
+        // Check for arrival and departure types
+        const hasArrival = todayMutations.some(m => m.data.type === 'arrival');
+        const hasDeparture = todayMutations.some(m => m.data.type === 'departure');
+        
+        setOfflineArrivalRecorded(hasArrival);
+        setOfflineDepartureRecorded(hasDeparture);
       }
     };
     
