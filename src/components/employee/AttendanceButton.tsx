@@ -132,7 +132,7 @@ const AttendanceButton = () => {
     } else {
       // ONLINE: Save to database
       if (projectId) {
-        setDailyProject({ projectId, isOnline: true });
+        setDailyProject({ projectId, isOnline: isConnected });
       }
       recordArrival(projectId);
       if (returnUrl) {
