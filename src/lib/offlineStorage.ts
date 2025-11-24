@@ -1,4 +1,4 @@
-export type EntityType = 'attendance' | 'vehicle_log' | 'fuel_log';
+export type EntityType = 'attendance' | 'vehicle_log' | 'fuel_log' | 'project_selection';
 export type ActionType = 'create' | 'update' | 'delete';
 
 export interface PendingMutation {
@@ -82,6 +82,13 @@ async function checkDuplicateMutation(record: PendingMutation): Promise<boolean>
           const newDate = record.data.date;
           return existingDate === newDate && 
                  existing.data.vehicle_id === record.data.vehicle_id;
+        }
+        
+        // Project selection: Check userId + date
+        if (record.entityType === 'project_selection') {
+          const existingDate = new Date(existing.data.timestamp).toDateString();
+          const newDate = new Date(record.data.timestamp).toDateString();
+          return existingDate === newDate;
         }
         
         return false;

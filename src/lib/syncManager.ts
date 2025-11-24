@@ -7,6 +7,29 @@ import { validateAttendanceData, validateVehicleLogData, validateFuelLogData } f
 
 const MAX_RETRIES = 3;
 
+async function syncProjectSelection(mutation: PendingMutation): Promise<boolean> {
+  try {
+    const { projectId, userId, timestamp } = mutation.data;
+    const today = new Date(timestamp).toISOString().split('T')[0];
+    
+    const { error } = await supabase
+      .from('profiles')
+      .update({ 
+        current_project_id: projectId,
+        project_selected_date: today 
+      })
+      .eq('user_id', userId);
+
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    if (import.meta.env.DEV) {
+      console.error('Failed to sync project selection:', error);
+    }
+    return false;
+  }
+}
+
 async function syncAttendance(mutation: PendingMutation): Promise<boolean> {
   try {
     // Validate data before sync
@@ -262,9 +285,14 @@ export async function syncPendingMutations(): Promise<{ success: number; failed:
     }
 
     // Sort by timestamp to maintain order
-    const sortedMutations = pendingMutations.sort((a, b) => 
-      new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-    );
+    // IMPORTANT: Project selection must be synced BEFORE attendance
+    const sortedMutations = pendingMutations.sort((a, b) => {
+      // Project selection always comes first
+      if (a.entityType === 'project_selection' && b.entityType !== 'project_selection') return -1;
+      if (a.entityType !== 'project_selection' && b.entityType === 'project_selection') return 1;
+      // Otherwise sort by timestamp
+      return new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime();
+    });
 
     let successCount = 0;
     let failedCount = 0;
@@ -273,6 +301,9 @@ export async function syncPendingMutations(): Promise<{ success: number; failed:
       let success = false;
 
       switch (mutation.entityType) {
+        case 'project_selection':
+          success = await syncProjectSelection(mutation);
+          break;
         case 'attendance':
           success = await syncAttendance(mutation);
           break;

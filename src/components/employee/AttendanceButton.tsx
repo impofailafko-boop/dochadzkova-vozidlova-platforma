@@ -4,6 +4,7 @@ import { useActiveVehicleLogs } from '@/hooks/useVehicleLogs';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useDailyProject } from '@/hooks/useDailyProject';
+import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -34,25 +35,12 @@ const AttendanceButton = () => {
   const { data: activeLogs, isLoading: isLoadingActiveLogs } = useActiveVehicleLogs(user?.id);
   const { getLocation } = useGeolocation();
   const { currentProjectId, setDailyProject, clearDailyProject } = useDailyProject(user?.id);
+  const { isConnected } = useNetworkStatus();
 
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [shouldNavigateBack, setShouldNavigateBack] = useState(false);
   const [showProjectDialog, setShowProjectDialog] = useState(false);
 
   const hasActiveLogs = activeLogs && activeLogs.length > 0;
-
-  useEffect(() => {
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
-
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
-  }, []);
 
   // Navigate back after successful check-in
   useEffect(() => {
@@ -78,14 +66,36 @@ const AttendanceButton = () => {
   };
 
   const handleProjectSelectCore = useCallback(async (projectId: string | null) => {
-    if (!isOnline) {
-      // Save to IndexedDB for offline (including project selection)
+    if (!isConnected) {
+      // OFFLINE: Save everything to IndexedDB
       try {
         const now = new Date();
         
-        // Get GPS location using centralized hook
-        const location = await getLocation();
+        // Get GPS location with timeout (non-blocking)
+        const location = await Promise.race([
+          getLocation(),
+          new Promise<null>((resolve) => setTimeout(() => resolve(null), 3000))
+        ]);
 
+        // Save project selection to IndexedDB
+        if (projectId) {
+          await savePendingMutation({
+            id: `${user?.id}-project-${now.getTime()}`,
+            entityType: 'project_selection',
+            action: 'create',
+            data: {
+              projectId,
+              userId: user?.id || '',
+              timestamp: now.toISOString(),
+            },
+            timestamp: now.toISOString(),
+            synced: false,
+            retries: 0,
+            userId: user?.id || '',
+          });
+        }
+
+        // Save attendance arrival to IndexedDB
         await savePendingMutation({
           id: `${user?.id}-arrival-${now.getTime()}`,
           entityType: 'attendance',
@@ -93,8 +103,8 @@ const AttendanceButton = () => {
           data: {
             type: 'arrival',
             timestamp: now.toISOString(),
-            latitude: location?.latitude,
-            longitude: location?.longitude,
+            latitude: location?.latitude || null,
+            longitude: location?.longitude || null,
             userId: user?.id || '',
             projectId: projectId || null,
           },
@@ -104,23 +114,32 @@ const AttendanceButton = () => {
           userId: user?.id || '',
         });
 
-        toast.success('Príchod uložený offline. Synchronizuje sa po pripojení.', {
-          icon: <WifiOff className="h-4 w-4" />,
-        });
+        if (!location) {
+          toast.success('Príchod uložený offline (bez GPS)', {
+            icon: <WifiOff className="h-4 w-4" />,
+            description: 'GPS poloha nie je dostupná',
+          });
+        } else {
+          toast.success('Príchod uložený offline', {
+            icon: <WifiOff className="h-4 w-4" />,
+            description: 'Synchronizuje sa po pripojení',
+          });
+        }
       } catch (error) {
+        console.error('Offline arrival failed:', error);
         toast.error('Nepodarilo sa uložiť príchod offline');
       }
     } else {
-      // Online: save project to profile and record arrival
+      // ONLINE: Save to database
       if (projectId) {
-        setDailyProject(projectId);
+        setDailyProject({ projectId, isOnline: true });
       }
       recordArrival(projectId);
       if (returnUrl) {
         setShouldNavigateBack(true);
       }
     }
-  }, [isOnline, getLocation, user?.id, recordArrival, returnUrl, setDailyProject]);
+  }, [isConnected, getLocation, user?.id, recordArrival, returnUrl, setDailyProject]);
 
   const { debouncedFn: debouncedProjectSelect } = useDebounce(handleProjectSelectCore, 500);
   
@@ -129,13 +148,16 @@ const AttendanceButton = () => {
   };
 
   const handleDepartureCore = useCallback(async () => {
-    if (!isOnline) {
-      // Save to IndexedDB for offline
+    if (!isConnected) {
+      // OFFLINE: Save to IndexedDB
       try {
         const now = new Date();
         
-        // Get GPS location using centralized hook
-        const location = await getLocation();
+        // Get GPS location with timeout (non-blocking)
+        const location = await Promise.race([
+          getLocation(),
+          new Promise<null>((resolve) => setTimeout(() => resolve(null), 3000))
+        ]);
 
         await savePendingMutation({
           id: `${user?.id}-departure-${now.getTime()}`,
@@ -144,8 +166,8 @@ const AttendanceButton = () => {
           data: {
             type: 'departure',
             timestamp: now.toISOString(),
-            latitude: location?.latitude,
-            longitude: location?.longitude,
+            latitude: location?.latitude || null,
+            longitude: location?.longitude || null,
             userId: user?.id || '',
           },
           timestamp: now.toISOString(),
@@ -154,20 +176,30 @@ const AttendanceButton = () => {
           userId: user?.id || '',
         });
 
-        toast.success('Odchod uložený offline. Synchronizuje sa po pripojení.', {
-          icon: <WifiOff className="h-4 w-4" />,
-        });
+        if (!location) {
+          toast.success('Odchod uložený offline (bez GPS)', {
+            icon: <WifiOff className="h-4 w-4" />,
+            description: 'GPS poloha nie je dostupná',
+          });
+        } else {
+          toast.success('Odchod uložený offline', {
+            icon: <WifiOff className="h-4 w-4" />,
+            description: 'Synchronizuje sa po pripojení',
+          });
+        }
       } catch (error) {
+        console.error('Offline departure failed:', error);
         toast.error('Nepodarilo sa uložiť odchod offline');
       }
     } else {
+      // ONLINE: Record to database
       recordDeparture(undefined, {
         onSuccess: () => {
           clearDailyProject();
         }
       });
     }
-  }, [isOnline, getLocation, user?.id, recordDeparture]);
+  }, [isConnected, getLocation, user?.id, recordDeparture, clearDailyProject]);
 
   const { debouncedFn: debouncedDeparture } = useDebounce(handleDepartureCore, 500);
   
@@ -175,7 +207,7 @@ const AttendanceButton = () => {
     debouncedDeparture();
   };
 
-  if (isOnline && (isLoading || isLoadingActiveLogs)) {
+  if (isConnected && (isLoading || isLoadingActiveLogs)) {
     return (
       <Card>
         <CardContent className="flex items-center justify-center py-12">
@@ -240,7 +272,7 @@ const AttendanceButton = () => {
               <LogIn className="h-4 w-4" />
             )}
             Príchod do práce
-            {!isOnline && <WifiOff className="h-3 w-3 ml-2" />}
+            {!isConnected && <WifiOff className="h-3 w-3 ml-2" />}
           </Button>
           
           <SelectProjectDialog
@@ -301,7 +333,7 @@ const AttendanceButton = () => {
                   <LogOut className="h-4 w-4" />
                 )}
                 Odchod z práce
-                {!isOnline && <WifiOff className="h-3 w-3 ml-2" />}
+                {!isConnected && <WifiOff className="h-3 w-3 ml-2" />}
               </Button>
             )}
           </div>
