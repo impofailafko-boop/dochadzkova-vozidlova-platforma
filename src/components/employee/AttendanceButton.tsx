@@ -39,6 +39,8 @@ const AttendanceButton = () => {
 
   const [shouldNavigateBack, setShouldNavigateBack] = useState(false);
   const [showProjectDialog, setShowProjectDialog] = useState(false);
+  const [offlineArrivalRecorded, setOfflineArrivalRecorded] = useState(false);
+  const [offlineDepartureRecorded, setOfflineDepartureRecorded] = useState(false);
 
   const hasActiveLogs = activeLogs && activeLogs.length > 0;
 
@@ -52,8 +54,8 @@ const AttendanceButton = () => {
     }
   }, [todayAttendance, shouldNavigateBack, returnUrl, navigate]);
 
-  const hasArrived = todayAttendance?.arrival_time;
-  const hasDeparted = todayAttendance?.departure_time;
+  const hasArrived = todayAttendance?.arrival_time || offlineArrivalRecorded;
+  const hasDeparted = todayAttendance?.departure_time || offlineDepartureRecorded;
 
   const handleArrivalClick = () => {
     // If project already selected today, use it directly without showing dialog
@@ -114,6 +116,8 @@ const AttendanceButton = () => {
           userId: user?.id || '',
         });
 
+        setOfflineArrivalRecorded(true);
+        
         if (!location) {
           toast.success('Príchod uložený offline (bez GPS)', {
             icon: <WifiOff className="h-4 w-4" />,
@@ -176,6 +180,8 @@ const AttendanceButton = () => {
           userId: user?.id || '',
         });
 
+        setOfflineDepartureRecorded(true);
+        
         if (!location) {
           toast.success('Odchod uložený offline (bez GPS)', {
             icon: <WifiOff className="h-4 w-4" />,
