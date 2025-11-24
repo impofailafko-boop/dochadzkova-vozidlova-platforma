@@ -60,11 +60,12 @@ async function checkDuplicateMutation(record: PendingMutation): Promise<boolean>
           return false;
         }
         
-        // Attendance: Check userId + date + type
+        // Attendance: Check userId + date + type + timestamp within 5 seconds
         if (record.entityType === 'attendance') {
-          const existingDate = new Date(existing.data.timestamp).toDateString();
-          const newDate = new Date(record.data.timestamp).toDateString();
-          return existingDate === newDate && existing.data.type === record.data.type;
+          const existingTimestamp = new Date(existing.data.timestamp).getTime();
+          const newTimestamp = new Date(record.data.timestamp).getTime();
+          const timeDiff = Math.abs(existingTimestamp - newTimestamp);
+          return existing.data.type === record.data.type && timeDiff < 5000; // Within 5 seconds
         }
         
         // Vehicle log: Check userId + vehicle_id + date + action

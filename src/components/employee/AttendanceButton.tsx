@@ -107,14 +107,14 @@ const AttendanceButton = () => {
   const handleArrivalClick = () => {
     // If project already selected today, use it directly without showing dialog
     if (currentProjectId) {
-      handleProjectSelectCore(currentProjectId);
+      handleProjectSelect(currentProjectId);
     } else {
       // Show dialog only if no project selected today
       setShowProjectDialog(true);
     }
   };
 
-  const handleProjectSelectCore = useCallback(async (projectId: string | null) => {
+  const handleProjectSelect = useCallback(async (projectId: string | null) => {
     if (!isConnected) {
       // OFFLINE: Save everything to IndexedDB
       try {
@@ -192,13 +192,7 @@ const AttendanceButton = () => {
     }
   }, [isConnected, getLocation, user?.id, recordArrival, returnUrl, setDailyProject]);
 
-  const { debouncedFn: debouncedProjectSelect } = useDebounce(handleProjectSelectCore, 500);
-  
-  const handleProjectSelect = (projectId: string | null) => {
-    debouncedProjectSelect(projectId);
-  };
-
-  const handleDepartureCore = useCallback(async () => {
+  const handleDeparture = useCallback(async () => {
     if (!isConnected) {
       // OFFLINE: Save to IndexedDB
       try {
@@ -253,12 +247,6 @@ const AttendanceButton = () => {
       });
     }
   }, [isConnected, getLocation, user?.id, recordDeparture, clearDailyProject]);
-
-  const { debouncedFn: debouncedDeparture } = useDebounce(handleDepartureCore, 500);
-  
-  const handleDeparture = () => {
-    debouncedDeparture();
-  };
 
   if (isConnected && (isLoading || isLoadingActiveLogs)) {
     return (
