@@ -13,7 +13,7 @@ import { supabase } from '@/integrations/supabase/client';
  */
 export function useNetworkStatus() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const [isConnected, setIsConnected] = useState(navigator.onLine);
+  const [isConnected, setIsConnected] = useState(false);
 
   // Test actual connectivity by pinging Supabase
   const testConnectivity = async (): Promise<boolean> => {
@@ -35,11 +35,12 @@ export function useNetworkStatus() {
   };
 
   useEffect(() => {
-    const handleOnline = () => {
-      setIsOnline(true);
-      // Test actual connectivity when browser reports online
-      testConnectivity().then(setIsConnected);
-    };
+  const handleOnline = () => {
+    setIsOnline(true);
+    setIsConnected(false);
+    // Test actual connectivity when browser reports online
+    testConnectivity().then(setIsConnected);
+  };
 
     const handleOffline = () => {
       setIsOnline(false);
