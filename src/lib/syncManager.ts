@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { formatDateToISO, calculateWorkHours } from './utils';
 import { base64ToFile } from './fileUtils';
 import { validateAttendanceData, validateVehicleLogData, validateFuelLogData } from './syncValidation';
+import { format, parseISO } from 'date-fns';
 
 const MAX_RETRIES = 3;
 
@@ -43,13 +44,13 @@ async function syncAttendance(mutation: PendingMutation): Promise<boolean> {
     const { type, timestamp, latitude, longitude, userId, projectId } = mutation.data;
     
     if (type === 'arrival') {
-      const recordDate = new Date(timestamp);
+      const recordDate = parseISO(timestamp);
       const { error } = await supabase
         .from('attendance')
         .insert({
           user_id: userId,
           date: formatDateToISO(recordDate),
-          arrival_time: recordDate.toTimeString().split(' ')[0].substring(0, 5),
+          arrival_time: format(recordDate, 'HH:mm:ss'),
           arrival_latitude: latitude,
           arrival_longitude: longitude,
           project_id: projectId || null,
@@ -57,7 +58,7 @@ async function syncAttendance(mutation: PendingMutation): Promise<boolean> {
 
       if (error) throw error;
     } else {
-      const recordDate = new Date(timestamp);
+      const recordDate = parseISO(timestamp);
       const today = formatDateToISO(recordDate);
       const { data: todayAttendance, error: fetchError } = await supabase
         .from('attendance')
@@ -72,7 +73,7 @@ async function syncAttendance(mutation: PendingMutation): Promise<boolean> {
       if (fetchError) throw fetchError;
 
       if (todayAttendance) {
-        const departureTime = recordDate.toTimeString().split(' ')[0].substring(0, 5);
+        const departureTime = format(recordDate, 'HH:mm:ss');
         const arrivalTime = todayAttendance.arrival_time;
         const totalHours = calculateWorkHours(arrivalTime, departureTime);
 
