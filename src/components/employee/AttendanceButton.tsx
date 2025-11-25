@@ -57,17 +57,23 @@ const AttendanceButton = () => {
     const checkOfflineArrival = async () => {
       addLog('Checking for offline attendance records...', 'info');
       
-      // Priority: If we have DB record, use that (online mode)
-      if (todayAttendance) {
-        addLog('DB record exists - clearing offline state', 'info');
+      const today = format(new Date(), 'yyyy-MM-dd');
+      
+      // Priority: If we have DB record FROM TODAY, use that
+      if (todayAttendance && todayAttendance.date === today) {
+        addLog('DB record exists for TODAY - clearing offline state', 'info');
         setOfflineArrivalRecorded(false);
         setOfflineDepartureRecorded(false);
         return;
       }
       
-      // Offline: No DB record, check IndexedDB
-      if (!isLoading && !todayAttendance && user?.id) {
-        const today = format(new Date(), 'yyyy-MM-dd');
+      // If we have old record (not today), ignore it
+      if (todayAttendance && todayAttendance.date !== today) {
+        addLog(`DB record is OLD (${todayAttendance.date}) - checking IndexedDB`, 'warning');
+      }
+      
+      // Check IndexedDB for today's offline records
+      if (!isLoading && user?.id) {
         const pendingMutations = await getPendingMutations('attendance');
         
         addLog(`Found ${pendingMutations.length} pending mutations`, 'info');
@@ -118,8 +124,21 @@ const AttendanceButton = () => {
     }
   }, [todayAttendance, shouldNavigateBack, returnUrl, navigate]);
 
-  const hasArrived = !!(todayAttendance?.arrival_time || offlineArrivalRecorded);
-  const hasDeparted = !!(todayAttendance?.departure_time || offlineDepartureRecorded);
+  const today = format(new Date(), 'yyyy-MM-dd');
+  const isTodayRecord = todayAttendance?.date === today;
+
+  const hasArrived = !!(
+    (isTodayRecord && todayAttendance?.arrival_time) || 
+    offlineArrivalRecorded
+  );
+
+  const hasDeparted = !!(
+    (isTodayRecord && todayAttendance?.departure_time) || 
+    offlineDepartureRecorded
+  );
+
+  addLog(`hasArrived = ${hasArrived} (isTodayRecord: ${isTodayRecord}, offline: ${offlineArrivalRecorded})`, 'info');
+  addLog(`hasDeparted = ${hasDeparted} (isTodayRecord: ${isTodayRecord}, offline: ${offlineDepartureRecorded})`, 'info');
 
   const handleArrivalClick = () => {
     addLog('Clicked "Príchod do práce"', 'info');
