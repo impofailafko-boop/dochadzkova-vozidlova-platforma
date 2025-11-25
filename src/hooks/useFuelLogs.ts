@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useNetworkStatus } from './useNetworkStatus';
 import { savePendingMutation } from '@/lib/offlineStorage';
 import { fileToBase64 } from '@/lib/fileUtils';
 
@@ -21,6 +22,7 @@ interface UpdateFuelLogInput {
 
 export function useFuelLogs(userId: string | undefined, params?: { limit?: number; offset?: number; startDate?: string; endDate?: string }) {
   const queryClient = useQueryClient();
+  const { isConnected } = useNetworkStatus();
   const { limit = 30, offset = 0, startDate, endDate } = params || {};
 
   const { data, isLoading } = useQuery({
@@ -62,10 +64,7 @@ export function useFuelLogs(userId: string | undefined, params?: { limit?: numbe
     mutationFn: async (input: FuelLogInput) => {
       if (!userId) throw new Error('User not authenticated');
 
-      // Check if online
-      const isOnline = navigator.onLine;
-      
-      if (!isOnline) {
+      if (!isConnected) {
         // Convert photo to Base64 for offline storage
         let photoBase64 = null;
         if (input.photo_receipt) {
