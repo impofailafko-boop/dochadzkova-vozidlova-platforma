@@ -62,10 +62,32 @@ async function checkDuplicateMutation(record: PendingMutation): Promise<boolean>
         
         // Attendance: Check userId + date + type (no timestamp check to prevent fast duplicates)
         if (record.entityType === 'attendance') {
-          // Use ISO date format (YYYY-MM-DD) for reliable comparison
-          const existingDate = new Date(existing.data.timestamp).toISOString().split('T')[0];
-          const newDate = new Date(record.data.timestamp).toISOString().split('T')[0];
-          return existingDate === newDate && existing.data.type === record.data.type;
+          try {
+            // Validate timestamps exist
+            if (!existing.data.timestamp || !record.data.timestamp) {
+              return false;
+            }
+
+            // Use ISO date format (YYYY-MM-DD) for reliable comparison
+            const existingDateObj = new Date(existing.data.timestamp);
+            const newDateObj = new Date(record.data.timestamp);
+
+            // Validate dates are valid
+            if (isNaN(existingDateObj.getTime()) || isNaN(newDateObj.getTime())) {
+              console.warn('Invalid timestamp in duplicate check:', {
+                existing: existing.data.timestamp,
+                new: record.data.timestamp
+              });
+              return false;
+            }
+
+            const existingDate = existingDateObj.toISOString().split('T')[0];
+            const newDate = newDateObj.toISOString().split('T')[0];
+            return existingDate === newDate && existing.data.type === record.data.type;
+          } catch (error) {
+            console.error('Error in attendance duplicate check:', error);
+            return false;  // Fail safe - don't block on error
+          }
         }
         
         // Vehicle log: Check userId + vehicle_id + date + action

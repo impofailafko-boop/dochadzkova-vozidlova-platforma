@@ -152,6 +152,11 @@ async function syncVehicleLog(mutation: PendingMutation): Promise<boolean> {
           .eq('user_id', data.user_id);
       }
     } else if (action === 'update') {
+      // Validate log_id exists
+      if (!data.log_id) {
+        throw new Error('log_id is required for vehicle log update');
+      }
+
       // Convert Base64 to File and upload if exists
       let photoUrl = null;
       if (data.photo_km_end_base64) {
@@ -160,7 +165,8 @@ async function syncVehicleLog(mutation: PendingMutation): Promise<boolean> {
           `${mutation.userId}/${Date.now()}_end.jpg`
         );
 
-        const fileExt = photoFile.name.split('.').pop();
+        // Better file extension handling
+        const fileExt = photoFile.name.split('.').pop() || 'jpg';
         const fileName = `${mutation.userId}/${Date.now()}_end.${fileExt}`;
 
         const { error: uploadError } = await supabase.storage
@@ -178,7 +184,7 @@ async function syncVehicleLog(mutation: PendingMutation): Promise<boolean> {
         .from('vehicle_logs')
         .update({
           ...updateData,
-          photo_km_end: photoUrl,
+          photo_km_end: photoUrl || null,  // Ensure null if not set
         })
         .eq('id', log_id);  // Changed from 'id' to 'log_id'
       if (error) throw error;
