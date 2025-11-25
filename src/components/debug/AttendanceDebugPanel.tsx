@@ -46,8 +46,8 @@ export function AttendanceDebugPanel({
       
       setIndexDBInfo({
         totalPending: mutations.length,
-        todayArrivals: todayMutations.filter((m: any) => m.data.arrival_time).length,
-        todayDepartures: todayMutations.filter((m: any) => m.data.departure_time).length,
+        todayArrivals: todayMutations.filter((m: any) => m.data.type === 'arrival').length,
+        todayDepartures: todayMutations.filter((m: any) => m.data.type === 'departure').length,
         mutations: todayMutations,
       });
       setLastUpdate(new Date().toLocaleTimeString());
@@ -183,7 +183,7 @@ export function AttendanceDebugPanel({
                     {indexDBInfo.mutations.map((m: any) => (
                       <div key={m.id} className="bg-muted/30 p-1 rounded text-[10px] font-mono">
                         <div>id: {m.id.slice(0, 8)}...</div>
-                        <div>type: {m.data.arrival_time ? 'arrival' : 'departure'}</div>
+                        <div>type: {m.data.type || 'unknown'}</div>
                         <div>synced: {String(m.synced)}</div>
                         <div>time: {new Date(m.timestamp).toLocaleTimeString()}</div>
                       </div>

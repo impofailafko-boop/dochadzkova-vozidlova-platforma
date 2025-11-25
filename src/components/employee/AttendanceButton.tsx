@@ -138,6 +138,7 @@ const AttendanceButton = () => {
   );
 
   const handleArrivalClick = () => {
+    console.log('=== ARRIVAL CLICK ===');
     addLog('Clicked "Príchod do práce"', 'info');
     // If project already selected today, use it directly without showing dialog
     if (currentProjectId) {
