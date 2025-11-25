@@ -6,7 +6,7 @@ import { useDebounce } from '@/hooks/useDebounce';
 import { useDailyProject } from '@/hooks/useDailyProject';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { usePendingSync } from '@/hooks/usePendingSync';
-import { getPendingMutations, deletePendingMutation } from '@/lib/offlineStorage';
+import { getPendingMutations } from '@/lib/offlineStorage';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -51,32 +51,6 @@ const AttendanceButton = () => {
   const [isProcessingOffline, setIsProcessingOffline] = useState(false);
 
   const hasActiveLogs = activeLogs && activeLogs.length > 0;
-
-  // Auto-cleanup old mutations on mount
-  useEffect(() => {
-    const cleanOldMutations = async () => {
-      try {
-        const today = format(new Date(), 'yyyy-MM-dd');
-        const allMutations = await getPendingMutations('attendance');
-        
-        for (const m of allMutations) {
-          const timestamp = m.data.timestamp || m.timestamp;
-          if (!timestamp) continue;
-          const mutationDate = format(new Date(timestamp), 'yyyy-MM-dd');
-          if (mutationDate !== today) {
-            console.log('Deleting old mutation:', m.id, 'from', mutationDate);
-            await deletePendingMutation(m.id);
-            addLog(`Deleted old mutation from ${mutationDate}`, 'info');
-          }
-        }
-      } catch (error) {
-        console.error('Failed to clean old mutations:', error);
-        addLog(`Cleanup error: ${error}`, 'error');
-      }
-    };
-    
-    cleanOldMutations();
-  }, [addLog]);
 
   // Check for offline arrival on mount
   useEffect(() => {

@@ -43,7 +43,7 @@ function openDB(): Promise<IDBDatabase> {
   });
 }
 
-async function findDuplicateMutation(record: PendingMutation): Promise<string | null> {
+async function checkDuplicateMutation(record: PendingMutation): Promise<boolean> {
   const db = await openDB();
   const transaction = db.transaction([STORE_NAME], 'readonly');
   const store = transaction.objectStore(STORE_NAME);
@@ -54,8 +54,8 @@ async function findDuplicateMutation(record: PendingMutation): Promise<string | 
     request.onsuccess = () => {
       const allMutations = request.result.filter((r: PendingMutation) => !r.synced);
       
-      // Find duplicate based on entity type and return its ID
-      const duplicate = allMutations.find((existing: PendingMutation) => {
+      // Check for duplicates based on entity type
+      const isDuplicate = allMutations.some((existing: PendingMutation) => {
         if (existing.entityType !== record.entityType || existing.userId !== record.userId) {
           return false;
         }
@@ -94,7 +94,7 @@ async function findDuplicateMutation(record: PendingMutation): Promise<string | 
         return false;
       });
       
-      resolve(duplicate ? duplicate.id : null);
+      resolve(isDuplicate);
     };
     
     request.onerror = () => reject(request.error);
@@ -102,18 +102,16 @@ async function findDuplicateMutation(record: PendingMutation): Promise<string | 
 }
 
 export async function savePendingMutation(record: PendingMutation): Promise<boolean> {
-  // Find duplicate
-  const duplicateId = await findDuplicateMutation(record);
+  // Check for duplicates before saving
+  const isDuplicate = await checkDuplicateMutation(record);
   
-  // If duplicate exists from today, delete it first
-  if (duplicateId) {
-    await deletePendingMutation(duplicateId);
+  if (isDuplicate) {
     if (import.meta.env.DEV) {
-      console.log('Deleted old duplicate:', duplicateId);
+      console.warn('Duplicate mutation detected, skipping save:', record);
     }
+    return false; // Return false for duplicates
   }
   
-  // Save new mutation
   const db = await openDB();
   const transaction = db.transaction([STORE_NAME], 'readwrite');
   const store = transaction.objectStore(STORE_NAME);
@@ -222,18 +220,6 @@ export async function deleteSyncedMutations(): Promise<void> {
 export async function getPendingCount(): Promise<number> {
   const mutations = await getPendingMutations();
   return mutations.length;
-}
-
-export async function deletePendingMutation(id: string): Promise<void> {
-  const db = await openDB();
-  const transaction = db.transaction([STORE_NAME], 'readwrite');
-  const store = transaction.objectStore(STORE_NAME);
-  
-  return new Promise((resolve, reject) => {
-    const request = store.delete(id);
-    request.onsuccess = () => resolve();
-    request.onerror = () => reject(request.error);
-  });
 }
 
 export async function clearPendingMutations(entityType?: EntityType): Promise<void> {
