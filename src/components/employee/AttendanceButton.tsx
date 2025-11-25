@@ -45,6 +45,7 @@ const AttendanceButton = () => {
   const [showProjectDialog, setShowProjectDialog] = useState(false);
   const [offlineArrivalRecorded, setOfflineArrivalRecorded] = useState(false);
   const [offlineDepartureRecorded, setOfflineDepartureRecorded] = useState(false);
+  const [isProcessingOffline, setIsProcessingOffline] = useState(false);
 
   const hasActiveLogs = activeLogs && activeLogs.length > 0;
 
@@ -117,6 +118,7 @@ const AttendanceButton = () => {
   const handleProjectSelect = useCallback(async (projectId: string | null) => {
     if (!isConnected) {
       // OFFLINE: Save everything to IndexedDB
+      setIsProcessingOffline(true);
       try {
         const now = new Date();
         
@@ -145,7 +147,7 @@ const AttendanceButton = () => {
         }
 
         // Save attendance arrival to IndexedDB
-        await savePendingMutation({
+        const attendanceSaved = await savePendingMutation({
           id: `${user?.id}-arrival-${now.getTime()}`,
           entityType: 'attendance',
           action: 'create',
@@ -163,22 +165,29 @@ const AttendanceButton = () => {
           userId: user?.id || '',
         });
 
-        setOfflineArrivalRecorded(true);
-        
-        if (!location) {
-          toast.success('Príchod uložený offline (bez GPS)', {
-            icon: <WifiOff className="h-4 w-4" />,
-            description: 'GPS poloha nie je dostupná',
-          });
+        // Only update UI state if attendance was actually saved
+        if (attendanceSaved) {
+          setOfflineArrivalRecorded(true);
+          
+          if (!location) {
+            toast.success('Príchod uložený offline (bez GPS)', {
+              icon: <WifiOff className="h-4 w-4" />,
+              description: 'GPS poloha nie je dostupná',
+            });
+          } else {
+            toast.success('Príchod uložený offline', {
+              icon: <WifiOff className="h-4 w-4" />,
+              description: 'Synchronizuje sa po pripojení',
+            });
+          }
         } else {
-          toast.success('Príchod uložený offline', {
-            icon: <WifiOff className="h-4 w-4" />,
-            description: 'Synchronizuje sa po pripojení',
-          });
+          toast.error('Príchod už bol zaznamenaný');
         }
       } catch (error) {
         console.error('Offline arrival failed:', error);
         toast.error('Nepodarilo sa uložiť príchod offline');
+      } finally {
+        setIsProcessingOffline(false);
       }
     } else {
       // ONLINE: Save to database
@@ -195,6 +204,7 @@ const AttendanceButton = () => {
   const handleDeparture = useCallback(async () => {
     if (!isConnected) {
       // OFFLINE: Save to IndexedDB
+      setIsProcessingOffline(true);
       try {
         const now = new Date();
         
@@ -204,7 +214,7 @@ const AttendanceButton = () => {
           new Promise<null>((resolve) => setTimeout(() => resolve(null), 3000))
         ]);
 
-        await savePendingMutation({
+        const departureSaved = await savePendingMutation({
           id: `${user?.id}-departure-${now.getTime()}`,
           entityType: 'attendance',
           action: 'create',
@@ -221,22 +231,29 @@ const AttendanceButton = () => {
           userId: user?.id || '',
         });
 
-        setOfflineDepartureRecorded(true);
-        
-        if (!location) {
-          toast.success('Odchod uložený offline (bez GPS)', {
-            icon: <WifiOff className="h-4 w-4" />,
-            description: 'GPS poloha nie je dostupná',
-          });
+        // Only update UI state if departure was actually saved
+        if (departureSaved) {
+          setOfflineDepartureRecorded(true);
+          
+          if (!location) {
+            toast.success('Odchod uložený offline (bez GPS)', {
+              icon: <WifiOff className="h-4 w-4" />,
+              description: 'GPS poloha nie je dostupná',
+            });
+          } else {
+            toast.success('Odchod uložený offline', {
+              icon: <WifiOff className="h-4 w-4" />,
+              description: 'Synchronizuje sa po pripojení',
+            });
+          }
         } else {
-          toast.success('Odchod uložený offline', {
-            icon: <WifiOff className="h-4 w-4" />,
-            description: 'Synchronizuje sa po pripojení',
-          });
+          toast.error('Odchod už bol zaznamenaný');
         }
       } catch (error) {
         console.error('Offline departure failed:', error);
         toast.error('Nepodarilo sa uložiť odchod offline');
+      } finally {
+        setIsProcessingOffline(false);
       }
     } else {
       // ONLINE: Record to database
@@ -307,12 +324,12 @@ const AttendanceButton = () => {
           </div>
           <Button
             onClick={handleArrivalClick}
-            disabled={isRecordingArrival || (hasArrived && !hasDeparted)}
+            disabled={isRecordingArrival || isProcessingOffline || (hasArrived && !hasDeparted)}
             variant={(!hasArrived || hasDeparted) ? "success" : "outline"}
             className="w-full gap-2"
             size="lg"
           >
-            {isRecordingArrival ? (
+            {(isRecordingArrival || isProcessingOffline) ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
               <LogIn className="h-4 w-4" />
@@ -373,12 +390,12 @@ const AttendanceButton = () => {
             {!hasDeparted && (
               <Button
                 onClick={handleDeparture}
-                disabled={isRecordingDeparture || hasActiveLogs}
+                disabled={isRecordingDeparture || isProcessingOffline || hasActiveLogs}
                 variant="secondary"
                 className="w-full gap-2"
                 size="lg"
               >
-                {isRecordingDeparture ? (
+                {(isRecordingDeparture || isProcessingOffline) ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
                   <LogOut className="h-4 w-4" />

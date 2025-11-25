@@ -60,12 +60,11 @@ async function checkDuplicateMutation(record: PendingMutation): Promise<boolean>
           return false;
         }
         
-        // Attendance: Check userId + date + type + timestamp within 5 seconds
+        // Attendance: Check userId + date + type (no timestamp check to prevent fast duplicates)
         if (record.entityType === 'attendance') {
-          const existingTimestamp = new Date(existing.data.timestamp).getTime();
-          const newTimestamp = new Date(record.data.timestamp).getTime();
-          const timeDiff = Math.abs(existingTimestamp - newTimestamp);
-          return existing.data.type === record.data.type && timeDiff < 5000; // Within 5 seconds
+          const existingDate = new Date(existing.data.timestamp).toDateString();
+          const newDate = new Date(record.data.timestamp).toDateString();
+          return existingDate === newDate && existing.data.type === record.data.type;
         }
         
         // Vehicle log: Check userId + vehicle_id + date + action
@@ -102,7 +101,7 @@ async function checkDuplicateMutation(record: PendingMutation): Promise<boolean>
   });
 }
 
-export async function savePendingMutation(record: PendingMutation): Promise<void> {
+export async function savePendingMutation(record: PendingMutation): Promise<boolean> {
   // Check for duplicates before saving
   const isDuplicate = await checkDuplicateMutation(record);
   
@@ -110,7 +109,7 @@ export async function savePendingMutation(record: PendingMutation): Promise<void
     if (import.meta.env.DEV) {
       console.warn('Duplicate mutation detected, skipping save:', record);
     }
-    return; // Skip saving duplicate
+    return false; // Return false for duplicates
   }
   
   const db = await openDB();
@@ -119,7 +118,7 @@ export async function savePendingMutation(record: PendingMutation): Promise<void
   
   return new Promise((resolve, reject) => {
     const request = store.put(record);
-    request.onsuccess = () => resolve();
+    request.onsuccess = () => resolve(true); // Return true on success
     request.onerror = () => reject(request.error);
   });
 }
