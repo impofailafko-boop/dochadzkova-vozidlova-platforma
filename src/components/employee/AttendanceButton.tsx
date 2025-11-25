@@ -137,9 +137,6 @@ const AttendanceButton = () => {
     offlineDepartureRecorded
   );
 
-  addLog(`hasArrived = ${hasArrived} (isTodayRecord: ${isTodayRecord}, offline: ${offlineArrivalRecorded})`, 'info');
-  addLog(`hasDeparted = ${hasDeparted} (isTodayRecord: ${isTodayRecord}, offline: ${offlineDepartureRecorded})`, 'info');
-
   const handleArrivalClick = () => {
     addLog('Clicked "Príchod do práce"', 'info');
     // If project already selected today, use it directly without showing dialog
