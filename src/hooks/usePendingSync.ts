@@ -1,14 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { getPendingCount } from '@/lib/offlineStorage';
 
 export function usePendingSync() {
   const [pendingCount, setPendingCount] = useState(0);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
 
-  const updateCount = async () => {
+  const updateCount = useCallback(async () => {
     const count = await getPendingCount();
     setPendingCount(count);
-  };
+  }, []);
 
   useEffect(() => {
     updateCount();
@@ -31,7 +31,7 @@ export function usePendingSync() {
       window.removeEventListener('offline', handleOffline);
       clearInterval(interval);
     };
-  }, []);
+  }, [updateCount]);
 
   return { pendingCount, isOnline, refreshCount: updateCount };
 }
