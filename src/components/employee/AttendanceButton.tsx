@@ -207,6 +207,19 @@ const AttendanceButton = () => {
       setIsProcessingOffline(true);
       try {
         const now = new Date();
+        const today = format(now, 'yyyy-MM-dd');
+        
+        // CRITICAL: Verify we have an arrival record from TODAY
+        if (!todayAttendance) {
+          toast.error('Najprv musíte zaznamenať príchod');
+          return;
+        }
+        
+        // CRITICAL: Prevent closing old records
+        if (todayAttendance.date !== today) {
+          toast.error('Nie je možné ukončiť záznam z iného dňa. Prosím, kontaktujte administrátora.');
+          return;
+        }
         
         // Get GPS location with timeout (non-blocking)
         const location = await Promise.race([
