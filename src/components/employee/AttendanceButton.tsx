@@ -179,43 +179,61 @@ const AttendanceButton = () => {
 
         // Save project selection to IndexedDB
         if (projectId) {
-          addLog('Saving project_selection mutation...', 'info');
-          await savePendingMutation({
-            id: `${user?.id}-project-${now.getTime()}`,
-            entityType: 'project_selection',
+          try {
+            addLog('Saving project_selection mutation...', 'info');
+            console.log('[DEBUG] Saving project mutation:', projectId);
+            await savePendingMutation({
+              id: `${user?.id}-project-${now.getTime()}`,
+              entityType: 'project_selection',
+              action: 'create',
+              data: {
+                projectId,
+                userId: user?.id || '',
+                timestamp: now.toISOString(),
+              },
+              timestamp: now.toISOString(),
+              synced: false,
+              retries: 0,
+              userId: user?.id || '',
+            });
+            addLog('Project mutation saved', 'success');
+            console.log('[DEBUG] Project mutation saved successfully');
+          } catch (projectError) {
+            console.error('[DEBUG] ERROR saving project mutation:', projectError);
+            addLog(`ERROR saving project: ${(projectError as Error).message}`, 'error');
+            // Continue even if project save fails
+          }
+        }
+
+        // Save attendance arrival to IndexedDB
+        addLog('Saving attendance (arrival) mutation...', 'info');
+        console.log('[DEBUG] Attempting to save arrival mutation...');
+        let attendanceSaved = false;
+        try {
+          attendanceSaved = await savePendingMutation({
+            id: `${user?.id}-arrival-${now.getTime()}`,
+            entityType: 'attendance',
             action: 'create',
             data: {
-              projectId,
-              userId: user?.id || '',
+              type: 'arrival',
               timestamp: now.toISOString(),
+              latitude: location?.latitude || null,
+              longitude: location?.longitude || null,
+              userId: user?.id || '',
+              projectId: projectId || null,
             },
             timestamp: now.toISOString(),
             synced: false,
             retries: 0,
             userId: user?.id || '',
           });
-          addLog('Project mutation saved', 'success');
+          console.log('[DEBUG] savePendingMutation returned:', attendanceSaved);
+        } catch (saveError) {
+          console.error('[DEBUG] ERROR in savePendingMutation:', saveError);
+          console.error('[DEBUG] Error stack:', (saveError as Error).stack);
+          addLog(`CRITICAL ERROR saving arrival: ${(saveError as Error).message}`, 'error');
+          throw saveError; // Re-throw to be caught by outer try-catch
         }
-
-        // Save attendance arrival to IndexedDB
-        addLog('Saving attendance (arrival) mutation...', 'info');
-        const attendanceSaved = await savePendingMutation({
-          id: `${user?.id}-arrival-${now.getTime()}`,
-          entityType: 'attendance',
-          action: 'create',
-          data: {
-            type: 'arrival',
-            timestamp: now.toISOString(),
-            latitude: location?.latitude || null,
-            longitude: location?.longitude || null,
-            userId: user?.id || '',
-            projectId: projectId || null,
-          },
-          timestamp: now.toISOString(),
-          synced: false,
-          retries: 0,
-          userId: user?.id || '',
-        });
 
         // Only update UI state if attendance was actually saved
         if (attendanceSaved) {
@@ -298,22 +316,32 @@ const AttendanceButton = () => {
         }
 
         addLog('Saving departure mutation...', 'info');
-        const departureSaved = await savePendingMutation({
-          id: `${user?.id}-departure-${now.getTime()}`,
-          entityType: 'attendance',
-          action: 'create',
-          data: {
-            type: 'departure',
+        console.log('[DEBUG] Attempting to save departure mutation...');
+        let departureSaved = false;
+        try {
+          departureSaved = await savePendingMutation({
+            id: `${user?.id}-departure-${now.getTime()}`,
+            entityType: 'attendance',
+            action: 'create',
+            data: {
+              type: 'departure',
+              timestamp: now.toISOString(),
+              latitude: location?.latitude || null,
+              longitude: location?.longitude || null,
+              userId: user?.id || '',
+            },
             timestamp: now.toISOString(),
-            latitude: location?.latitude || null,
-            longitude: location?.longitude || null,
+            synced: false,
+            retries: 0,
             userId: user?.id || '',
-          },
-          timestamp: now.toISOString(),
-          synced: false,
-          retries: 0,
-          userId: user?.id || '',
-        });
+          });
+          console.log('[DEBUG] savePendingMutation returned:', departureSaved);
+        } catch (saveError) {
+          console.error('[DEBUG] ERROR in savePendingMutation:', saveError);
+          console.error('[DEBUG] Error stack:', (saveError as Error).stack);
+          addLog(`CRITICAL ERROR saving departure: ${(saveError as Error).message}`, 'error');
+          throw saveError; // Re-throw to be caught by outer try-catch
+        }
 
         // Only update UI state if departure was actually saved
         if (departureSaved) {
