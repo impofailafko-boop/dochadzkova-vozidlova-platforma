@@ -124,7 +124,13 @@ export function useAttendance(userId: string | undefined) {
     mutationFn: async () => {
       if (!userId || !todayAttendance) throw new Error('No arrival record found');
       
+      const today = getTodayISO();
       const now = getCurrentTimeString();
+      
+      // Critical: Prevent closing old records with today's time
+      if (todayAttendance.date !== today) {
+        throw new Error('Nie je možné ukončiť záznam z iného dňa. Prosím, kontaktujte administrátora.');
+      }
       
       // Validate that departure time is after arrival time
       if (todayAttendance.arrival_time >= now) {
