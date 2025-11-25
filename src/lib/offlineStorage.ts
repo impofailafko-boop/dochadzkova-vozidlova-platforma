@@ -62,8 +62,9 @@ async function checkDuplicateMutation(record: PendingMutation): Promise<boolean>
         
         // Attendance: Check userId + date + type (no timestamp check to prevent fast duplicates)
         if (record.entityType === 'attendance') {
-          const existingDate = new Date(existing.data.timestamp).toDateString();
-          const newDate = new Date(record.data.timestamp).toDateString();
+          // Use ISO date format (YYYY-MM-DD) for reliable comparison
+          const existingDate = new Date(existing.data.timestamp).toISOString().split('T')[0];
+          const newDate = new Date(record.data.timestamp).toISOString().split('T')[0];
           return existingDate === newDate && existing.data.type === record.data.type;
         }
         

@@ -229,24 +229,36 @@ export function useVehicleLogs(userId: string | undefined, params?: { limit?: nu
 
       // Get GPS location using centralized hook
       const location = await getLocation();
-      
+
       // Check if online
       const isOnline = navigator.onLine;
-      
+
       if (!isOnline) {
+        // Get the log from cache to access required fields
+        const activeLogs = queryClient.getQueryData(['active-vehicle-logs', userId]) as any[] || [];
+        const log = activeLogs.find((l: any) => l.id === input.logId);
+
+        if (!log) {
+          throw new Error('Log not found in cache');
+        }
+
         // Convert photo to Base64 for offline storage
         let photoBase64 = null;
         if (input.photo_km_end) {
           photoBase64 = await fileToBase64(input.photo_km_end);
         }
-        
-        // Save to IndexedDB for later sync
+
+        // Save to IndexedDB for later sync with ALL required fields
         await savePendingMutation({
           id: `vehicle_log_complete_${Date.now()}`,
           entityType: 'vehicle_log',
           action: 'update',
           data: {
-            id: input.logId,
+            log_id: input.logId,  // Changed from 'id' to 'log_id'
+            user_id: userId,      // ADDED
+            vehicle_id: log.vehicle_id,  // ADDED
+            project_id: log.project_id,  // ADDED
+            date: log.date,              // ADDED
             km_end: input.km_end,
             photo_km_end_base64: photoBase64,
             end_latitude: location?.latitude || null,
@@ -258,7 +270,7 @@ export function useVehicleLogs(userId: string | undefined, params?: { limit?: nu
           retries: 0,
           userId: userId,
         });
-        
+
         toast.info('Offline - ukončenie jazdy bude synchronizované neskôr');
         return location;
       }

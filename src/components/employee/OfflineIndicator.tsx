@@ -1,24 +1,11 @@
-import { useEffect, useState } from 'react';
 import { WifiOff } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 
 export function OfflineIndicator() {
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const { isConnected } = useNetworkStatus();
 
-  useEffect(() => {
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
-
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
-  }, []);
-
-  if (isOnline) return null;
+  if (isConnected) return null;
 
   return (
     <Alert className="mb-4 border-yellow-500 bg-yellow-500/10">

@@ -159,28 +159,28 @@ async function syncVehicleLog(mutation: PendingMutation): Promise<boolean> {
           data.photo_km_end_base64,
           `${mutation.userId}/${Date.now()}_end.jpg`
         );
-        
+
         const fileExt = photoFile.name.split('.').pop();
         const fileName = `${mutation.userId}/${Date.now()}_end.${fileExt}`;
-        
+
         const { error: uploadError } = await supabase.storage
           .from('vehicle-photos')
           .upload(fileName, photoFile);
-        
+
         if (uploadError) throw uploadError;
         photoUrl = fileName;
       }
-      
+
       // Remove Base64 from data and add uploaded URL
-      const { id, photo_km_end_base64, ...updateData } = data;
-      
+      const { log_id, photo_km_end_base64, ...updateData } = data;
+
       const { error } = await supabase
         .from('vehicle_logs')
         .update({
           ...updateData,
           photo_km_end: photoUrl,
         })
-        .eq('id', id);
+        .eq('id', log_id);  // Changed from 'id' to 'log_id'
       if (error) throw error;
     }
     
