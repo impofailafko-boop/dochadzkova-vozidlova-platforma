@@ -38,7 +38,10 @@ export function AttendanceDebugPanel({
   // Refresh IndexedDB info
   const refreshIndexDB = async () => {
     try {
+      console.log('[DEBUG] Fetching IndexedDB mutations...');
       const mutations = await getPendingMutations('attendance');
+      console.log('[DEBUG] Got mutations:', mutations.length);
+      
       const today = format(new Date(), 'yyyy-MM-dd');
       const todayMutations = mutations.filter((m: any) => {
         const timestamp = m.data.timestamp || m.timestamp;
@@ -46,6 +49,8 @@ export function AttendanceDebugPanel({
         const mutationDate = format(new Date(timestamp), 'yyyy-MM-dd');
         return mutationDate === today && m.userId === userId;
       });
+      
+      console.log('[DEBUG] Filtered today mutations:', todayMutations.length);
       
       setIndexDBInfo({
         totalPending: mutations.length,
@@ -55,18 +60,28 @@ export function AttendanceDebugPanel({
       });
       setLastUpdate(new Date().toLocaleTimeString());
     } catch (error) {
-      console.error('Failed to fetch IndexedDB info:', error);
+      console.error('[DEBUG] ERROR in refreshIndexDB:', error);
+      console.error('[DEBUG] Error stack:', (error as Error).stack);
+      toast.error('Chyba pri načítaní IndexedDB');
     }
   };
 
   const clearOldMutations = async () => {
     try {
+      console.log('[DEBUG] Clearing all attendance mutations...');
       await clearPendingMutations('attendance');
+      console.log('[DEBUG] Mutations cleared successfully');
+      
+      console.log('[DEBUG] Refreshing IndexedDB info...');
       await refreshIndexDB();
+      console.log('[DEBUG] IndexedDB refreshed');
+      
       toast.success('Všetky offline mutácie vymazané');
     } catch (error) {
-      console.error('Failed to clear mutations:', error);
-      toast.error('Nepodarilo sa vymazať mutácie');
+      console.error('[DEBUG] ERROR in clearOldMutations:', error);
+      console.error('[DEBUG] Error message:', (error as Error).message);
+      console.error('[DEBUG] Error stack:', (error as Error).stack);
+      toast.error(`Chyba: ${(error as Error).message || 'Nepodarilo sa vymazať mutácie'}`);
     }
   };
 
