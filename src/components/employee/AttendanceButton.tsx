@@ -104,9 +104,9 @@ const AttendanceButton = () => {
         }
       }
     };
-    
+
     checkOfflineArrival();
-  }, [todayAttendance, isLoading, user?.id]);
+  }, [todayAttendance, isLoading, user?.id, addLog]);
 
   // Clear offline state after sync
   useEffect(() => {

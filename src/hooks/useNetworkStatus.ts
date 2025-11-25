@@ -37,8 +37,7 @@ export function useNetworkStatus() {
   useEffect(() => {
   const handleOnline = () => {
     setIsOnline(true);
-    setIsConnected(false);
-    // Test actual connectivity when browser reports online
+    // Don't set isConnected to false immediately, just test connectivity
     testConnectivity().then(setIsConnected);
   };
 
