@@ -19,6 +19,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { formatHoursToReadable } from '@/lib/utils';
 import { SelectProjectDialog } from './SelectProjectDialog';
+import { useDebugLog } from '@/hooks/useDebugLog';
+import { AttendanceDebugPanel } from '@/components/debug/AttendanceDebugPanel';
 
 const AttendanceButton = () => {
   const { user } = useAuth();
@@ -38,8 +40,9 @@ const AttendanceButton = () => {
   const { data: activeLogs, isLoading: isLoadingActiveLogs } = useActiveVehicleLogs(user?.id);
   const { getLocation } = useGeolocation();
   const { currentProjectId, setDailyProject, clearDailyProject } = useDailyProject(user?.id);
-  const { isConnected } = useNetworkStatus();
+  const { isConnected, isOnline } = useNetworkStatus();
   const { pendingCount, refreshCount } = usePendingSync();
+  const { addLog } = useDebugLog();
 
   const [shouldNavigateBack, setShouldNavigateBack] = useState(false);
   const [showProjectDialog, setShowProjectDialog] = useState(false);
@@ -52,8 +55,11 @@ const AttendanceButton = () => {
   // Check for offline arrival on mount
   useEffect(() => {
     const checkOfflineArrival = async () => {
+      addLog('Checking for offline attendance records...', 'info');
+      
       // Priority: If we have DB record, use that (online mode)
       if (todayAttendance) {
+        addLog('DB record exists - clearing offline state', 'info');
         setOfflineArrivalRecorded(false);
         setOfflineDepartureRecorded(false);
         return;
@@ -64,6 +70,8 @@ const AttendanceButton = () => {
         const today = format(new Date(), 'yyyy-MM-dd');
         const pendingMutations = await getPendingMutations('attendance');
         
+        addLog(`Found ${pendingMutations.length} pending mutations`, 'info');
+        
         // Find today's offline attendance mutations by timestamp
         const todayMutations = pendingMutations.filter(m => {
           if (!m.data.timestamp || m.userId !== user?.id || m.synced) return false;
@@ -71,17 +79,25 @@ const AttendanceButton = () => {
           return mutationDate === today;
         });
         
+        addLog(`Found ${todayMutations.length} today's mutations`, 'info');
+        
         // Check for arrival and departure types
         const hasArrival = todayMutations.some(m => m.data.type === 'arrival');
         const hasDeparture = todayMutations.some(m => m.data.type === 'departure');
         
-        setOfflineArrivalRecorded(hasArrival);
-        setOfflineDepartureRecorded(hasDeparture);
+        if (hasArrival) {
+          addLog('Found offline arrival - setting offlineArrivalRecorded=true', 'success');
+          setOfflineArrivalRecorded(true);
+        }
+        if (hasDeparture) {
+          addLog('Found offline departure - setting offlineDepartureRecorded=true', 'success');
+          setOfflineDepartureRecorded(true);
+        }
       }
     };
     
     checkOfflineArrival();
-  }, [todayAttendance, isLoading, user?.id]);
+  }, [todayAttendance, isLoading, user?.id, addLog]);
 
   // Clear offline state after sync
   useEffect(() => {
@@ -102,34 +118,48 @@ const AttendanceButton = () => {
     }
   }, [todayAttendance, shouldNavigateBack, returnUrl, navigate]);
 
-  const hasArrived = todayAttendance?.arrival_time || offlineArrivalRecorded;
-  const hasDeparted = todayAttendance?.departure_time || offlineDepartureRecorded;
+  const hasArrived = !!(todayAttendance?.arrival_time || offlineArrivalRecorded);
+  const hasDeparted = !!(todayAttendance?.departure_time || offlineDepartureRecorded);
 
   const handleArrivalClick = () => {
+    addLog('Clicked "Príchod do práce"', 'info');
     // If project already selected today, use it directly without showing dialog
     if (currentProjectId) {
+      addLog(`Using current project: ${currentProjectId}`, 'info');
       handleProjectSelect(currentProjectId);
     } else {
+      addLog('Opening project selection dialog', 'info');
       // Show dialog only if no project selected today
       setShowProjectDialog(true);
     }
   };
 
   const handleProjectSelect = useCallback(async (projectId: string | null) => {
+    addLog(`Project selected: ${projectId}`, 'info');
+    
     if (!isConnected) {
       // OFFLINE: Save everything to IndexedDB
+      addLog('Offline mode - saving to IndexedDB', 'info');
       setIsProcessingOffline(true);
       try {
         const now = new Date();
         
+        addLog('Getting GPS location...', 'info');
         // Get GPS location with timeout (non-blocking)
         const location = await Promise.race([
           getLocation(),
           new Promise<null>((resolve) => setTimeout(() => resolve(null), 3000))
         ]);
 
+        if (location) {
+          addLog(`GPS: ${location.latitude}, ${location.longitude}`, 'success');
+        } else {
+          addLog('GPS timeout or denied', 'warning');
+        }
+
         // Save project selection to IndexedDB
         if (projectId) {
+          addLog('Saving project_selection mutation...', 'info');
           await savePendingMutation({
             id: `${user?.id}-project-${now.getTime()}`,
             entityType: 'project_selection',
@@ -144,9 +174,11 @@ const AttendanceButton = () => {
             retries: 0,
             userId: user?.id || '',
           });
+          addLog('Project mutation saved', 'success');
         }
 
         // Save attendance arrival to IndexedDB
+        addLog('Saving attendance (arrival) mutation...', 'info');
         const attendanceSaved = await savePendingMutation({
           id: `${user?.id}-arrival-${now.getTime()}`,
           entityType: 'attendance',
@@ -167,7 +199,10 @@ const AttendanceButton = () => {
 
         // Only update UI state if attendance was actually saved
         if (attendanceSaved) {
+          addLog('Attendance mutation saved successfully', 'success');
           setOfflineArrivalRecorded(true);
+          addLog('Set offlineArrivalRecorded = true', 'success');
+          addLog(`hasArrived should now be: ${true}`, 'info');
           
           if (!location) {
             toast.success('Príchod uložený offline (bez GPS)', {
@@ -181,16 +216,19 @@ const AttendanceButton = () => {
             });
           }
         } else {
+          addLog('Attendance mutation FAILED - duplicate detected', 'error');
           toast.error('Príchod už bol zaznamenaný');
         }
       } catch (error) {
         console.error('Offline arrival failed:', error);
+        addLog(`Error: ${error}`, 'error');
         toast.error('Nepodarilo sa uložiť príchod offline');
       } finally {
         setIsProcessingOffline(false);
       }
     } else {
       // ONLINE: Save to database
+      addLog('Online mode - using normal mutation', 'info');
       if (projectId) {
         setDailyProject({ projectId, isOnline: isConnected });
       }
@@ -199,11 +237,14 @@ const AttendanceButton = () => {
         setShouldNavigateBack(true);
       }
     }
-  }, [isConnected, getLocation, user?.id, recordArrival, returnUrl, setDailyProject]);
+  }, [isConnected, getLocation, user?.id, recordArrival, returnUrl, setDailyProject, addLog]);
 
   const handleDeparture = useCallback(async () => {
+    addLog('Clicked "Odchod z práce"', 'info');
+    
     if (!isConnected) {
       // OFFLINE: Save to IndexedDB
+      addLog('Offline mode - saving to IndexedDB', 'info');
       setIsProcessingOffline(true);
       try {
         const now = new Date();
@@ -211,22 +252,32 @@ const AttendanceButton = () => {
         
         // CRITICAL: Verify we have an arrival record from TODAY
         if (!todayAttendance) {
+          addLog('No arrival record found', 'error');
           toast.error('Najprv musíte zaznamenať príchod');
           return;
         }
         
         // CRITICAL: Prevent closing old records
         if (todayAttendance.date !== today) {
+          addLog(`Attempt to close old record: ${todayAttendance.date} vs ${today}`, 'error');
           toast.error('Nie je možné ukončiť záznam z iného dňa. Prosím, kontaktujte administrátora.');
           return;
         }
         
+        addLog('Getting GPS location...', 'info');
         // Get GPS location with timeout (non-blocking)
         const location = await Promise.race([
           getLocation(),
           new Promise<null>((resolve) => setTimeout(() => resolve(null), 3000))
         ]);
 
+        if (location) {
+          addLog(`GPS: ${location.latitude}, ${location.longitude}`, 'success');
+        } else {
+          addLog('GPS timeout or denied', 'warning');
+        }
+
+        addLog('Saving departure mutation...', 'info');
         const departureSaved = await savePendingMutation({
           id: `${user?.id}-departure-${now.getTime()}`,
           entityType: 'attendance',
@@ -246,7 +297,9 @@ const AttendanceButton = () => {
 
         // Only update UI state if departure was actually saved
         if (departureSaved) {
+          addLog('Departure mutation saved successfully', 'success');
           setOfflineDepartureRecorded(true);
+          addLog('Set offlineDepartureRecorded = true', 'success');
           
           if (!location) {
             toast.success('Odchod uložený offline (bez GPS)', {
@@ -260,23 +313,26 @@ const AttendanceButton = () => {
             });
           }
         } else {
+          addLog('Departure mutation FAILED - duplicate detected', 'error');
           toast.error('Odchod už bol zaznamenaný');
         }
       } catch (error) {
         console.error('Offline departure failed:', error);
+        addLog(`Error: ${error}`, 'error');
         toast.error('Nepodarilo sa uložiť odchod offline');
       } finally {
         setIsProcessingOffline(false);
       }
     } else {
       // ONLINE: Record to database
+      addLog('Online mode - using normal mutation', 'info');
       recordDeparture(undefined, {
         onSuccess: () => {
           clearDailyProject();
         }
       });
     }
-  }, [isConnected, getLocation, user?.id, recordDeparture, clearDailyProject]);
+  }, [isConnected, getLocation, user?.id, recordDeparture, clearDailyProject, addLog, todayAttendance]);
 
   if (isConnected && (isLoading || isLoadingActiveLogs)) {
     return (
@@ -431,6 +487,16 @@ const AttendanceButton = () => {
         )}
       </CardContent>
     </Card>
+
+    {/* Debug Panel */}
+    <AttendanceDebugPanel
+      offlineArrivalRecorded={offlineArrivalRecorded}
+      offlineDepartureRecorded={offlineDepartureRecorded}
+      hasArrived={hasArrived}
+      hasDeparted={hasDeparted}
+      todayAttendance={todayAttendance}
+      userId={user?.id || ''}
+    />
     </>
   );
 };
