@@ -6,8 +6,9 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { usePendingSync } from '@/hooks/usePendingSync';
 import { useDebugLog } from '@/hooks/useDebugLog';
-import { getPendingMutations } from '@/lib/offlineStorage';
+import { getPendingMutations, clearPendingMutations } from '@/lib/offlineStorage';
 import { format } from 'date-fns';
+import { toast } from 'sonner';
 
 interface AttendanceDebugPanelProps {
   offlineArrivalRecorded: boolean;
@@ -40,7 +41,9 @@ export function AttendanceDebugPanel({
       const mutations = await getPendingMutations('attendance');
       const today = format(new Date(), 'yyyy-MM-dd');
       const todayMutations = mutations.filter((m: any) => {
-        const mutationDate = m.data.date || format(new Date(m.timestamp), 'yyyy-MM-dd');
+        const timestamp = m.data.timestamp || m.timestamp;
+        if (!timestamp) return false;
+        const mutationDate = format(new Date(timestamp), 'yyyy-MM-dd');
         return mutationDate === today && m.userId === userId;
       });
       
@@ -53,6 +56,17 @@ export function AttendanceDebugPanel({
       setLastUpdate(new Date().toLocaleTimeString());
     } catch (error) {
       console.error('Failed to fetch IndexedDB info:', error);
+    }
+  };
+
+  const clearOldMutations = async () => {
+    try {
+      await clearPendingMutations('attendance');
+      await refreshIndexDB();
+      toast.success('Všetky offline mutácie vymazané');
+    } catch (error) {
+      console.error('Failed to clear mutations:', error);
+      toast.error('Nepodarilo sa vymazať mutácie');
     }
   };
 
@@ -96,7 +110,13 @@ export function AttendanceDebugPanel({
           <Button size="icon" variant="ghost" onClick={exportLogs} className="h-7 w-7">
             <Download className="h-3 w-3" />
           </Button>
-          <Button size="icon" variant="ghost" onClick={clearLogs} className="h-7 w-7">
+          <Button 
+            size="icon" 
+            variant="ghost" 
+            onClick={clearOldMutations} 
+            className="h-7 w-7 text-destructive hover:text-destructive"
+            title="Clear all mutations"
+          >
             <Trash2 className="h-3 w-3" />
           </Button>
           <Button size="icon" variant="ghost" onClick={() => setIsOpen(false)} className="h-7 w-7">

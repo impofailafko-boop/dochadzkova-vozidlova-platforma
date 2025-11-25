@@ -221,3 +221,34 @@ export async function getPendingCount(): Promise<number> {
   const mutations = await getPendingMutations();
   return mutations.length;
 }
+
+export async function clearPendingMutations(entityType?: EntityType): Promise<void> {
+  const db = await openDB();
+  const transaction = db.transaction([STORE_NAME], 'readwrite');
+  const store = transaction.objectStore(STORE_NAME);
+  
+  return new Promise((resolve, reject) => {
+    if (entityType) {
+      // Clear only specific entity type
+      const entityIndex = store.index('entityType');
+      const request = entityIndex.openCursor(IDBKeyRange.only(entityType));
+      
+      request.onsuccess = (event) => {
+        const cursor = (event.target as IDBRequest).result;
+        if (cursor) {
+          store.delete(cursor.primaryKey);
+          cursor.continue();
+        } else {
+          resolve();
+        }
+      };
+      
+      request.onerror = () => reject(request.error);
+    } else {
+      // Clear all mutations
+      const request = store.clear();
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
+    }
+  });
+}
