@@ -80,8 +80,11 @@ const AttendanceButton = () => {
         
         // Find today's offline attendance mutations by timestamp
         const todayMutations = pendingMutations.filter(m => {
-          if (!m.data.timestamp || m.userId !== user?.id || m.synced) return false;
-          const mutationDate = format(new Date(m.data.timestamp), 'yyyy-MM-dd');
+          if (m.userId !== user?.id || m.synced) return false;
+          // Use m.data.timestamp if available, fallback to m.timestamp
+          const timestamp = m.data.timestamp || m.timestamp;
+          if (!timestamp) return false;
+          const mutationDate = format(new Date(timestamp), 'yyyy-MM-dd');
           return mutationDate === today;
         });
         
@@ -103,7 +106,7 @@ const AttendanceButton = () => {
     };
     
     checkOfflineArrival();
-  }, [todayAttendance, isLoading, user?.id, addLog]);
+  }, [todayAttendance, isLoading, user?.id]);
 
   // Clear offline state after sync
   useEffect(() => {
