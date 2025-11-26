@@ -288,18 +288,23 @@ const AttendanceButton = () => {
         const now = new Date();
         const today = format(now, 'yyyy-MM-dd');
         
-        // CRITICAL: Verify we have an arrival record from TODAY
-        if (!todayAttendance) {
-          addLog('No arrival record found', 'error');
-          toast.error('Najprv musíte zaznamenať príchod');
-          return;
-        }
-        
-        // CRITICAL: Prevent closing old records
-        if (todayAttendance.date !== today) {
-          addLog(`Attempt to close old record: ${todayAttendance.date} vs ${today}`, 'error');
-          toast.error('Nie je možné ukončiť záznam z iného dňa. Prosím, kontaktujte administrátora.');
-          return;
+        // OFFLINE: Allow departure if we have offline arrival recorded
+        if (offlineArrivalRecorded) {
+          // Skip database check - we know arrival is in IndexedDB
+          addLog('Offline mode with offline arrival - skipping DB check', 'info');
+        } else {
+          // ONLINE or no offline arrival - require database record
+          if (!todayAttendance) {
+            addLog('No arrival record found', 'error');
+            toast.error('Najprv musíte zaznamenať príchod');
+            return;
+          }
+          
+          if (todayAttendance.date !== today) {
+            addLog(`Attempt to close old record: ${todayAttendance.date} vs ${today}`, 'error');
+            toast.error('Nie je možné ukončiť záznam z iného dňa. Prosím, kontaktujte administrátora.');
+            return;
+          }
         }
         
         addLog('Getting GPS location...', 'info');
